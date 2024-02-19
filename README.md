@@ -1,0 +1,2 @@
+# aider.vim
+Integration aider
