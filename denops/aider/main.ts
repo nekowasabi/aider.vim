@@ -9,14 +9,22 @@ export async function main(denops: Denops): Promise<void> {
       await this.splitWithDirection();
       await this.runAiderCommand();
     },
-    // プロンプト送信
     async sendPrompt(prompt: unknown): Promise<void> {
-      console.log(prompt);
-      // プロンプトを取得
-      // コマンドを合成
-      // aiderのウインドウに送信
+      const win_count = ensure(await fn.winnr(denops, "$"), is.Number);
+      const str = ensure(prompt, is.String) + "\n";
+      for (let i = 0; i <= win_count; i++) {
+        const bufnr = ensure(await fn.winbufnr(denops, i), is.Number);
+        if (await fn.getbufvar(denops, bufnr, "&buftype") === "terminal") {
+          const job_id = ensure(
+            await fn.getbufvar(denops, bufnr, "terminal_job_id"),
+            is.Number,
+          );
+          if (job_id !== 0) {
+            await denops.call("chansend", job_id, str);
+          }
+        }
+      }
     },
-    // 現在のファイルをaddする
     async addCurrentFile(): Promise<void> {
       // 現在のファイルを取得
       // aiderのウインドウにaddする
