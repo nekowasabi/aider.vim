@@ -1,6 +1,6 @@
 # aider.vim
 
-Helper aider with vim(neovim)
+Helper aider with neovim(vim).
 
 # Demo
 
@@ -11,6 +11,15 @@ Helper aider with vim(neovim)
 This plugin also requires [aider](https://github.com/paul-gauthier/aider) to be
 installed. This plugin requires
 [denops.vim](https://github.com/vim-denops/denops.vim) to be installed.
+
+# Settings
+
+Please add the following settings to your vimrc or init.vim
+
+```vim
+let g:aider_command = 'aider --no-auto-commits --4turbo'
+let g:aider_split_direction = 'vsplit'
+```
 
 # Usage
 
