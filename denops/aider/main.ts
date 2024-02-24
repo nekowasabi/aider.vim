@@ -32,8 +32,11 @@ export async function main(denops: Denops): Promise<void> {
       }
     },
     async addCurrentFile(): Promise<void> {
-      // தற்போதைய கோப்பை பெறுக
-      // aider விண்டோவில் சேர்
+      const currentFile = ensure(
+        await fn.expand(denops, "%:p"),
+        is.String,
+      );
+      await denops.cmd(`edit ${currentFile}`);
     },
     async splitWithDirection(): Promise<string> {
       const splitDirection = ensure(
@@ -44,12 +47,10 @@ export async function main(denops: Denops): Promise<void> {
       return splitDirection ?? "split";
     },
     async runAiderCommand(): Promise<void> {
-      // தற்போதைய கோப்பை பெறுக
       const currentFile = ensure(
         await fn.expand(denops, "%:p"),
         is.String,
       );
-      // aider தொடங்கு
       const aiderCommand = ensure(
         await v.g.get(denops, "aider_command"),
         is.String,
