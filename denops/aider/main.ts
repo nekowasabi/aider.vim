@@ -5,9 +5,21 @@ import { ensure, is } from "https://deno.land/x/unknownutil@v3.14.0/mod.ts";
 import { feedkeys } from "https://deno.land/x/denops_std@v6.1.0/function/mod.ts";
 
 export async function main(denops: Denops): Promise<void> {
+  async function getCurrentFilePath(): Promise<string> {
+    return ensure(await fn.expand(denops, "%:p"), is.String);
+  }
+  async function splitWithDirection(): Promise<string> {
+    const splitDirection = ensure(
+      await v.g.get(denops, "aider_split_direction"),
+      is.String,
+    );
+    await denops.cmd(splitDirection ?? "split");
+    return splitDirection ?? "split";
+  }
+
   denops.dispatcher = {
     async runAider(): Promise<void> {
-      await this.splitWithDirection();
+      await splitWithDirection();
       await this.runAiderCommand();
     },
     async sendPrompt(prompt: unknown): Promise<void> {
@@ -30,25 +42,12 @@ export async function main(denops: Denops): Promise<void> {
       }
     },
     async addCurrentFile(): Promise<void> {
-      const currentFile = ensure(
-        await fn.expand(denops, "%:p"),
-        is.String,
-      );
-      await denops.cmd(`edit ${currentFile}`);
-    },
-    async splitWithDirection(): Promise<string> {
-      const splitDirection = ensure(
-        await v.g.get(denops, "aider_split_direction"),
-        is.String,
-      );
-      await denops.cmd(splitDirection ?? "split");
-      return splitDirection ?? "split";
+      const currentFile = await getCurrentFilePath();
+      const prompt = `/add ${currentFile}`;
+      await this.sendPrompt(prompt);
     },
     async runAiderCommand(): Promise<void> {
-      const currentFile = ensure(
-        await fn.expand(denops, "%:p"),
-        is.String,
-      );
+      const currentFile = await getCurrentFilePath();
       const aiderCommand = ensure(
         await v.g.get(denops, "aider_command"),
         is.String,
@@ -61,7 +60,7 @@ export async function main(denops: Denops): Promise<void> {
     `command! -nargs=0 AiderSendPrompt call denops#notify("${denops.name}", "sendPrompt", [input("Prompt: ")])`,
   );
   await denops.cmd(
-    `command! -nargs=0 AiderAddCurrentFile call denops#notify("${denops.name}", "addCurrentFile")`,
+    `command! -nargs=0 AiderAddCurrentFile call denops#notify("${denops.name}", "addCurrentFile", [])`,
   );
   await denops.cmd(
     `command! -nargs=0 AiderRun call denops#notify("${denops.name}", "runAider", [])`,
