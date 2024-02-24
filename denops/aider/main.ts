@@ -5,6 +5,22 @@ import { ensure, is } from "https://deno.land/x/unknownutil@v3.14.0/mod.ts";
 
 export async function main(denops: Denops): Promise<void> {
   denops.dispatcher = {
+    async runAider(): Promise<void> {
+      await this.splitWithDirection();
+      await this.runAiderCommand();
+    },
+    // プロンプト送信
+    async sendPrompt(prompt: unknown): Promise<void> {
+      console.log(prompt);
+      // プロンプトを取得
+      // コマンドを合成
+      // aiderのウインドウに送信
+    },
+    // 現在のファイルをaddする
+    async addCurrentFile(): Promise<void> {
+      // 現在のファイルを取得
+      // aiderのウインドウにaddする
+    },
     async splitWithDirection(): Promise<string> {
       const splitDirection = ensure(
         await v.g.get(denops, "aider_split_direction"),
@@ -25,22 +41,6 @@ export async function main(denops: Denops): Promise<void> {
         is.String,
       );
       await denops.cmd(`terminal ${aiderCommand} ${currentFile}`);
-    },
-    async runAider(): Promise<void> {
-      await this.splitWithDirection();
-      await this.runAiderCommand();
-    },
-    // プロンプト送信
-    async sendPrompt(prompt: unknown): Promise<void> {
-      console.log(prompt);
-      // プロンプトを取得
-      // コマンドを合成
-      // aiderのウインドウに送信
-    },
-    // 現在のファイルをaddする
-    async addCurrentFile(): Promise<void> {
-      // 現在のファイルを取得
-      // aiderのウインドウにaddする
     },
   };
 
