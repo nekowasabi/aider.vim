@@ -2,6 +2,7 @@ import { Denops } from "https://deno.land/x/denops_std@v5.0.0/mod.ts";
 import * as fn from "https://deno.land/x/denops_std@v5.0.0/function/mod.ts";
 import * as v from "https://deno.land/x/denops_std@v5.2.0/variable/mod.ts";
 import { ensure, is } from "https://deno.land/x/unknownutil@v3.14.0/mod.ts";
+import { feedkeys } from "https://deno.land/x/denops_std@v6.1.0/function/mod.ts";
 
 export async function main(denops: Denops): Promise<void> {
   denops.dispatcher = {
@@ -21,6 +22,9 @@ export async function main(denops: Denops): Promise<void> {
           );
           if (job_id !== 0) {
             await denops.call("chansend", job_id, str);
+            await denops.cmd(`${i}wincmd w`);
+            await feedkeys(denops, "G");
+            await denops.cmd("wincmd p");
           }
         }
       }
