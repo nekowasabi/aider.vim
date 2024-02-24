@@ -10,22 +10,22 @@ export async function main(denops: Denops): Promise<void> {
       await this.runAiderCommand();
     },
     async sendPrompt(prompt: unknown): Promise<void> {
-      // プロンプトの文字列を取得し、新しい行を追加します
+      // Get the prompt string and add a new line
       const win_count = ensure(await fn.winnr(denops, "$"), is.Number);
       const str = ensure(prompt, is.String) + "\n";
-      // 開いているウィンドウの数を取得します
+      // Get the number of open windows
       for (let i = 0; i <= win_count; i++) {
-        // ウィンドウのバッファ番号を取得します
+        // Get the buffer number of the window
         const bufnr = ensure(await fn.winbufnr(denops, i), is.Number);
-        // バッファのタイプがターミナルかどうかを確認します
+        // Check if the buffer type is terminal
         if (await fn.getbufvar(denops, bufnr, "&buftype") === "terminal") {
-          // ターミナルのジョブIDを取得します
+          // Get the job ID of the terminal
           const job_id = ensure(
             await fn.getbufvar(denops, bufnr, "terminal_job_id"),
             is.Number,
           );
           if (job_id !== 0) {
-            // ジョブIDにプロンプトの文字列を送信します
+            // Send the prompt string to the job ID
             await denops.call("chansend", job_id, str);
           }
         }
