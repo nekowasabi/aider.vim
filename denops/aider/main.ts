@@ -10,24 +10,30 @@ export async function main(denops: Denops): Promise<void> {
       await this.runAiderCommand();
     },
     async sendPrompt(prompt: unknown): Promise<void> {
+      // プロンプトの文字列を取得し、新しい行を追加します
       const win_count = ensure(await fn.winnr(denops, "$"), is.Number);
       const str = ensure(prompt, is.String) + "\n";
+      // 開いているウィンドウの数を取得します
       for (let i = 0; i <= win_count; i++) {
+        // ウィンドウのバッファ番号を取得します
         const bufnr = ensure(await fn.winbufnr(denops, i), is.Number);
+        // バッファのタイプがターミナルかどうかを確認します
         if (await fn.getbufvar(denops, bufnr, "&buftype") === "terminal") {
+          // ターミナルのジョブIDを取得します
           const job_id = ensure(
             await fn.getbufvar(denops, bufnr, "terminal_job_id"),
             is.Number,
           );
           if (job_id !== 0) {
+            // ジョブIDにプロンプトの文字列を送信します
             await denops.call("chansend", job_id, str);
           }
         }
       }
     },
     async addCurrentFile(): Promise<void> {
-      // 現在のファイルを取得
-      // aiderのウインドウにaddする
+      // தற்போதைய கோப்பை பெறுக
+      // aider விண்டோவில் சேர்
     },
     async splitWithDirection(): Promise<string> {
       const splitDirection = ensure(
@@ -38,12 +44,12 @@ export async function main(denops: Denops): Promise<void> {
       return splitDirection ?? "split";
     },
     async runAiderCommand(): Promise<void> {
-      // 現在のファイル取得
+      // தற்போதைய கோப்பை பெறுக
       const currentFile = ensure(
         await fn.expand(denops, "%:p"),
         is.String,
       );
-      // aider起動
+      // aider தொடங்கு
       const aiderCommand = ensure(
         await v.g.get(denops, "aider_command"),
         is.String,
