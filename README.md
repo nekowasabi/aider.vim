@@ -2,6 +2,9 @@
 
 Helper aider with vim(neovim)
 
+# Demo
+![aider](https://github.com/nekowasabi/aider.vim/assets/3657473/f541b7d4-b8a1-4946-8b3b-025741c4a36b)
+
 # Requirements
 
 This plugin also requires [aider](https://github.com/paul-gauthier/aider) to be
