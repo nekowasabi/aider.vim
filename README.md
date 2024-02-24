@@ -1,6 +1,6 @@
 # aider.vim
 
-Helper aider with neovim(vim).
+Minimal helper plugin for aider with neovim(vim).
 
 # Demo
 
