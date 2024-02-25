@@ -17,29 +17,37 @@ export async function main(denops: Denops): Promise<void> {
     return splitDirection ?? "split";
   }
 
+  async function forEachTerminalBuffer(
+    callback: (job_id: number, bufnr?: number) => Promise<void>,
+  ): Promise<void> {
+    const win_count = ensure(await fn.winnr(denops, "$"), is.Number);
+    for (let i = 0; i <= win_count; i++) {
+      const bufnr = ensure(await fn.winbufnr(denops, i), is.Number);
+      if (await fn.getbufvar(denops, bufnr, "&buftype") === "terminal") {
+        const job_id = ensure(
+          await fn.getbufvar(denops, bufnr, "terminal_job_id"),
+          is.Number,
+        );
+        if (job_id !== 0) {
+          await callback(job_id, bufnr);
+        }
+      }
+    }
+  }
+
   denops.dispatcher = {
     async runAider(): Promise<void> {
       await splitWithDirection();
       await this.runAiderCommand();
     },
     async sendPrompt(prompt: unknown): Promise<void> {
-      const win_count = ensure(await fn.winnr(denops, "$"), is.Number);
       const str = ensure(prompt, is.String) + "\n";
-      for (let i = 0; i <= win_count; i++) {
-        const bufnr = ensure(await fn.winbufnr(denops, i), is.Number);
-        if (await fn.getbufvar(denops, bufnr, "&buftype") === "terminal") {
-          const job_id = ensure(
-            await fn.getbufvar(denops, bufnr, "terminal_job_id"),
-            is.Number,
-          );
-          if (job_id !== 0) {
-            await denops.call("chansend", job_id, str);
-            await denops.cmd(`${i}wincmd w`);
-            await feedkeys(denops, "G");
-            await denops.cmd("wincmd p");
-          }
-        }
-      }
+      await forEachTerminalBuffer(async (job_id, bufnr) => {
+        await denops.call("chansend", job_id, str);
+        await denops.cmd(`${bufnr}wincmd w`);
+        await feedkeys(denops, "G");
+        await denops.cmd("wincmd p");
+      });
     },
     async addCurrentFile(): Promise<void> {
       const currentFile = await getCurrentFilePath();
@@ -54,6 +62,12 @@ export async function main(denops: Denops): Promise<void> {
       );
       await denops.cmd(`terminal ${aiderCommand} ${currentFile}`);
     },
+    async exitAider(): Promise<void> {
+      await forEachTerminalBuffer(async (job_id, bufnr) => {
+        await denops.call("chansend", job_id, "/exit\n");
+        await denops.cmd(`bdelete! ${bufnr}`);
+      });
+    },
   };
 
   await denops.cmd(
@@ -64,5 +78,8 @@ export async function main(denops: Denops): Promise<void> {
   );
   await denops.cmd(
     `command! -nargs=0 AiderRun call denops#notify("${denops.name}", "runAider", [])`,
+  );
+  await denops.cmd(
+    `command! -nargs=0 AiderExit call denops#notify("${denops.name}", "exitAider", [])`,
   );
 }
