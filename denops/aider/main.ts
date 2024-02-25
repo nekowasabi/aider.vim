@@ -1,5 +1,7 @@
 import { Denops } from "https://deno.land/x/denops_std@v5.0.0/mod.ts";
 import * as fn from "https://deno.land/x/denops_std@v5.0.0/function/mod.ts";
+import * as n from "https://deno.land/x/denops_std@v6.1.0/function/nvim/mod.ts";
+
 import * as v from "https://deno.land/x/denops_std@v5.2.0/variable/mod.ts";
 import { ensure, is } from "https://deno.land/x/unknownutil@v3.14.0/mod.ts";
 import { feedkeys } from "https://deno.land/x/denops_std@v6.1.0/function/mod.ts";
@@ -41,6 +43,10 @@ export async function main(denops: Denops): Promise<void> {
       await this.runAiderCommand();
     },
     async sendPrompt(prompt: unknown): Promise<void> {
+      // promptが空なら何もしない
+      if (prompt === "") {
+        return;
+      }
       const str = ensure(prompt, is.String) + "\n";
       await forEachTerminalBuffer(async (job_id, bufnr) => {
         await denops.call("chansend", job_id, str);
@@ -68,6 +74,31 @@ export async function main(denops: Denops): Promise<void> {
         await denops.cmd(`bdelete! ${bufnr}`);
       });
     },
+    async selectedCodeWithPromptAider(
+      start: unknown,
+      end: unknown,
+    ): Promise<void> {
+      const words = await denops.call("getline", start, end);
+      ensure(words, is.ArrayOf(is.String));
+
+      // floatint window定義
+      const buf = await n.nvim_create_buf(denops, false, true);
+      const win = await n.nvim_open_win(denops, buf, true, {
+        relative: "editor",
+        border: "double",
+        width: 40,
+        height: 10,
+        row: 10,
+        col: 10,
+      });
+      await denops.cmd("setlocal buftype=nofile");
+      await denops.cmd("set nonumber");
+
+      // バッファローカルなマッピング
+      // windowに対してマッピングを設定する
+      // nvim_set_keymap(denops, "n", "<esc>", "<cmd>q!<cr>", { buffer: buf });
+      // nvim_set_keymap(denops, "n", "<esc>", "<cmd>q!<cr>", { buffer: buf });
+    },
   };
 
   await denops.cmd(
@@ -81,5 +112,8 @@ export async function main(denops: Denops): Promise<void> {
   );
   await denops.cmd(
     `command! -nargs=0 AiderExit call denops#notify("${denops.name}", "exitAider", [])`,
+  );
+  await denops.cmd(
+    `command! -nargs=* -range AiderVisualTextWithPrompt call denops#notify("${denops.name}", "selectedCodeWithPromptAider", [<line1>, <line2>])`,
   );
 }
