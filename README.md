@@ -25,7 +25,7 @@ let g:aider_split_direction = 'vsplit'
 
 To use aider.vim, you can run the following commands within Vim or Neovim:
 
-- `:AiderSendPrompt` Sends a custom prompt to aider.
-- `:AiderAddCurrentFile` Adds the current file to aider's context.
 - `:AiderRun` - Runs aider with the current file context.
+- `:AiderAddCurrentFile` Adds the current file to aider's context.
+- `:AiderSendPrompt` Sends a custom prompt to aider.
 - `:AiderExit` - Exits aider and cleans up the session.
