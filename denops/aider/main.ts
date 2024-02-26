@@ -93,11 +93,23 @@ export async function main(denops: Denops): Promise<void> {
       });
       await denops.cmd("setlocal buftype=nofile");
       await denops.cmd("set nonumber");
+      await denops.cmd("set filetype=aider_prompt");
 
-      // バッファローカルなマッピング
-      // windowに対してマッピングを設定する
-      // nvim_set_keymap(denops, "n", "<esc>", "<cmd>q!<cr>", { buffer: buf });
-      // nvim_set_keymap(denops, "n", "<esc>", "<cmd>q!<cr>", { buffer: buf });
+      // ウインドウを閉じる
+      await n.nvim_buf_set_keymap(denops, buf, "n", "q", "<cmd>q!<cr>", {
+        silent: true,
+      });
+      // 入力された文字列をAiderSendPromptに渡す
+      await n.nvim_buf_set_keymap(
+        denops,
+        buf,
+        "n",
+        "<cr>",
+        "<cmd>AiderSendPrompt<cr>",
+        {
+          silent: true,
+        },
+      );
     },
   };
 
