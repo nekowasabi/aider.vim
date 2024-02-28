@@ -29,5 +29,6 @@ To use aider.vim, you can run the following commands within Vim or Neovim:
 
 - `:AiderRun` - Runs aider with the current file context.
 - `:AiderAddCurrentFile` Adds the current file to aider's context.
-- `:AiderSendPrompt` Sends a custom prompt to aider.
+- `:AiderSendPromptWithInput` Sends a custom prompt to aider.
 - `:AiderExit` - Exits aider and cleans up the session.
+- `:AiderVisualTextWithPrompt` - Sends the visual selection to aider with a custom prompt.
