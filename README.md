@@ -6,6 +6,8 @@ Minimal helper plugin for aider with neovim(vim).
 
 <img src="./demo/demo.gif" width="500">
 
+<img src="./demo/demo_visual_mode.gif" width="500">
+
 # Requirements
 
 - [aider](https://github.com/paul-gauthier/aider)
