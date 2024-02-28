@@ -100,14 +100,22 @@ export async function main(denops: Denops): Promise<void> {
       const terminal_height = Math.floor(
         ensure(await n.nvim_get_option(denops, "lines"), is.Number),
       );
-      const row = Math.floor((terminal_height - 30) / 2);
-      const col = Math.floor((terminal_width - 100) / 2);
+      const floatWinWidth = ensure(
+        await v.g.get(denops, "aider_floatwin_width"),
+        is.Number,
+      );
+      const floatWinHeight = ensure(
+        await v.g.get(denops, "aider_floatwin_height"),
+        is.Number,
+      );
+      const row = Math.floor((terminal_height - floatWinHeight) / 2);
+      const col = Math.floor((terminal_width - floatWinWidth) / 2);
 
       await n.nvim_open_win(denops, buf, true, {
         relative: "editor",
         border: "double",
-        width: 100,
-        height: 30,
+        width: floatWinWidth,
+        height: floatWinHeight,
         row: row,
         col: col,
       });
