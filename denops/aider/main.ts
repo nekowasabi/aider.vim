@@ -1,10 +1,10 @@
-import {Denops} from "https://deno.land/x/denops_std@v5.0.0/mod.ts";
+import { Denops } from "https://deno.land/x/denops_std@v5.0.0/mod.ts";
 import * as fn from "https://deno.land/x/denops_std@v5.0.0/function/mod.ts";
 import * as n from "https://deno.land/x/denops_std@v6.1.0/function/nvim/mod.ts";
 
 import * as v from "https://deno.land/x/denops_std@v5.2.0/variable/mod.ts";
-import {ensure, is} from "https://deno.land/x/unknownutil@v3.14.0/mod.ts";
-import {feedkeys} from "https://deno.land/x/denops_std@v6.1.0/function/mod.ts";
+import { ensure, is } from "https://deno.land/x/unknownutil@v3.14.0/mod.ts";
+import { feedkeys } from "https://deno.land/x/denops_std@v6.1.0/function/mod.ts";
 
 export async function main(denops: Denops): Promise<void> {
   async function getCurrentFilePath(): Promise<string> {
@@ -70,6 +70,8 @@ export async function main(denops: Denops): Promise<void> {
       const currentFile = await getCurrentFilePath();
       const prompt = `/add ${currentFile}`;
       await this.sendPromptWithInput(prompt);
+    },
+    async addWeb(): Promise<void> {
     },
     async runAiderCommand(): Promise<void> {
       const currentFile = await getCurrentFilePath();
@@ -156,6 +158,9 @@ export async function main(denops: Denops): Promise<void> {
   );
   await denops.cmd(
     `command! -nargs=0 AiderAddCurrentFile call denops#notify("${denops.name}", "addCurrentFile", [])`,
+  );
+  await denops.cmd(
+    `command! -nargs=0 AiderAddWeb call denops#notify("${denops.name}", "addWeb", [])`,
   );
   await denops.cmd(
     `command! -nargs=0 AiderExit call denops#notify("${denops.name}", "exitAider", [])`,
