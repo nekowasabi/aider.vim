@@ -1,10 +1,10 @@
-import { Denops } from "https://deno.land/x/denops_std@v5.0.0/mod.ts";
-import * as fn from "https://deno.land/x/denops_std@v5.0.0/function/mod.ts";
-import * as n from "https://deno.land/x/denops_std@v6.1.0/function/nvim/mod.ts";
+import { Denops } from "https://deno.land/x/denops_std@v6.2.0/mod.ts";
+import * as fn from "https://deno.land/x/denops_std@v6.2.0/function/mod.ts";
+import * as n from "https://deno.land/x/denops_std@v6.2.0/function/nvim/mod.ts";
 
-import * as v from "https://deno.land/x/denops_std@v5.2.0/variable/mod.ts";
-import { ensure, is } from "https://deno.land/x/unknownutil@v3.14.0/mod.ts";
-import { feedkeys } from "https://deno.land/x/denops_std@v6.1.0/function/mod.ts";
+import * as v from "https://deno.land/x/denops_std@v6.2.0/variable/mod.ts";
+import { ensure, is } from "https://deno.land/x/unknownutil@v3.16.3/mod.ts";
+import { feedkeys } from "https://deno.land/x/denops_std@v6.2.0/function/mod.ts";
 
 export async function main(denops: Denops): Promise<void> {
   async function getCurrentFilePath(): Promise<string> {
@@ -23,9 +23,10 @@ export async function main(denops: Denops): Promise<void> {
     callback: (job_id: number, winnr?: number, bufnr?: number) => Promise<void>,
   ): Promise<void> {
     const win_count = ensure(await fn.winnr(denops, "$"), is.Number);
-    for (let i = 0; i <= win_count; i++) {
+    for (let i = 1; i <= win_count; i++) {
       const bufnr = ensure(await fn.winbufnr(denops, i), is.Number);
-      if (await fn.getbufvar(denops, bufnr, "&buftype") === "terminal") {
+      const bufType = await fn.getbufvar(denops, bufnr, "&buftype");
+      if (bufType === "terminal") {
         const job_id = ensure(
           await fn.getbufvar(denops, bufnr, "&channel"),
           is.Number,
