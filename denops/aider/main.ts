@@ -93,6 +93,15 @@ export async function main(denops: Denops): Promise<void> {
       end: unknown,
     ): Promise<void> {
       const words = ensure(await denops.call("getline", start, end), is.Array);
+      const filetype = ensure(
+        await fn.getbufvar(denops, "%", "&filetype"),
+        is.String,
+      );
+      // wordsのテキストを ``` で囲む
+      // 最初の```の後にfiletypeを追加
+      words.unshift("```" + filetype);
+      words.push("```");
+      console.log(words);
 
       // floatint window定義
       const buf = await n.nvim_create_buf(denops, false, true);
@@ -124,7 +133,7 @@ export async function main(denops: Denops): Promise<void> {
       });
       await denops.cmd("setlocal buftype=nofile");
       await denops.cmd("set nonumber");
-      await denops.cmd("set filetype=aider_prompt");
+      await denops.cmd("set filetype=markdown");
 
       await n.nvim_buf_set_lines(denops, buf, -1, -1, true, words);
       await n.nvim_buf_set_lines(denops, buf, 0, 1, true, []);
