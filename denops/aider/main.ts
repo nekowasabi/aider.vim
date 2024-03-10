@@ -72,7 +72,12 @@ export async function main(denops: Denops): Promise<void> {
       const prompt = `/add ${currentFile}`;
       await this.sendPromptWithInput(prompt);
     },
-    async addWeb(): Promise<void> {
+    async addWeb(url: unknown): Promise<void> {
+      if (url === "") {
+        return;
+      }
+      const prompt = `/web ${url}`;
+      await this.sendPromptWithInput(prompt);
     },
     async runAiderCommand(): Promise<void> {
       const currentFile = await getCurrentFilePath();
@@ -170,7 +175,7 @@ export async function main(denops: Denops): Promise<void> {
     `command! -nargs=0 AiderAddCurrentFile call denops#notify("${denops.name}", "addCurrentFile", [])`,
   );
   await denops.cmd(
-    `command! -nargs=0 AiderAddWeb call denops#notify("${denops.name}", "addWeb", [])`,
+    `command! -nargs=0 AiderAddWeb call denops#notify("${denops.name}", "addWeb", [input("URL: ")])`,
   );
   await denops.cmd(
     `command! -nargs=0 AiderExit call denops#notify("${denops.name}", "exitAider", [])`,
