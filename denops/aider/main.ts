@@ -1,6 +1,5 @@
 import { Denops } from "https://deno.land/x/denops_std@v6.2.0/mod.ts";
 import * as fn from "https://deno.land/x/denops_std@v6.2.0/function/mod.ts";
-import * as n from "https://deno.land/x/denops_std@v6.2.0/function/nvim/mod.ts";
 
 import * as v from "https://deno.land/x/denops_std@v6.2.0/variable/mod.ts";
 import { ensure, is } from "https://deno.land/x/unknownutil@v3.16.3/mod.ts";
@@ -72,6 +71,22 @@ export async function main(denops: Denops): Promise<void> {
       const prompt = `/add ${currentFile}`;
       await this.sendPromptWithInput(prompt);
     },
+    async addFile(path: unknown): Promise<void> {
+      let fullPath = ensure(path, is.String);
+
+      if (fullPath === "") {
+        return;
+      }
+
+      // 相対パスの場合、フルパスに変換する
+      if (fullPath !== "" && !fullPath.startsWith("/")) {
+        fullPath = await fn.fnamemodify(denops, fullPath, ":p");
+      }
+      // fullPathが空なら何もしない
+
+      const prompt = `/add ${fullPath}`;
+      await this.sendPromptWithInput(prompt);
+    },
     async addWeb(url: unknown): Promise<void> {
       if (url === "") {
         return;
@@ -102,8 +117,6 @@ export async function main(denops: Denops): Promise<void> {
         await fn.getbufvar(denops, "%", "&filetype"),
         is.String,
       );
-      // wordsのテキストを ``` で囲む
-      // 最初の```の後にfiletypeを追加
       words.unshift("```" + filetype);
       words.push("```");
       console.log(words);
