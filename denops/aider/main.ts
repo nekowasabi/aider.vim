@@ -71,19 +71,29 @@ export async function main(denops: Denops): Promise<void> {
       const prompt = `/add ${currentFile}`;
       await this.sendPromptWithInput(prompt);
     },
+    /**
+     * ファイルを追加します。
+     *
+     * @param path - 追加するファイルのパス。空文字列の場合、何も行いません。
+     * @returns Promise<void> - 非同期処理を行うPromiseオブジェクトを返します。
+     *
+     * @example
+     *
+     * addFile("/path/to/file");
+     */
     async addFile(path: unknown): Promise<void> {
-      let fullPath = ensure(path, is.String);
-
-      if (fullPath === "") {
+      // パスが空文字列の場合、何も行わない
+      if (path === "") {
         return;
       }
 
-      // 相対パスの場合、フルパスに変換する
-      if (fullPath !== "" && !fullPath.startsWith("/")) {
-        fullPath = await fn.fnamemodify(denops, fullPath, ":p");
-      }
-      // fullPathが空なら何もしない
+      // フルパスを取得します。相対パスが指定された場合、絶対パスに変換します。
+      const fullPath = ensure(
+        await fn.fnamemodify(denops, path, ":p"),
+        is.String,
+      );
 
+      // プロンプトにフルパスを追加します。
       const prompt = `/add ${fullPath}`;
       await this.sendPromptWithInput(prompt);
     },
