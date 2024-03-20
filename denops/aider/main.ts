@@ -1,6 +1,6 @@
 import { Denops } from "https://deno.land/x/denops_std@v6.4.0/mod.ts";
 import * as fn from "https://deno.land/x/denops_std@v6.4.0/function/mod.ts";
-
+import * as n from "https://deno.land/x/denops_std@v6.1.0/function/nvim/mod.ts";
 import * as v from "https://deno.land/x/denops_std@v6.4.0/variable/mod.ts";
 import { ensure, is } from "https://deno.land/x/unknownutil@v3.17.0/mod.ts";
 import { feedkeys } from "https://deno.land/x/denops_std@v6.4.0/function/mod.ts";
@@ -18,6 +18,10 @@ export async function main(denops: Denops): Promise<void> {
     return splitDirection ?? "split";
   }
 
+  /**
+   * ターミナルバッファを順番に処理するための関数です。
+   * @param callback ターミナルバッファごとに実行されるコールバック関数
+   */
   async function forEachTerminalBuffer(
     callback: (job_id: number, winnr?: number, bufnr?: number) => Promise<void>,
   ): Promise<void> {
@@ -54,7 +58,6 @@ export async function main(denops: Denops): Promise<void> {
       });
     },
     async sendPromptWithInput(prompt: unknown): Promise<void> {
-      // promptが空なら何もしない
       if (prompt === "") {
         return;
       }
@@ -69,32 +72,6 @@ export async function main(denops: Denops): Promise<void> {
     async addCurrentFile(): Promise<void> {
       const currentFile = await getCurrentFilePath();
       const prompt = `/add ${currentFile}`;
-      await this.sendPromptWithInput(prompt);
-    },
-    /**
-     * ファイルを追加します。
-     *
-     * @param path - 追加するファイルのパス。空文字列の場合、何も行いません。
-     * @returns Promise<void> - 非同期処理を行うPromiseオブジェクトを返します。
-     *
-     * @example
-     *
-     * addFile("/path/to/file");
-     */
-    async addFile(path: unknown): Promise<void> {
-      // パスが空文字列の場合、何も行わない
-      if (path === "") {
-        return;
-      }
-
-      // フルパスを取得します。相対パスが指定された場合、絶対パスに変換します。
-      const fullPath = ensure(
-        await fn.fnamemodify(denops, path, ":p"),
-        is.String,
-      );
-
-      // プロンプトにフルパスを追加します。
-      const prompt = `/add ${fullPath}`;
       await this.sendPromptWithInput(prompt);
     },
     async addWeb(url: unknown): Promise<void> {
@@ -129,7 +106,6 @@ export async function main(denops: Denops): Promise<void> {
       );
       words.unshift("```" + filetype);
       words.push("```");
-      console.log(words);
 
       // floatint window定義
       const buf = await n.nvim_create_buf(denops, false, true);
