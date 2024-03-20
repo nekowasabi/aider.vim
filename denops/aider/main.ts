@@ -18,14 +18,6 @@ export async function main(denops: Denops): Promise<void> {
     return splitDirection ?? "split";
   }
 
-  /**
-   * 指定されたURLをAiderに追加するコマンドを送信します。
-   * 現在のファイルパスを取得し、Aiderに追加するコマンドを送信します。
-   * 指定されたURLをAiderに追加するコマンドを実行します。
-   * 現在のファイルパスを取得してAiderに追加するコマンドを実行します。
-   * ターミナルバッファを順番に処理するための関数です。
-   * @param callback ターミナルバッファごとに実行されるコールバック関数
-   */
   async function forEachTerminalBuffer(
     callback: (job_id: number, winnr?: number, bufnr?: number) => Promise<void>,
   ): Promise<void> {
