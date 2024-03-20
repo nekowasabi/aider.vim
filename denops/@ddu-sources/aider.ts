@@ -10,7 +10,7 @@ import { ActionData } from "https://deno.land/x/ddu_kind_file@v0.7.1/file.ts";
 type Params = Record<never, never>;
 
 export class Source extends BaseSource<Params> {
-  override kind = "aider";
+  override kind = "file";
 
   override gather(args: {
     denops: Denops;
@@ -19,32 +19,23 @@ export class Source extends BaseSource<Params> {
     sourceParams: Params;
     input: string;
   }): ReadableStream<Item<ActionData>[]> {
-    return new ReadableStream({
+    return new ReadableStream<Item<ActionData>[]>({
       async start(controller) {
-        const tree = async () => {
-          const items: Item<ActionData>[] = [];
-          console.log(await args.denops.eval("expand('%')"));
-
-          try {
-            const a = "ok";
-            items.push({
-              word: a,
-              action: {
-                path: a,
-                lineNr: 10,
-              },
-            });
-          } catch (e: unknown) {
-            console.error(e);
-          }
-
-          return items;
-        };
-
-        controller.enqueue(
-          await tree(),
-        );
-
+        try {
+          const result = await args.denops.call("system", "git ls-files");
+          const files = result.split("\n").filter((file: string) =>
+            file !== ""
+          );
+          const items: Item<ActionData>[] = files.map((file: string) => ({
+            word: file,
+            action: {
+              path: file,
+            },
+          }));
+          controller.enqueue(items);
+        } catch (e: unknown) {
+          console.error(e);
+        }
         controller.close();
       },
     });
