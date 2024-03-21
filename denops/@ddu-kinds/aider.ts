@@ -39,16 +39,17 @@ export const BookmarkAction: Actions<Params> = {
     const { denops, items } = args;
     // unknownutilのmaybe関数便利
     const action = maybe(items.at(0)?.action, isDduItemAction);
+    console.log(action);
 
-    if (!action) {
-      return ActionFlags.None;
-    }
-
-    await denops.call(
-      "bm#del_bookmark_at_line",
-      action.path,
-      action.lineNr,
-    );
+    // if (!action) {
+    //   return ActionFlags.None;
+    // }
+    //
+    // await denops.call(
+    //   "bm#del_bookmark_at_line",
+    //   action.path,
+    //   action.lineNr,
+    // );
     return ActionFlags.None;
   },
 };
