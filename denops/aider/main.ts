@@ -121,7 +121,7 @@ export async function main(denops: Denops): Promise<void> {
       words.push("```");
 
       // floatint window定義
-      const buf = await n.nvim_create_buf(denops, false, true);
+      const buf = await n.nvim_create_buf(denops, false, true) as number;
       // 画面中央に表示
       const terminal_width = Math.floor(
         ensure(await n.nvim_get_option(denops, "columns"), is.Number),
@@ -156,6 +156,8 @@ export async function main(denops: Denops): Promise<void> {
       await n.nvim_buf_set_lines(denops, buf, -1, -1, true, words);
       await n.nvim_buf_set_lines(denops, buf, 0, 1, true, []);
       await n.nvim_buf_set_lines(denops, buf, -1, -1, true, [""]);
+
+      await feedkeys(denops, "Gi");
 
       // ウインドウを閉じる
       await n.nvim_buf_set_keymap(denops, buf, "n", "q", "<cmd>q!<cr>", {
