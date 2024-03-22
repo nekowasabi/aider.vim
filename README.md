@@ -18,7 +18,7 @@ Minimal helper plugin for aider with neovim.
 Please add the following settings to your vimrc or init.vim.
 
 ```vim
-example
+ex.
 let g:aider_command = 'aider --no-auto-commits --4turbo'
 let g:aider_split_direction = 'vsplit'
 ```
