@@ -1,6 +1,6 @@
 import { Denops } from "https://deno.land/x/denops_std@v6.4.0/mod.ts";
 import * as fn from "https://deno.land/x/denops_std@v6.4.0/function/mod.ts";
-import * as n from "https://deno.land/x/denops_std@v6.1.0/function/nvim/mod.ts";
+import * as n from "https://deno.land/x/denops_std@v6.4.0/function/nvim/mod.ts";
 import * as v from "https://deno.land/x/denops_std@v6.4.0/variable/mod.ts";
 import { ensure, is } from "https://deno.land/x/unknownutil@v3.17.0/mod.ts";
 import { feedkeys } from "https://deno.land/x/denops_std@v6.4.0/function/mod.ts";
@@ -9,27 +9,34 @@ export async function main(denops: Denops): Promise<void> {
   async function getCurrentFilePath(): Promise<string> {
     return ensure(await fn.expand(denops, "%:p"), is.String);
   }
+
   async function splitWithDirection(): Promise<string> {
-    const splitDirection = ensure(
-      await v.g.get(denops, "aider_split_direction"),
-      is.String,
-    );
-    await denops.cmd(splitDirection ?? "split");
-    return splitDirection ?? "split";
+    let splitDirection: string | undefined;
+    try {
+      splitDirection = await v.g.get(denops, "aider_split_direction");
+      if (typeof splitDirection !== "string") {
+        throw new Error();
+      }
+    } catch {
+      splitDirection = "split";
+    }
+    await denops.cmd(splitDirection);
+    return splitDirection;
   }
 
   async function forEachTerminalBuffer(
     callback: (job_id: number, winnr?: number, bufnr?: number) => Promise<void>,
   ): Promise<void> {
-    const win_count = ensure(await fn.winnr(denops, "$"), is.Number);
+    const win_count = ensure(await fn.winnr(denops, "$"), is.Number) as number;
     for (let i = 1; i <= win_count; i++) {
-      const bufnr = ensure(await fn.winbufnr(denops, i), is.Number);
-      const bufType = await fn.getbufvar(denops, bufnr, "&buftype");
+      const bufnr = ensure(await fn.winbufnr(denops, i), is.Number) as number;
+
+      const bufType = await fn.getbufvar(denops, bufnr, "&buftype") as string;
       if (bufType === "terminal") {
         const job_id = ensure(
           await fn.getbufvar(denops, bufnr, "&channel"),
           is.Number,
-        );
+        ) as number;
         if (job_id !== 0) {
           await callback(job_id, i, bufnr);
         }
@@ -43,12 +50,12 @@ export async function main(denops: Denops): Promise<void> {
       await this.runAiderCommand();
     },
     async sendPrompt(): Promise<void> {
-      await feedkeys(denops, 'ggVG"zy');
+      await feedkeys(denops, 'ggVG"qy');
       await forEachTerminalBuffer(async (job_id, winnr, _bufnr) => {
         await denops.cmd(`bdelete!`);
         await denops.cmd(`${winnr}wincmd w`);
         await feedkeys(denops, "G");
-        await feedkeys(denops, '"zp');
+        await feedkeys(denops, '"qp');
         await denops.call("chansend", job_id, "\n");
         await denops.cmd("wincmd p");
       });
@@ -102,7 +109,10 @@ export async function main(denops: Denops): Promise<void> {
       start: unknown,
       end: unknown,
     ): Promise<void> {
-      const words = ensure(await denops.call("getline", start, end), is.Array);
+      const words = ensure(
+        await denops.call("getline", start, end),
+        is.Array,
+      ) as string[];
       const filetype = ensure(
         await fn.getbufvar(denops, "%", "&filetype"),
         is.String,
@@ -119,14 +129,15 @@ export async function main(denops: Denops): Promise<void> {
       const terminal_height = Math.floor(
         ensure(await n.nvim_get_option(denops, "lines"), is.Number),
       );
-      const floatWinWidth = ensure(
-        await v.g.get(denops, "aider_floatwin_width"),
-        is.Number,
-      );
       const floatWinHeight = ensure(
         await v.g.get(denops, "aider_floatwin_height"),
         is.Number,
-      );
+      ) as number;
+      const floatWinWidth = ensure(
+        await v.g.get(denops, "aider_floatwin_width"),
+        is.Number,
+      ) as number;
+
       const row = Math.floor((terminal_height - floatWinHeight) / 2);
       const col = Math.floor((terminal_width - floatWinWidth) / 2);
 
