@@ -5,7 +5,6 @@ import {
   SourceOptions,
 } from "https://deno.land/x/ddu_vim@v3.10.2/types.ts";
 import { Denops } from "https://deno.land/x/ddu_vim@v3.10.2/deps.ts";
-import { ensure, is } from "https://deno.land/x/unknownutil@v3.15.0/mod.ts";
 import { ActionData } from "https://deno.land/x/ddu_kind_file@v0.7.1/file.ts";
 type Params = Record<never, never>;
 
