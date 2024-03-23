@@ -41,15 +41,12 @@ export const BookmarkAction: Actions<Params> = {
     const action = maybe(items.at(0)?.action, isDduItemAction);
     console.log(action);
 
-    // if (!action) {
-    //   return ActionFlags.None;
-    // }
-    //
-    // await denops.call(
-    //   "bm#del_bookmark_at_line",
-    //   action.path,
-    //   action.lineNr,
-    // );
+    if (!action) {
+      return ActionFlags.None;
+    }
+
+    await denops.cmd(`AiderAddFile ${action.path}`);
+
     return ActionFlags.None;
   },
 };
