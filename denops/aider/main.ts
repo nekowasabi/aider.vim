@@ -49,6 +49,10 @@ export async function main(denops: Denops): Promise<void> {
       await splitWithDirection();
       await this.runAiderCommand();
     },
+    async restart(): Promise<void> {
+      await this.exitAider();
+      await this.runAider();
+    },
     async sendPrompt(): Promise<void> {
       await feedkeys(denops, 'ggVG"qy');
       await forEachTerminalBuffer(async (job_id, winnr, _bufnr) => {
@@ -177,6 +181,9 @@ export async function main(denops: Denops): Promise<void> {
     },
   };
 
+  await denops.cmd(
+    `command! -nargs=0 AiderRestart call denops#notify("${denops.name}", "restart", [])`,
+  );
   await denops.cmd(
     `command! -nargs=0 AiderSendPrompt call denops#notify("${denops.name}", "sendPrompt", [])`,
   );
