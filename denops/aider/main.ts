@@ -25,7 +25,11 @@ export async function main(denops: Denops): Promise<void> {
   }
 
   async function forEachTerminalBuffer(
-    callback: (job_id: number, winnr?: number, bufnr?: number) => Promise<void>,
+    callback: (
+      job_id: number | undefined,
+      winnr?: number,
+      bufnr?: number,
+    ) => Promise<void>,
   ): Promise<void> {
     const win_count = ensure(await fn.winnr(denops, "$"), is.Number) as number;
     for (let i = 1; i <= win_count; i++) {
@@ -42,6 +46,16 @@ export async function main(denops: Denops): Promise<void> {
         }
       }
     }
+  }
+
+  async function getAiderWindowJobId(): Promise<number | undefined> {
+    let jobId: number | undefined;
+    await forEachTerminalBuffer(async (job_id) => {
+      // dummy operation
+      await feedkeys(denops, "l");
+      jobId = job_id;
+    });
+    return jobId;
   }
 
   denops.dispatcher = {
@@ -69,10 +83,10 @@ export async function main(denops: Denops): Promise<void> {
         return;
       }
 
-      // Aiderプロンプトのウインドウが存在するかチェックし、存在しない場合は新規作成
-      await forEachTerminalBuffer(async (job_id, winnr, bufnr) => {
+      const aiderWindowJobId = await getAiderWindowJobId();
+      if (aiderWindowJobId === undefined) {
+        await denops.cmd("AiderRun");
       }
-      
 
       const str = ensure(prompt, is.String) + "\n";
       await forEachTerminalBuffer(async (job_id, winnr) => {
