@@ -86,6 +86,7 @@ export async function main(denops: Denops): Promise<void> {
       const aiderWindowJobId = await getAiderWindowJobId();
       if (aiderWindowJobId === undefined) {
         await denops.cmd("AiderRun");
+        return;
       }
 
       const str = ensure(prompt, is.String) + "\n";
@@ -137,6 +138,12 @@ export async function main(denops: Denops): Promise<void> {
         await denops.call("getline", start, end),
         is.Array,
       ) as string[];
+      const aiderWindowJobId = await getAiderWindowJobId();
+      if (aiderWindowJobId === undefined) {
+        await denops.cmd("AiderRun");
+        return;
+      }
+
       const filetype = ensure(
         await fn.getbufvar(denops, "%", "&filetype"),
         is.String,
