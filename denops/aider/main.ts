@@ -85,6 +85,7 @@ export async function main(denops: Denops): Promise<void> {
 
       const aiderWindowJobId = await getAiderWindowJobId();
       if (aiderWindowJobId === undefined) {
+        await denops.cmd("echo 'Aider is not running'");
         await denops.cmd("AiderRun");
         return;
       }
@@ -140,6 +141,7 @@ export async function main(denops: Denops): Promise<void> {
       ) as string[];
       const aiderWindowJobId = await getAiderWindowJobId();
       if (aiderWindowJobId === undefined) {
+        await denops.cmd("echo 'Aider is not running'");
         await denops.cmd("AiderRun");
         return;
       }
@@ -190,11 +192,9 @@ export async function main(denops: Denops): Promise<void> {
 
       await feedkeys(denops, "Gi");
 
-      // ウインドウを閉じる
       await n.nvim_buf_set_keymap(denops, buf, "n", "q", "<cmd>q!<cr>", {
         silent: true,
       });
-      // 入力された文字列をAiderSendPromptに渡す
       await n.nvim_buf_set_keymap(
         denops,
         buf,
