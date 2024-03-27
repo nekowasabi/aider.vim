@@ -68,6 +68,12 @@ export async function main(denops: Denops): Promise<void> {
       if (prompt === "") {
         return;
       }
+
+      // Aiderプロンプトのウインドウが存在するかチェックし、存在しない場合は新規作成
+      await forEachTerminalBuffer(async (job_id, winnr, bufnr) => {
+      }
+      
+
       const str = ensure(prompt, is.String) + "\n";
       await forEachTerminalBuffer(async (job_id, winnr) => {
         await denops.call("chansend", job_id, str);
