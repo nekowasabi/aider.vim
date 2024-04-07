@@ -2,18 +2,17 @@
 
 Minimal helper plugin for aider with neovim.
 
-# Demo
+## Demo
 
-<img src="./demo/demo.gif" width="500">
+<img src="./demo/demo.gif" alt="Demo GIF" width="500">
+<img src="./demo/demo_visual_mode.gif" alt="Visual Mode Demo GIF" width="500">
 
-<img src="./demo/demo_visual_mode.gif" width="500">
-
-# Requirements
+## Requirements
 
 - [aider](https://github.com/paul-gauthier/aider)
 - [denops.vim](https://github.com/vim-denops/denops.vim)
 
-# Settings
+## Settings
 
 Please add the following settings to your vimrc or init.vim.
 
@@ -24,7 +23,7 @@ let g:aider_split_direction = 'vsplit'
 let g:conversion_path = '/path/to/conversion'
 ```
 
-# Usage
+## Usage
 
 To use aider.vim, you can run the following commands within Vim or Neovim:
 
