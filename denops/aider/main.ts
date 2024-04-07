@@ -118,12 +118,13 @@ export async function main(denops: Denops): Promise<void> {
       await this.sendPromptWithInput(prompt);
     },
     async runAiderCommand(): Promise<void> {
+      const convention = await v.g.get(denops, "convension_path") ?? "";
       const currentFile = await getCurrentFilePath();
       const aiderCommand = ensure(
         await v.g.get(denops, "aider_command"),
         is.String,
       );
-      await denops.cmd(`terminal ${aiderCommand} ${currentFile}`);
+      await denops.cmd(`terminal ${aiderCommand} ${currentFile} ${convention}`);
     },
     async exitAider(): Promise<void> {
       await forEachTerminalBuffer(async (job_id, _winnr, bufnr) => {

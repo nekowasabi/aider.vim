@@ -21,6 +21,7 @@ Please add the following settings to your vimrc or init.vim.
 ex.
 let g:aider_command = 'aider --no-auto-commits --4turbo'
 let g:aider_split_direction = 'vsplit'
+let g:conversion_path = '/path/to/conversion'
 ```
 
 # Usage
@@ -32,5 +33,5 @@ To use aider.vim, you can run the following commands within Vim or Neovim:
 - `:AiderAddCurrentFile` Adds the current file to aider's context.
 - `:AiderSendPromptWithInput` Sends a custom prompt to aider.
 - `:AiderExit` - Exits aider and cleans up the session.
-- `:AiderVisualTextWithPrompt` - Sends the visual selection to aider with a  custom prompt.
+- `:AiderVisualTextWithPrompt` - Sends the visual selection to aider with a
 - `:AiderAddWeb` - Prompts for a URL and adds it to aider's context.
