@@ -5,6 +5,7 @@ Minimal helper plugin for aider with neovim.
 ## Demo
 
 <img src="./demo/demo.gif" alt="Demo GIF" width="500">
+
 <img src="./demo/demo_visual_mode.gif" alt="Visual Mode Demo GIF" width="500">
 
 ## Requirements
@@ -34,3 +35,7 @@ To use aider.vim, you can run the following commands within Vim or Neovim:
 - `:AiderExit` - Exits aider and cleans up the session.
 - `:AiderVisualTextWithPrompt` - Sends the visual selection to aider with a
 - `:AiderAddWeb` - Prompts for a URL and adds it to aider's context.
+
+## TODO
+
+- [ ] Read CONVERSION.md command.
