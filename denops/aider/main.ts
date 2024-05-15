@@ -10,6 +10,7 @@ export async function main(denops: Denops): Promise<void> {
     return ensure(await fn.expand(denops, "%:p"), is.String);
   }
 
+  // メソッド名がfloatingwindowを考慮してないのでリネーム
   async function splitWithDirection(): Promise<string> {
     let splitDirection: string | undefined;
     try {
@@ -60,7 +61,11 @@ export async function main(denops: Denops): Promise<void> {
 
   denops.dispatcher = {
     async runAider(): Promise<void> {
+      // floating window対応
       await splitWithDirection();
+
+      // if aiderがバッファに存在する場合は、ウインドウを開く
+      // elseは、aiderを起動する
       await this.runAiderCommand();
     },
     async restart(): Promise<void> {
