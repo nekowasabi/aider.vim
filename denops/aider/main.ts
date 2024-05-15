@@ -6,22 +6,35 @@ import { ensure, is } from "https://deno.land/x/unknownutil@v3.17.0/mod.ts";
 import { feedkeys } from "https://deno.land/x/denops_std@v6.4.0/function/mod.ts";
 
 export async function main(denops: Denops): Promise<void> {
+  enum BufferLayout {
+    split = "split",
+    vsplit = "vsplit",
+    floating = "floating",
+  }
+
   async function getCurrentFilePath(): Promise<string> {
     return ensure(await fn.expand(denops, "%:p"), is.String);
   }
 
-  async function makeAiderBuffer(): Promise<string> {
-    let splitDirection: string | undefined;
+  async function makeAiderBuffer(): Promise<void> {
+    let openBufferType: string | undefined;
     try {
-      splitDirection = await v.g.get(denops, "aider_buffer_open_type");
-      if (typeof splitDirection !== "string") {
+      openBufferType = await v.g.get(denops, "aider_buffer_open_type");
+
+      if (
+        !Object.values(BufferLayout).includes(openBufferType as BufferLayout)
+      ) {
         throw new Error();
       }
+
+      if (openBufferType === "split" || openBufferType === "vsplit") {
+        await denops.cmd(openBufferType);
+      }
+
+      // floating windowでaiderを開くためのバッファを作成する
     } catch {
-      splitDirection = "split";
+      await denops.cmd("split");
     }
-    await denops.cmd(splitDirection);
-    return splitDirection;
   }
 
   async function forEachTerminalBuffer(
@@ -63,7 +76,6 @@ export async function main(denops: Denops): Promise<void> {
       // floating window対応
       await makeAiderBuffer();
 
-      // if aiderがバッファに存在する場合は、ウインドウを開く
       // elseは、aiderを起動する
       await this.runAiderCommand();
     },
