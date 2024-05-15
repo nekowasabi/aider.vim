@@ -20,7 +20,7 @@ Please add the following settings to your vimrc or init.vim.
 ```vim
 ex.
 let g:aider_command = 'aider --no-auto-commits --4turbo'
-let g:aider_split_direction = 'vsplit'
+let g:aider_buffer_open_type = 'vsplit'
 let g:conversion_path = '/path/to/conversion'
 ```
 
