@@ -16,7 +16,7 @@ export async function main(denops: Denops): Promise<void> {
     return ensure(await fn.expand(denops, "%:p"), is.String);
   }
 
-  async function makeAiderBuffer(): Promise<void> {
+  async function makeAiderBuffer(): Promise<void | undefined> {
     let openBufferType: string | undefined;
     try {
       openBufferType = await v.g.get(denops, "aider_buffer_open_type");
@@ -29,15 +29,46 @@ export async function main(denops: Denops): Promise<void> {
 
       if (openBufferType === "split" || openBufferType === "vsplit") {
         await denops.cmd(openBufferType);
+        return;
       }
 
       // floating windowでaiderを開くためのバッファを作成する
+      // floatint window定義
+      const buf = await n.nvim_create_buf(denops, false, true) as number;
+      // 画面中央に表示
+      const terminal_width = Math.floor(
+        ensure(await n.nvim_get_option(denops, "columns"), is.Number),
+      );
+      const terminal_height = Math.floor(
+        ensure(await n.nvim_get_option(denops, "lines"), is.Number),
+      );
+      const floatWinHeight = ensure(
+        await v.g.get(denops, "aider_floatwin_height"),
+        is.Number,
+      ) as number;
+      const floatWinWidth = ensure(
+        await v.g.get(denops, "aider_floatwin_width"),
+        is.Number,
+      ) as number;
+
+      const row = Math.floor((terminal_height - floatWinHeight) / 2);
+      const col = Math.floor((terminal_width - floatWinWidth) / 2);
+
+      await n.nvim_open_win(denops, buf, true, {
+        relative: "editor",
+        border: "double",
+        width: floatWinWidth,
+        height: floatWinHeight,
+        row: row,
+        col: col,
+      });
+      return;
     } catch {
       await denops.cmd("split");
     }
   }
 
-  async function forEachTerminalBuffer(
+  async function idenfityTerminalBuffer(
     callback: (
       job_id: number | undefined,
       winnr?: number,
@@ -63,7 +94,7 @@ export async function main(denops: Denops): Promise<void> {
 
   async function getAiderWindowJobId(): Promise<number | undefined> {
     let jobId: number | undefined;
-    await forEachTerminalBuffer(async (job_id) => {
+    await idenfityTerminalBuffer(async (job_id) => {
       // dummy operation
       await feedkeys(denops, "l");
       jobId = job_id;
@@ -83,9 +114,11 @@ export async function main(denops: Denops): Promise<void> {
       await this.exitAider();
       await this.runAider();
     },
+    // TODO: split用なので、フォーカス移動してしまう
+    // floating windowに対応するか、floatingのときは移動しないようにするか、別メソッドにする
     async sendPrompt(): Promise<void> {
       await feedkeys(denops, 'ggVG"qy');
-      await forEachTerminalBuffer(async (job_id, winnr, _bufnr) => {
+      await idenfityTerminalBuffer(async (job_id, winnr, _bufnr) => {
         await denops.cmd(`bdelete!`);
         await denops.cmd(`${winnr}wincmd w`);
         await feedkeys(denops, "G");
@@ -107,7 +140,7 @@ export async function main(denops: Denops): Promise<void> {
       }
 
       const str = ensure(prompt, is.String) + "\n";
-      await forEachTerminalBuffer(async (job_id, winnr) => {
+      await idenfityTerminalBuffer(async (job_id, winnr) => {
         await denops.call("chansend", job_id, str);
         await denops.cmd(`${winnr}wincmd w`);
         await feedkeys(denops, "G");
@@ -143,7 +176,7 @@ export async function main(denops: Denops): Promise<void> {
       await denops.cmd(`terminal ${aiderCommand} ${currentFile} ${convention}`);
     },
     async exitAider(): Promise<void> {
-      await forEachTerminalBuffer(async (job_id, _winnr, bufnr) => {
+      await idenfityTerminalBuffer(async (job_id, _winnr, bufnr) => {
         await denops.call("chansend", job_id, "/exit\n");
         await denops.cmd(`bdelete! ${bufnr}`);
       });
