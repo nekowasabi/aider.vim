@@ -173,39 +173,100 @@ export async function main(denops: Denops): Promise<void> {
     // floating windowに対応するか、floatingのときは移動しないようにするか、別メソッドにする
     async sendPrompt(): Promise<void> {
       await feedkeys(denops, 'ggVG"qy');
-      await idenfityTerminalBuffer(async (job_id, winnr, _bufnr) => {
-        await denops.cmd(`bdelete!`);
-        if (await v.g.get(denops, "aider_buffer_open_type") !== "floating") {
-          await denops.cmd(`${winnr}wincmd w`);
-        } else {
-          // Get the total number of windows
-          const totalWindows = ensure(
-            await denops.call("winnr", "$"),
+      await denops.cmd("close!");
+      if (await v.g.get(denops, "aider_buffer_open_type") !== "floating") {
+        await idenfityTerminalBuffer(async (job_id, winnr, _bufnr) => {
+          await denops.cmd(`bdelete!`);
+          if (await v.g.get(denops, "aider_buffer_open_type") !== "floating") {
+            await denops.cmd(`${winnr}wincmd w`);
+          } else {
+            // Get the total number of windows
+            const totalWindows = ensure(
+              await denops.call("winnr", "$"),
+              is.Number,
+            ) as number;
+
+            // Iterate over all windows
+            for (let winnr = 1; winnr <= totalWindows; winnr++) {
+              // Get the buffer number associated with the window
+              const bufnr = await denops.call("winbufnr", winnr);
+
+              // Get the 'buftype' of the buffer
+              const buftype = await denops.call("getbufvar", bufnr, "&buftype");
+
+              // If 'buftype' is 'terminal', move to that window and break the loop
+              if (buftype === "terminal") {
+                await denops.cmd(`${winnr}wincmd w`);
+                break;
+              }
+            }
+          }
+          await feedkeys(denops, "G");
+          await feedkeys(denops, '"qp');
+          await denops.call("chansend", job_id, "\n");
+          await denops.cmd("wincmd p");
+        });
+      }
+
+      // floating windowの場合
+      // 開いているすべてのbufnrを取得
+      const buf_count = ensure(
+        await fn.bufnr(denops, "$"),
+        is.Number,
+      ) as number;
+
+      // buf_countのぶんだけループして、bufnrからバッファ名を取得する
+      for (let i = 1; i <= buf_count; i++) {
+        const bufnr = ensure(await fn.bufnr(denops, i), is.Number) as number;
+        const bufname = ensure(
+          await fn.bufname(denops, bufnr),
+          is.String,
+        ) as string;
+
+        // if bufnameが ^term:// で始まる場合
+        if (bufname.startsWith("term://")) {
+          // // 該当するbufnrのバッファを開く
+          // await denops.cmd(`buffer ${bufnr}`);
+
+          // 画面中央に表示
+          const terminal_width = Math.floor(
+            ensure(await n.nvim_get_option(denops, "columns"), is.Number),
+          );
+          const terminal_height = Math.floor(
+            ensure(await n.nvim_get_option(denops, "lines"), is.Number),
+          );
+          const floatWinHeight = ensure(
+            await v.g.get(denops, "aider_floatwin_height"),
+            is.Number,
+          ) as number;
+          const floatWinWidth = ensure(
+            await v.g.get(denops, "aider_floatwin_width"),
             is.Number,
           ) as number;
 
-          // Iterate over all windows
-          for (let winnr = 1; winnr <= totalWindows; winnr++) {
-            // Get the buffer number associated with the window
-            const bufnr = await denops.call("winbufnr", winnr);
+          const row = Math.floor((terminal_height - floatWinHeight) / 2);
+          const col = Math.floor((terminal_width - floatWinWidth) / 2);
 
-            // Get the 'buftype' of the buffer
-            const buftype = await denops.call("getbufvar", bufnr, "&buftype");
+          await n.nvim_open_win(denops, bufnr, true, {
+            relative: "editor",
+            border: "double",
+            width: floatWinWidth,
+            height: floatWinHeight,
+            row: row,
+            col: col,
+          });
 
-            // If 'buftype' is 'terminal', move to that window and break the loop
-            if (buftype === "terminal") {
-              await denops.cmd(`${winnr}wincmd w`);
-              break;
-            }
-          }
+          await feedkeys(denops, "G");
+          await feedkeys(denops, '"qp');
+          // jobIdを取得する必要がある
+          const job_id = ensure(
+            await fn.getbufvar(denops, bufnr, "&channel"),
+            is.Number,
+          ) as number;
 
-          console.log(winnr);
+          await denops.call("chansend", job_id, "\n");
         }
-        await feedkeys(denops, "G");
-        await feedkeys(denops, '"qp');
-        await denops.call("chansend", job_id, "\n");
-        await denops.cmd("wincmd p");
-      });
+      }
     },
     async sendPromptWithInput(prompt: unknown): Promise<void> {
       if (prompt === "") {
@@ -269,11 +330,15 @@ export async function main(denops: Denops): Promise<void> {
         await denops.call("getline", start, end),
         is.Array,
       ) as string[];
-      const aiderWindowJobId = await getAiderWindowJobId();
-      if (aiderWindowJobId === undefined) {
-        await denops.cmd("echo 'Aider is not running'");
-        await denops.cmd("AiderRun");
-        return;
+      // 開いているすべてのbufnrを取得
+      // aiderバッファが存在するか確認するメソッドを作った方がいいかも
+      if (await v.g.get(denops, "aider_buffer_open_type") !== "floating") {
+        const aiderWindowJobId = await getAiderWindowJobId();
+        if (aiderWindowJobId === undefined) {
+          await denops.cmd("echo 'Aider is not running'");
+          await denops.cmd("AiderRun");
+          return;
+        }
       }
 
       const filetype = ensure(
