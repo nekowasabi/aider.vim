@@ -16,7 +16,7 @@ export async function main(denops: Denops): Promise<void> {
     return ensure(await fn.expand(denops, "%:p"), is.String);
   }
 
-  async function makeAiderBuffer(): Promise<void | undefined> {
+  async function openAiderBuffer(): Promise<void | undefined> {
     let openBufferType: string | undefined;
     try {
       openBufferType = await v.g.get(denops, "aider_buffer_open_type");
@@ -62,6 +62,7 @@ export async function main(denops: Denops): Promise<void> {
         row: row,
         col: col,
       });
+
       return;
     } catch {
       await denops.cmd("split");
@@ -105,7 +106,7 @@ export async function main(denops: Denops): Promise<void> {
   denops.dispatcher = {
     async runAider(): Promise<void> {
       // floating window対応
-      await makeAiderBuffer();
+      await openAiderBuffer();
 
       // elseは、aiderを起動する
       await this.runAiderCommand();
