@@ -16,7 +16,7 @@ export async function main(denops: Denops): Promise<void> {
     return ensure(await fn.expand(denops, "%:p"), is.String);
   }
 
-  async function openAiderBuffer(): Promise<void | undefined> {
+  async function openAiderBuffer(): Promise<void | undefined | boolean> {
     let openBufferType: string | undefined;
     try {
       openBufferType = await v.g.get(denops, "aider_buffer_open_type");
@@ -25,6 +25,57 @@ export async function main(denops: Denops): Promise<void> {
         !Object.values(BufferLayout).includes(openBufferType as BufferLayout)
       ) {
         throw new Error();
+      }
+
+      // 開いているすべてのbufnrを取得
+      const buf_count = ensure(
+        await fn.bufnr(denops, "$"),
+        is.Number,
+      ) as number;
+
+      // buf_countのぶんだけループして、bufnrからバッファ名を取得する
+      for (let i = 1; i <= buf_count; i++) {
+        const bufnr = ensure(await fn.bufnr(denops, i), is.Number) as number;
+        const bufname = ensure(
+          await fn.bufname(denops, bufnr),
+          is.String,
+        ) as string;
+
+        // if bufnameが ^term:// で始まる場合
+        if (bufname.startsWith("term://")) {
+          // // 該当するbufnrのバッファを開く
+          // await denops.cmd(`buffer ${bufnr}`);
+
+          // 画面中央に表示
+          const terminal_width = Math.floor(
+            ensure(await n.nvim_get_option(denops, "columns"), is.Number),
+          );
+          const terminal_height = Math.floor(
+            ensure(await n.nvim_get_option(denops, "lines"), is.Number),
+          );
+          const floatWinHeight = ensure(
+            await v.g.get(denops, "aider_floatwin_height"),
+            is.Number,
+          ) as number;
+          const floatWinWidth = ensure(
+            await v.g.get(denops, "aider_floatwin_width"),
+            is.Number,
+          ) as number;
+
+          const row = Math.floor((terminal_height - floatWinHeight) / 2);
+          const col = Math.floor((terminal_width - floatWinWidth) / 2);
+
+          await n.nvim_open_win(denops, bufnr, true, {
+            relative: "editor",
+            border: "double",
+            width: floatWinWidth,
+            height: floatWinHeight,
+            row: row,
+            col: col,
+          });
+
+          return true;
+        }
       }
 
       if (openBufferType === "split" || openBufferType === "vsplit") {
@@ -106,9 +157,12 @@ export async function main(denops: Denops): Promise<void> {
   denops.dispatcher = {
     async runAider(): Promise<void> {
       // floating window対応
-      await openAiderBuffer();
+      const a = await openAiderBuffer();
 
       // elseは、aiderを起動する
+      if (a === true) {
+        return;
+      }
       await this.runAiderCommand();
     },
     async restart(): Promise<void> {
