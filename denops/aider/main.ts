@@ -120,7 +120,32 @@ export async function main(denops: Denops): Promise<void> {
       await feedkeys(denops, 'ggVG"qy');
       await idenfityTerminalBuffer(async (job_id, winnr, _bufnr) => {
         await denops.cmd(`bdelete!`);
-        await denops.cmd(`${winnr}wincmd w`);
+        if (await v.g.get(denops, "aider_buffer_open_type") !== "floating") {
+          await denops.cmd(`${winnr}wincmd w`);
+        } else {
+          // Get the total number of windows
+          const totalWindows = ensure(
+            await denops.call("winnr", "$"),
+            is.Number,
+          ) as number;
+
+          // Iterate over all windows
+          for (let winnr = 1; winnr <= totalWindows; winnr++) {
+            // Get the buffer number associated with the window
+            const bufnr = await denops.call("winbufnr", winnr);
+
+            // Get the 'buftype' of the buffer
+            const buftype = await denops.call("getbufvar", bufnr, "&buftype");
+
+            // If 'buftype' is 'terminal', move to that window and break the loop
+            if (buftype === "terminal") {
+              await denops.cmd(`${winnr}wincmd w`);
+              break;
+            }
+          }
+
+          console.log(winnr);
+        }
         await feedkeys(denops, "G");
         await feedkeys(denops, '"qp');
         await denops.call("chansend", job_id, "\n");
@@ -242,7 +267,7 @@ export async function main(denops: Denops): Promise<void> {
 
       await feedkeys(denops, "Gi");
 
-      await n.nvim_buf_set_keymap(denops, buf, "n", "q", "<cmd>q!<cr>", {
+      await n.nvim_buf_set_keymap(denops, buf, "n", "q", "<cmd>close!<cr>", {
         silent: true,
       });
       await n.nvim_buf_set_keymap(
