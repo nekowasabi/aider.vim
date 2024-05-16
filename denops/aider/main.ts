@@ -317,6 +317,7 @@ export async function main(denops: Denops): Promise<void> {
       await denops.cmd(`terminal ${aiderCommand} ${currentFile} ${convention}`);
     },
     async exitAider(): Promise<void> {
+      // TODO: floating windowの場合の処理を追加する
       await idenfityTerminalBuffer(async (job_id, _winnr, bufnr) => {
         await denops.call("chansend", job_id, "/exit\n");
         await denops.cmd(`bdelete! ${bufnr}`);
