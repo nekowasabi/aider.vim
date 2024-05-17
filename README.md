@@ -39,7 +39,9 @@ To use aider.vim, you can run the following commands within Vim or Neovim:
 - `:AiderRun` - Runs aider or display aider window.
 - `:AiderAddCurrentFile` Adds the current file to aider's context.
 - `:AiderExit` - Exits aider and cleans up the session.
-- `:AiderVisualTextWithPrompt` - Sends the visual selection to aider with a
+- `:AiderVisualTextWithPrompt`
+  - ビジュアルモードで選択したテキストをfloating windowで編集し、aiderに送信する。
+  - floating windowでは、ノーマルモード時に`<CR>`でaiderに送信し、`q`でfloating windowを閉じる。
 - `:AiderAddWeb` - Prompts for a URL and adds it to aider's context.
 
 ## TODO
