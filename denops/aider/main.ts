@@ -314,8 +314,8 @@ export async function main(denops: Denops): Promise<void> {
         is.Array,
       ) as string[];
       if (openBufferType !== "floating") {
-        const aiderWindowJobId = await getAiderWindowJobId();
-        if (aiderWindowJobId === undefined) {
+        const bufnr = await getAiderBufferNr();
+        if (bufnr === undefined) {
           await denops.cmd("echo 'Aider is not running'");
           await denops.cmd("AiderRun");
           return;
