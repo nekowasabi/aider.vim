@@ -29,7 +29,7 @@ export async function main(denops: Denops): Promise<void> {
     const bufname = ensure(
       await fn.bufname(denops, bufnr),
       is.String,
-    ) as string;
+    );
     return bufname;
   }
 
@@ -75,7 +75,7 @@ export async function main(denops: Denops): Promise<void> {
     ) as number;
 
     for (let i = 1; i <= buf_count; i++) {
-      const bufnr = ensure(await fn.bufnr(denops, i), is.Number) as number;
+      const bufnr = ensure(await fn.bufnr(denops, i), is.Number);
       const bufname = await getBufferName(denops, bufnr);
 
       if (bufname.startsWith("term://")) {
@@ -158,15 +158,11 @@ export async function main(denops: Denops): Promise<void> {
           is.Number,
         ) as number;
 
-        // Iterate over all windows
         for (let winnr = 1; winnr <= totalWindows; winnr++) {
-          // Get the buffer number associated with the window
           const bufnr = await denops.call("winbufnr", winnr);
 
-          // Get the 'buftype' of the buffer
           const buftype = await denops.call("getbufvar", bufnr, "&buftype");
 
-          // If 'buftype' is 'terminal', move to that window and break the loop
           if (buftype === "terminal") {
             await denops.cmd(`${winnr}wincmd w`);
             break;
@@ -277,7 +273,6 @@ export async function main(denops: Denops): Promise<void> {
       start: unknown,
       end: unknown,
     ): Promise<void> {
-      // TODO: クラスプロパティで使い回せないか？
       const words = ensure(
         await denops.call("getline", start, end),
         is.Array,
