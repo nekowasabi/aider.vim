@@ -41,7 +41,7 @@ export async function main(denops: Denops): Promise<void> {
     const bufname = ensure(
       await fn.bufname(denops, bufnr),
       is.String,
-    );
+    ) as string;
     return bufname;
   }
 
