@@ -127,14 +127,12 @@ export async function main(denops: Denops): Promise<void> {
         throw new Error();
       }
 
-      // Aiderバッファが既に開いている場合は、そのバッファを開く
       const aiderBufnr = await getAiderBufferNr();
       if (aiderBufnr) {
         await openFloatingWindow(denops, aiderBufnr);
         return true;
       }
 
-      // AiderプロセスをopenBufferTypeに従って開く
       if (openBufferType === "split" || openBufferType === "vsplit") {
         await denops.cmd(openBufferType);
         return;
@@ -188,7 +186,6 @@ export async function main(denops: Denops): Promise<void> {
       if (await v.g.get(denops, "aider_buffer_open_type") !== "floating") {
         await denops.cmd(`${winnr}wincmd w`);
       } else {
-        // Get the total number of windows
         const totalWindows = ensure(
           await denops.call("winnr", "$"),
           is.Number,
