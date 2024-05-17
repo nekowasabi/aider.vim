@@ -168,7 +168,7 @@ export async function main(denops: Denops): Promise<void> {
       await this.runAiderCommand();
     },
     async restart(): Promise<void> {
-      await this.exitAider();
+      await this.exit();
       await this.runAider();
     },
     // TODO: split用なので、フォーカス移動してしまう
@@ -315,7 +315,7 @@ export async function main(denops: Denops): Promise<void> {
       );
       await denops.cmd(`terminal ${aiderCommand} ${currentFile} ${convention}`);
     },
-    async exitAider(): Promise<void> {
+    async exit(): Promise<void> {
       // TODO: floating windowの場合の処理を追加する
       await idenfityTerminalBuffer(async (job_id, _winnr, bufnr) => {
         await denops.call("chansend", job_id, "/exit\n");
@@ -400,7 +400,7 @@ export async function main(denops: Denops): Promise<void> {
     `command! -nargs=0 AiderAddWeb call denops#notify("${denops.name}", "addWeb", [input("URL: ")])`,
   );
   await denops.cmd(
-    `command! -nargs=0 AiderExit call denops#notify("${denops.name}", "exitAider", [])`,
+    `command! -nargs=0 AiderExit call denops#notify("${denops.name}", "exit", [])`,
   );
   await denops.cmd(
     `command! -nargs=* -range AiderVisualTextWithPrompt call denops#notify("${denops.name}", "selectedCodeWithPromptAider", [<line1>, <line2>])`,
