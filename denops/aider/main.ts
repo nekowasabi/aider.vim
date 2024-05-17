@@ -24,7 +24,14 @@ export async function main(denops: Denops): Promise<void> {
     return ensure(await fn.expand(denops, "%:p"), is.String);
   }
 
-  // バッファの名前を取得するメソッド
+  /**
+   * 指定されたバッファ番号に対応するバッファ名を取得します。
+   *
+   * @param {Denops} denops - Denops インスタンス。
+   * @param {number} bufnr - バッファ番号
+   * @returns {Promise<string>} バッファ名
+   * @throws {Error} バッファ名が文字列でない場合、エラーがスローされます
+   */
   async function getBufferName(denops: Denops, bufnr: number): Promise<string> {
     const bufname = ensure(
       await fn.bufname(denops, bufnr),
@@ -33,7 +40,14 @@ export async function main(denops: Denops): Promise<void> {
     return bufname;
   }
 
-  // 新しいウィンドウを開くメソッド
+  /**
+   * 指定されたバッファ番号のフローティングウィンドウを開く
+   * フローティングウィンドウは、端末の中央に配置
+   *
+   * @param {Denops} denops - Denops インスタンス
+   * @param {number} bufnr - バッファ番号
+   * @returns {Promise<void>}
+   */
   async function openFloatingWindow(
     denops: Denops,
     bufnr: number,
@@ -67,6 +81,12 @@ export async function main(denops: Denops): Promise<void> {
     await denops.cmd("set nonumber");
   }
 
+  /**
+   * 開いているバッファの中から "term://" で始まるバッファ名を持つバッファの番号を取得します。
+   * 一致するバッファが見つからない場合、関数は undefined を返します。
+   *
+   * @returns {Promise<number | undefined>}
+   */
   async function getAiderBufferNr(): Promise<number | undefined> {
     // 開いているすべてのbufnrを取得
     const buf_count = ensure(
@@ -87,6 +107,17 @@ export async function main(denops: Denops): Promise<void> {
     return;
   }
 
+  /**
+   * 非同期関数 openAiderBuffer は、Aiderバッファを開きます。
+   * 既にAiderバッファが開いている場合は、そのバッファを開きます。
+   * Aiderバッファが開いていない場合は、新たにバッファを作成し、それを開きます。
+   * バッファの開き方は、openBufferType の値によります。
+   * openBufferType が "split" または "vsplit" の場合、バッファは分割されて開きます。
+   * それ以外の場合、バッファはフローティングウィンドウとして開きます。
+   *
+   * @returns {Promise<void | undefined | boolean>}
+   * @throws {Error} openBufferType が無効な値の場合、エラーがスローされます。
+   */
   async function openAiderBuffer(): Promise<void | undefined | boolean> {
     try {
       if (
@@ -122,6 +153,12 @@ export async function main(denops: Denops): Promise<void> {
     }
   }
 
+  /**
+   * 開いているウィンドウの中からターミナルバッファを識別し、そのジョブID、ウィンドウ番号、バッファ番号をコールバック関数に渡します。
+   *
+   * @param {function} callback - ジョブID、ウィンドウ番号、バッファ番号を引数に取るコールバック関数
+   * @returns {Promise<void>}
+   */
   async function idenfityTerminalBuffer(
     callback: (
       job_id: number | undefined,
@@ -145,7 +182,6 @@ export async function main(denops: Denops): Promise<void> {
       }
     }
   }
-
   async function sendPromptFromSplitWindow() {
     await idenfityTerminalBuffer(async (job_id, winnr, _bufnr) => {
       await denops.cmd(`bdelete!`);
