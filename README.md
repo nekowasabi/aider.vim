@@ -44,4 +44,4 @@ To use aider.vim, you can run the following commands within Vim or Neovim:
 
 ## TODO
 
-- [ ] Add locale setting.
+- [ ] Add must reading CONVENSION.md prompt.
