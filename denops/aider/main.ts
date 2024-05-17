@@ -16,6 +16,48 @@ export async function main(denops: Denops): Promise<void> {
     return ensure(await fn.expand(denops, "%:p"), is.String);
   }
 
+  // バッファの名前を取得するメソッド
+  async function getBufferName(denops: Denops, bufnr: number): Promise<string> {
+    const bufname = ensure(
+      await fn.bufname(denops, bufnr),
+      is.String,
+    ) as string;
+    return bufname;
+  }
+
+  // 新しいウィンドウを開くメソッド
+  async function openFloatingWindow(
+    denops: Denops,
+    bufnr: number,
+  ): Promise<void> {
+    const terminal_width = Math.floor(
+      ensure(await n.nvim_get_option(denops, "columns"), is.Number),
+    );
+    const terminal_height = Math.floor(
+      ensure(await n.nvim_get_option(denops, "lines"), is.Number),
+    );
+    const floatWinHeight = ensure(
+      await v.g.get(denops, "aider_floatwin_height"),
+      is.Number,
+    ) as number;
+    const floatWinWidth = ensure(
+      await v.g.get(denops, "aider_floatwin_width"),
+      is.Number,
+    ) as number;
+
+    const row = Math.floor((terminal_height - floatWinHeight) / 2);
+    const col = Math.floor((terminal_width - floatWinWidth) / 2);
+
+    await n.nvim_open_win(denops, bufnr, true, {
+      relative: "editor",
+      border: "double",
+      width: floatWinWidth,
+      height: floatWinHeight,
+      row: row,
+      col: col,
+    });
+  }
+
   async function openAiderBuffer(): Promise<void | undefined | boolean> {
     let openBufferType: string | undefined;
     try {
@@ -33,47 +75,12 @@ export async function main(denops: Denops): Promise<void> {
         is.Number,
       ) as number;
 
-      // buf_countのぶんだけループして、bufnrからバッファ名を取得する
       for (let i = 1; i <= buf_count; i++) {
         const bufnr = ensure(await fn.bufnr(denops, i), is.Number) as number;
-        const bufname = ensure(
-          await fn.bufname(denops, bufnr),
-          is.String,
-        ) as string;
+        const bufname = await getBufferName(denops, bufnr);
 
-        // if bufnameが ^term:// で始まる場合
         if (bufname.startsWith("term://")) {
-          // // 該当するbufnrのバッファを開く
-          // await denops.cmd(`buffer ${bufnr}`);
-
-          // 画面中央に表示
-          const terminal_width = Math.floor(
-            ensure(await n.nvim_get_option(denops, "columns"), is.Number),
-          );
-          const terminal_height = Math.floor(
-            ensure(await n.nvim_get_option(denops, "lines"), is.Number),
-          );
-          const floatWinHeight = ensure(
-            await v.g.get(denops, "aider_floatwin_height"),
-            is.Number,
-          ) as number;
-          const floatWinWidth = ensure(
-            await v.g.get(denops, "aider_floatwin_width"),
-            is.Number,
-          ) as number;
-
-          const row = Math.floor((terminal_height - floatWinHeight) / 2);
-          const col = Math.floor((terminal_width - floatWinWidth) / 2);
-
-          await n.nvim_open_win(denops, bufnr, true, {
-            relative: "editor",
-            border: "double",
-            width: floatWinWidth,
-            height: floatWinHeight,
-            row: row,
-            col: col,
-          });
-
+          await openFloatingWindow(denops, bufnr);
           return true;
         }
       }
