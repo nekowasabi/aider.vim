@@ -331,9 +331,7 @@ export async function main(denops: Denops): Promise<void> {
         await denops.call("getline", start, end),
         is.Array,
       ) as string[];
-      // 開いているすべてのbufnrを取得
-      // aiderバッファが存在するか確認するメソッドを作った方がいいかも
-      if (await v.g.get(denops, "aider_buffer_open_type") !== "floating") {
+      if (openBufferType !== "floating") {
         const aiderWindowJobId = await getAiderWindowJobId();
         if (aiderWindowJobId === undefined) {
           await denops.cmd("echo 'Aider is not running'");
@@ -349,7 +347,6 @@ export async function main(denops: Denops): Promise<void> {
       words.unshift("```" + filetype);
       words.push("```");
 
-      // floatint window定義
       const bufnr = await n.nvim_create_buf(denops, false, true) as number;
       await openFloatingWindow(
         denops,
