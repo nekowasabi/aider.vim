@@ -224,16 +224,6 @@ export async function main(denops: Denops): Promise<void> {
     await denops.call("chansend", jobId, "\n");
   }
 
-  async function getAiderWindowJobId(): Promise<number | undefined> {
-    let jobId: number | undefined;
-    await idenfityTerminalBuffer(async (job_id) => {
-      // dummy operation
-      await feedkeys(denops, "l");
-      jobId = job_id;
-    });
-    return jobId;
-  }
-
   denops.dispatcher = {
     async runAider(): Promise<void> {
       const exsitsAider = await openAiderBuffer();
