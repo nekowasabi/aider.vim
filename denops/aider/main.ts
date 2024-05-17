@@ -64,7 +64,7 @@ export async function main(denops: Denops): Promise<void> {
       row: row,
       col: col,
     });
-    await denops.cmd("setlocal buftype=nofile");
+    // await denops.cmd("set buftype=nofile");
     await denops.cmd("set nonumber");
     await denops.cmd("set filetype=markdown");
   }
@@ -90,7 +90,6 @@ export async function main(denops: Denops): Promise<void> {
   }
 
   async function openAiderBuffer(): Promise<void | undefined | boolean> {
-    //let openBufferType: string | undefined;
     try {
       if (
         !Object.values(BufferLayout).includes(openBufferType as BufferLayout)
@@ -119,7 +118,8 @@ export async function main(denops: Denops): Promise<void> {
       );
 
       return;
-    } catch {
+    } catch (e) {
+      console.log(e);
       await denops.cmd("split");
     }
   }
@@ -148,6 +148,40 @@ export async function main(denops: Denops): Promise<void> {
     }
   }
 
+  async function sendPromptFromSplitWindow() {
+    await idenfityTerminalBuffer(async (job_id, winnr, _bufnr) => {
+      await denops.cmd(`bdelete!`);
+      if (await v.g.get(denops, "aider_buffer_open_type") !== "floating") {
+        await denops.cmd(`${winnr}wincmd w`);
+      } else {
+        // Get the total number of windows
+        const totalWindows = ensure(
+          await denops.call("winnr", "$"),
+          is.Number,
+        ) as number;
+
+        // Iterate over all windows
+        for (let winnr = 1; winnr <= totalWindows; winnr++) {
+          // Get the buffer number associated with the window
+          const bufnr = await denops.call("winbufnr", winnr);
+
+          // Get the 'buftype' of the buffer
+          const buftype = await denops.call("getbufvar", bufnr, "&buftype");
+
+          // If 'buftype' is 'terminal', move to that window and break the loop
+          if (buftype === "terminal") {
+            await denops.cmd(`${winnr}wincmd w`);
+            break;
+          }
+        }
+      }
+      await feedkeys(denops, "G");
+      await feedkeys(denops, '"qp');
+      await denops.call("chansend", job_id, "\n");
+      await denops.cmd("wincmd p");
+    });
+  }
+
   async function getAiderWindowJobId(): Promise<number | undefined> {
     let jobId: number | undefined;
     await idenfityTerminalBuffer(async (job_id) => {
@@ -174,40 +208,13 @@ export async function main(denops: Denops): Promise<void> {
     // TODO: split用なので、フォーカス移動してしまう
     // floating windowに対応するか、floatingのときは移動しないようにするか、別メソッドにする
     async sendPrompt(): Promise<void> {
+      // テキストを取得してプロンプト入力ウインドウを閉じる
       await feedkeys(denops, 'ggVG"qy');
       await denops.cmd("close!");
-      if (openBufferType !== "floating") {
-        await idenfityTerminalBuffer(async (job_id, winnr, _bufnr) => {
-          await denops.cmd(`bdelete!`);
-          if (await v.g.get(denops, "aider_buffer_open_type") !== "floating") {
-            await denops.cmd(`${winnr}wincmd w`);
-          } else {
-            // Get the total number of windows
-            const totalWindows = ensure(
-              await denops.call("winnr", "$"),
-              is.Number,
-            ) as number;
 
-            // Iterate over all windows
-            for (let winnr = 1; winnr <= totalWindows; winnr++) {
-              // Get the buffer number associated with the window
-              const bufnr = await denops.call("winbufnr", winnr);
-
-              // Get the 'buftype' of the buffer
-              const buftype = await denops.call("getbufvar", bufnr, "&buftype");
-
-              // If 'buftype' is 'terminal', move to that window and break the loop
-              if (buftype === "terminal") {
-                await denops.cmd(`${winnr}wincmd w`);
-                break;
-              }
-            }
-          }
-          await feedkeys(denops, "G");
-          await feedkeys(denops, '"qp');
-          await denops.call("chansend", job_id, "\n");
-          await denops.cmd("wincmd p");
-        });
+      if (openBufferType === "split" || openBufferType === "vsplit") {
+        sendPromptFromSplitWindow();
+        return;
       }
 
       // floating windowの場合
