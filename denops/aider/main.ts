@@ -176,7 +176,7 @@ export async function main(denops: Denops): Promise<void> {
     async sendPrompt(): Promise<void> {
       await feedkeys(denops, 'ggVG"qy');
       await denops.cmd("close!");
-      if (await v.g.get(denops, "aider_buffer_open_type") !== "floating") {
+      if (openBufferType !== "floating") {
         await idenfityTerminalBuffer(async (job_id, winnr, _bufnr) => {
           await denops.cmd(`bdelete!`);
           if (await v.g.get(denops, "aider_buffer_open_type") !== "floating") {
@@ -326,6 +326,7 @@ export async function main(denops: Denops): Promise<void> {
       start: unknown,
       end: unknown,
     ): Promise<void> {
+      // TODO: クラスプロパティで使い回せないか？
       const words = ensure(
         await denops.call("getline", start, end),
         is.Array,
