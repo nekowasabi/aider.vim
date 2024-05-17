@@ -40,10 +40,11 @@ To use aider.vim, you can run the following commands within Vim or Neovim:
 - `:AiderAddCurrentFile` Adds the current file to aider's context.
 - `:AiderExit` - Exits aider and cleans up the session.
 - `:AiderVisualTextWithPrompt`
-  - ビジュアルモードで選択したテキストをfloating windowで編集し、aiderに送信する。
-  - floating windowでは、ノーマルモード時に`<CR>`でaiderに送信し、`q`でfloating windowを閉じる。
-- `:AiderAddWeb` - Prompts for a URL and adds it to aider's context.
+  - Edit the selected text in visual mode in a floating window and send it to aider.
+  - In the floating window, send to aider with `<CR>` in normal mode, and close the floating window with `q`.
+- `:AiderAddWeb` - Displays a prompt for the specified URL and adds it to the aider context.
 
 ## TODO
 
 - [ ] Add must reading CONVENSION.md prompt.
+- [ ] Add optional prompt setting.
