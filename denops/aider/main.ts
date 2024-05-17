@@ -96,47 +96,24 @@ export async function main(denops: Denops): Promise<void> {
         throw new Error();
       }
 
-      const bufnr = await getAiderBufferNr();
-      if (bufnr) {
-        await openFloatingWindow(denops, bufnr);
+      // Aiderバッファが既に開いている場合は、そのバッファを開く
+      const aiderBufnr = await getAiderBufferNr();
+      if (aiderBufnr) {
+        await openFloatingWindow(denops, aiderBufnr);
         return true;
       }
 
+      // AiderプロセスをopenBufferTypeに従って開く
       if (openBufferType === "split" || openBufferType === "vsplit") {
         await denops.cmd(openBufferType);
         return;
       }
 
-      // floating windowでaiderを開くためのバッファを作成する
-      // floatint window定義
-      const buf = await n.nvim_create_buf(denops, false, true) as number;
-      // 画面中央に表示
-      const terminal_width = Math.floor(
-        ensure(await n.nvim_get_option(denops, "columns"), is.Number),
+      const bufnr = await n.nvim_create_buf(denops, false, true) as number;
+      await openFloatingWindow(
+        denops,
+        bufnr,
       );
-      const terminal_height = Math.floor(
-        ensure(await n.nvim_get_option(denops, "lines"), is.Number),
-      );
-      const floatWinHeight = ensure(
-        await v.g.get(denops, "aider_floatwin_height"),
-        is.Number,
-      ) as number;
-      const floatWinWidth = ensure(
-        await v.g.get(denops, "aider_floatwin_width"),
-        is.Number,
-      ) as number;
-
-      const row = Math.floor((terminal_height - floatWinHeight) / 2);
-      const col = Math.floor((terminal_width - floatWinWidth) / 2);
-
-      await n.nvim_open_win(denops, buf, true, {
-        relative: "editor",
-        border: "double",
-        width: floatWinWidth,
-        height: floatWinHeight,
-        row: row,
-        col: col,
-      });
 
       return;
     } catch {
@@ -180,11 +157,9 @@ export async function main(denops: Denops): Promise<void> {
 
   denops.dispatcher = {
     async runAider(): Promise<void> {
-      // floating window対応
-      const a = await openAiderBuffer();
+      const exsitsAider = await openAiderBuffer();
 
-      // elseは、aiderを起動する
-      if (a === true) {
+      if (exsitsAider === true) {
         return;
       }
       await this.runAiderCommand();
