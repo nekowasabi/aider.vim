@@ -20,6 +20,11 @@ export async function main(denops: Denops): Promise<void> {
    */
   const openBufferType = await v.g.get(denops, "aider_buffer_open_type");
 
+  /**
+   * 現在のファイルパスを取得します。
+   *
+   * @returns {Promise<string>} 現在のファイルパスを表す文字列を返します。
+   */
   async function getCurrentFilePath(): Promise<string> {
     return ensure(await fn.expand(denops, "%:p"), is.String);
   }
@@ -344,6 +349,9 @@ export async function main(denops: Denops): Promise<void> {
     },
   };
 
+  await denops.cmd(
+    `command! -nargs=0 AiderSendPrompt call denops#notify("${denops.name}", "sendPrompt", [])`,
+  );
   await denops.cmd(
     `command! -nargs=0 AiderRun call denops#notify("${denops.name}", "runAider", [])`,
   );
