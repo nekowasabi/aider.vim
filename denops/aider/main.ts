@@ -322,9 +322,6 @@ export async function main(denops: Denops): Promise<void> {
   };
 
   await denops.cmd(
-    `command! -nargs=0 AiderSendPrompt call denops#notify("${denops.name}", "sendPrompt", [])`,
-  );
-  await denops.cmd(
     `command! -nargs=0 AiderSendPromptWithInput call denops#notify("${denops.name}", "sendPromptWithInput", [input("Prompt: ")])`,
   );
   await denops.cmd(
