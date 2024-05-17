@@ -214,7 +214,7 @@ export async function main(denops: Denops): Promise<void> {
     });
   }
 
-  async function sendPromptFromFloatingWindow() {
+  async function sendPromptFromFloatingWindow(): Promise<void> {
     const bufnr = await getAiderBufferNr() as number;
     // await openFloatingWindow(denops, bufnr as number);
 
