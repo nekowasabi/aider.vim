@@ -36,4 +36,4 @@ To use aider.vim, you can run the following commands within Vim or Neovim:
 
 ## TODO
 
-- [ ] Read CONVERSION.md command.
+- [ ] Add locale setting.
