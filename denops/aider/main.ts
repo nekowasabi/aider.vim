@@ -100,8 +100,11 @@ export async function main(denops: Denops): Promise<void> {
     ) as number;
 
     for (let i = 1; i <= buf_count; i++) {
-      const bufnr = ensure(await fn.bufnr(denops, i), is.Number);
-      const bufname = await getBufferName(denops, bufnr);
+      const bufnr = ensure(await fn.bufnr(denops, i), is.Number) as number;
+      const bufname = ensure(
+        await getBufferName(denops, bufnr),
+        is.String,
+      ) as string;
 
       if (bufname.startsWith("term://")) {
         await openFloatingWindow(denops, bufnr);
