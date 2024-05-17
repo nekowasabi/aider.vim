@@ -12,6 +12,14 @@ export async function main(denops: Denops): Promise<void> {
     floating = "floating",
   }
 
+  /**
+   * グローバル変数 "aider_buffer_open_type" からバッファの開き方を取得します。
+   * split: 横分割
+   * vsplit: 縦分割
+   * floating: フローティングウィンドウ
+   */
+  const openBufferType = await v.g.get(denops, "aider_buffer_open_type");
+
   async function getCurrentFilePath(): Promise<string> {
     return ensure(await fn.expand(denops, "%:p"), is.String);
   }
@@ -58,31 +66,40 @@ export async function main(denops: Denops): Promise<void> {
     });
   }
 
-  async function openAiderBuffer(): Promise<void | undefined | boolean> {
-    let openBufferType: string | undefined;
-    try {
-      openBufferType = await v.g.get(denops, "aider_buffer_open_type");
+  async function getAiderBufferNr(): Promise<number | undefined> {
+    // 開いているすべてのbufnrを取得
+    const buf_count = ensure(
+      await fn.bufnr(denops, "$"),
+      is.Number,
+    ) as number;
 
+    for (let i = 1; i <= buf_count; i++) {
+      const bufnr = ensure(await fn.bufnr(denops, i), is.Number) as number;
+      const bufname = await getBufferName(denops, bufnr);
+
+      if (bufname.startsWith("term://")) {
+        await openFloatingWindow(denops, bufnr);
+        return bufnr;
+      }
+    }
+
+    return;
+  }
+
+  async function openAiderBuffer(): Promise<void | undefined | boolean> {
+    //let openBufferType: string | undefined;
+    try {
       if (
         !Object.values(BufferLayout).includes(openBufferType as BufferLayout)
       ) {
+        console.log("invalid split type.");
         throw new Error();
       }
 
-      // 開いているすべてのbufnrを取得
-      const buf_count = ensure(
-        await fn.bufnr(denops, "$"),
-        is.Number,
-      ) as number;
-
-      for (let i = 1; i <= buf_count; i++) {
-        const bufnr = ensure(await fn.bufnr(denops, i), is.Number) as number;
-        const bufname = await getBufferName(denops, bufnr);
-
-        if (bufname.startsWith("term://")) {
-          await openFloatingWindow(denops, bufnr);
-          return true;
-        }
+      const bufnr = await getAiderBufferNr();
+      if (bufnr) {
+        await openFloatingWindow(denops, bufnr);
+        return true;
       }
 
       if (openBufferType === "split" || openBufferType === "vsplit") {
