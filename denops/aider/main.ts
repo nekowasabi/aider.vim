@@ -214,10 +214,6 @@ export async function main(denops: Denops): Promise<void> {
       }
       await this.runAiderCommand();
     },
-    async restart(): Promise<void> {
-      await this.exit();
-      await this.runAider();
-    },
     async sendPrompt(): Promise<void> {
       // テキストを取得してプロンプト入力ウインドウを閉じる
       await feedkeys(denops, 'ggVG"qy');
@@ -273,13 +269,11 @@ export async function main(denops: Denops): Promise<void> {
       await denops.cmd(`terminal ${aiderCommand} ${currentFile} ${convention}`);
     },
     async exit(): Promise<void> {
-      // TODO: floating windowの場合の処理を追加する
-      await idenfityTerminalBuffer(async (job_id, _winnr, bufnr) => {
-        await denops.call("chansend", job_id, "/exit\n");
-        await denops.cmd(`bdelete! ${bufnr}`);
-      });
+      const prompt = `/exit`;
+      await v.r.set(denops, "q", prompt);
+      await this.sendPromptWithInput();
     },
-    async selectedCodeWithPromptAider(
+    async selectedCodeWithPrompt(
       start: unknown,
       end: unknown,
     ): Promise<void> {
@@ -333,9 +327,6 @@ export async function main(denops: Denops): Promise<void> {
   };
 
   await denops.cmd(
-    `command! -nargs=0 AiderRestart call denops#notify("${denops.name}", "restart", [])`,
-  );
-  await denops.cmd(
     `command! -nargs=0 AiderSendPrompt call denops#notify("${denops.name}", "sendPrompt", [])`,
   );
   await denops.cmd(
@@ -357,6 +348,6 @@ export async function main(denops: Denops): Promise<void> {
     `command! -nargs=0 AiderExit call denops#notify("${denops.name}", "exit", [])`,
   );
   await denops.cmd(
-    `command! -nargs=* -range AiderVisualTextWithPrompt call denops#notify("${denops.name}", "selectedCodeWithPromptAider", [<line1>, <line2>])`,
+    `command! -nargs=* -range AiderVisualTextWithPrompt call denops#notify("${denops.name}", "selectedCodeWithPrompt", [<line1>, <line2>])`,
   );
 }
