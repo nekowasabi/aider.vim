@@ -270,7 +270,7 @@ export async function main(denops: Denops): Promise<void> {
       const currentFile = await getCurrentFilePath();
       const prompt = `/add ${currentFile}`;
       await v.r.set(denops, "q", prompt);
-      await this.sendPromptWithInput(prompt);
+      await this.sendPromptWithInput();
     },
     async addFile(path: unknown): Promise<void> {
       if (path === "") {
@@ -354,9 +354,6 @@ export async function main(denops: Denops): Promise<void> {
     },
   };
 
-  await denops.cmd(
-    `command! -nargs=0 AiderSendPromptWithInput call denops#notify("${denops.name}", "sendPromptWithInput", [input("Prompt: ")])`,
-  );
   await denops.cmd(
     `command! -nargs=0 AiderRun call denops#notify("${denops.name}", "runAider", [])`,
   );
