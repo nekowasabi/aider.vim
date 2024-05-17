@@ -229,29 +229,22 @@ export async function main(denops: Denops): Promise<void> {
 
       return;
     },
-    async sendPromptWithInput(prompt: unknown): Promise<void> {
-      if (prompt === "") {
-        return;
-      }
-
-      const aiderWindowJobId = await getAiderWindowJobId();
-      if (aiderWindowJobId === undefined) {
+    async sendPromptWithInput(): Promise<void> {
+      const bufnr = await getAiderBufferNr();
+      if (bufnr === undefined) {
         await denops.cmd("echo 'Aider is not running'");
         await denops.cmd("AiderRun");
         return;
       }
 
-      const str = ensure(prompt, is.String) + "\n";
-      await idenfityTerminalBuffer(async (job_id, winnr) => {
-        await denops.call("chansend", job_id, str);
-        await denops.cmd(`${winnr}wincmd w`);
-        await feedkeys(denops, "G");
-        await denops.cmd("wincmd p");
-      });
+      openBufferType === "floating"
+        ? sendPromptFromFloatingWindow()
+        : sendPromptFromSplitWindow();
     },
     async addCurrentFile(): Promise<void> {
       const currentFile = await getCurrentFilePath();
       const prompt = `/add ${currentFile}`;
+      await v.r.set(denops, "q", prompt);
       await this.sendPromptWithInput(prompt);
     },
     async addFile(path: unknown): Promise<void> {
@@ -259,14 +252,16 @@ export async function main(denops: Denops): Promise<void> {
         return;
       }
       const prompt = `/add ${path}`;
-      await this.sendPromptWithInput(prompt);
+      await v.r.set(denops, "q", prompt);
+      await this.sendPromptWithInput();
     },
     async addWeb(url: unknown): Promise<void> {
       if (url === "") {
         return;
       }
       const prompt = `/web ${url}`;
-      await this.sendPromptWithInput(prompt);
+      await v.r.set(denops, "q", prompt);
+      await this.sendPromptWithInput();
     },
     async runAiderCommand(): Promise<void> {
       const convention = await v.g.get(denops, "convension_path") ?? "";
