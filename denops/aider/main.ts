@@ -64,9 +64,7 @@ export async function main(denops: Denops): Promise<void> {
       row: row,
       col: col,
     });
-    // await denops.cmd("set buftype=nofile");
     await denops.cmd("set nonumber");
-    await denops.cmd("set filetype=markdown");
   }
 
   async function getAiderBufferNr(): Promise<number | undefined> {
@@ -182,6 +180,21 @@ export async function main(denops: Denops): Promise<void> {
     });
   }
 
+  async function sendPromptFromFloatingWindow() {
+    const bufnr = await getAiderBufferNr() as number;
+    // await openFloatingWindow(denops, bufnr as number);
+
+    await feedkeys(denops, "G");
+    await feedkeys(denops, '"qp');
+
+    const jobId = ensure(
+      await fn.getbufvar(denops, bufnr, "&channel"),
+      is.Number,
+    );
+
+    await denops.call("chansend", jobId, "\n");
+  }
+
   async function getAiderWindowJobId(): Promise<number | undefined> {
     let jobId: number | undefined;
     await idenfityTerminalBuffer(async (job_id) => {
@@ -205,74 +218,16 @@ export async function main(denops: Denops): Promise<void> {
       await this.exit();
       await this.runAider();
     },
-    // TODO: split用なので、フォーカス移動してしまう
-    // floating windowに対応するか、floatingのときは移動しないようにするか、別メソッドにする
     async sendPrompt(): Promise<void> {
       // テキストを取得してプロンプト入力ウインドウを閉じる
       await feedkeys(denops, 'ggVG"qy');
-      await denops.cmd("close!");
+      await denops.cmd("bdelete!");
 
-      if (openBufferType === "split" || openBufferType === "vsplit") {
-        sendPromptFromSplitWindow();
-        return;
-      }
+      openBufferType === "floating"
+        ? sendPromptFromFloatingWindow()
+        : sendPromptFromSplitWindow();
 
-      // floating windowの場合
-      // 開いているすべてのbufnrを取得
-      const buf_count = ensure(
-        await fn.bufnr(denops, "$"),
-        is.Number,
-      ) as number;
-
-      // buf_countのぶんだけループして、bufnrからバッファ名を取得する
-      for (let i = 1; i <= buf_count; i++) {
-        const bufnr = ensure(await fn.bufnr(denops, i), is.Number) as number;
-        const bufname = ensure(
-          await fn.bufname(denops, bufnr),
-          is.String,
-        ) as string;
-
-        // if bufnameが ^term:// で始まる場合
-        if (bufname.startsWith("term://")) {
-          // 画面中央に表示
-          const terminal_width = Math.floor(
-            ensure(await n.nvim_get_option(denops, "columns"), is.Number),
-          );
-          const terminal_height = Math.floor(
-            ensure(await n.nvim_get_option(denops, "lines"), is.Number),
-          );
-          const floatWinHeight = ensure(
-            await v.g.get(denops, "aider_floatwin_height"),
-            is.Number,
-          ) as number;
-          const floatWinWidth = ensure(
-            await v.g.get(denops, "aider_floatwin_width"),
-            is.Number,
-          ) as number;
-
-          const row = Math.floor((terminal_height - floatWinHeight) / 2);
-          const col = Math.floor((terminal_width - floatWinWidth) / 2);
-
-          await n.nvim_open_win(denops, bufnr, true, {
-            relative: "editor",
-            border: "double",
-            width: floatWinWidth,
-            height: floatWinHeight,
-            row: row,
-            col: col,
-          });
-
-          await feedkeys(denops, "G");
-          await feedkeys(denops, '"qp');
-          // jobIdを取得する必要がある
-          const job_id = ensure(
-            await fn.getbufvar(denops, bufnr, "&channel"),
-            is.Number,
-          ) as number;
-
-          await denops.call("chansend", job_id, "\n");
-        }
-      }
+      return;
     },
     async sendPromptWithInput(prompt: unknown): Promise<void> {
       if (prompt === "") {
