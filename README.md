@@ -19,9 +19,17 @@ Please add the following settings to your vimrc or init.vim.
 
 ```vim
 ex.
-let g:aider_command = 'aider --no-auto-commits --4turbo'
-let g:aider_buffer_open_type = 'vsplit'
+let g:aider_command = 'aider --no-auto-commits'
+let g:aider_buffer_open_type = 'floating'
 let g:conversion_path = '/path/to/conversion'
+let g:aider_floatwin_width = 100
+let g:aider_floatwin_height = 20
+nnoremap <silent> <leader>ar :AiderRun<CR>
+nnoremap <silent> <leader>aa :AiderAddCurrentFile<CR>
+nnoremap <silent> <leader>aw :AiderAddWeb<CR>
+nnoremap <silent> <leader>ap :AiderSendPromptWithInput<CR>
+nnoremap <silent> <leader>ax :AiderExit<CR>
+vmap <leader>av :AiderVisualTextWithPrompt<CR>
 ```
 
 ## Usage
