@@ -64,6 +64,9 @@ export async function main(denops: Denops): Promise<void> {
       row: row,
       col: col,
     });
+    await denops.cmd("setlocal buftype=nofile");
+    await denops.cmd("set nonumber");
+    await denops.cmd("set filetype=markdown");
   }
 
   async function getAiderBufferNr(): Promise<number | undefined> {
@@ -224,9 +227,6 @@ export async function main(denops: Denops): Promise<void> {
 
         // if bufnameが ^term:// で始まる場合
         if (bufname.startsWith("term://")) {
-          // // 該当するbufnrのバッファを開く
-          // await denops.cmd(`buffer ${bufnr}`);
-
           // 画面中央に表示
           const terminal_width = Math.floor(
             ensure(await n.nvim_get_option(denops, "columns"), is.Number),
@@ -349,50 +349,24 @@ export async function main(denops: Denops): Promise<void> {
       words.push("```");
 
       // floatint window定義
-      const buf = await n.nvim_create_buf(denops, false, true) as number;
-      // 画面中央に表示
-      const terminal_width = Math.floor(
-        ensure(await n.nvim_get_option(denops, "columns"), is.Number),
+      const bufnr = await n.nvim_create_buf(denops, false, true) as number;
+      await openFloatingWindow(
+        denops,
+        bufnr,
       );
-      const terminal_height = Math.floor(
-        ensure(await n.nvim_get_option(denops, "lines"), is.Number),
-      );
-      const floatWinHeight = ensure(
-        await v.g.get(denops, "aider_floatwin_height"),
-        is.Number,
-      ) as number;
-      const floatWinWidth = ensure(
-        await v.g.get(denops, "aider_floatwin_width"),
-        is.Number,
-      ) as number;
 
-      const row = Math.floor((terminal_height - floatWinHeight) / 2);
-      const col = Math.floor((terminal_width - floatWinWidth) / 2);
-
-      await n.nvim_open_win(denops, buf, true, {
-        relative: "editor",
-        border: "double",
-        width: floatWinWidth,
-        height: floatWinHeight,
-        row: row,
-        col: col,
-      });
-      await denops.cmd("setlocal buftype=nofile");
-      await denops.cmd("set nonumber");
-      await denops.cmd("set filetype=markdown");
-
-      await n.nvim_buf_set_lines(denops, buf, -1, -1, true, words);
-      await n.nvim_buf_set_lines(denops, buf, 0, 1, true, []);
-      await n.nvim_buf_set_lines(denops, buf, -1, -1, true, [""]);
+      await n.nvim_buf_set_lines(denops, bufnr, -1, -1, true, words);
+      await n.nvim_buf_set_lines(denops, bufnr, 0, 1, true, []);
+      await n.nvim_buf_set_lines(denops, bufnr, -1, -1, true, [""]);
 
       await feedkeys(denops, "Gi");
 
-      await n.nvim_buf_set_keymap(denops, buf, "n", "q", "<cmd>close!<cr>", {
+      await n.nvim_buf_set_keymap(denops, bufnr, "n", "q", "<cmd>close!<cr>", {
         silent: true,
       });
       await n.nvim_buf_set_keymap(
         denops,
-        buf,
+        bufnr,
         "n",
         "<cr>",
         "<cmd>AiderSendPrompt<cr>",
