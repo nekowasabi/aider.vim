@@ -21,7 +21,10 @@ export class Source extends BaseSource<Params> {
     return new ReadableStream<Item<ActionData>[]>({
       async start(controller) {
         try {
-          const result = await args.denops.call("system", "git ls-files");
+          const result = await args.denops.call(
+            "system",
+            "git ls-files",
+          ) as string;
           const files = result.split("\n").filter((file: string) =>
             file !== ""
           );
