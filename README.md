@@ -21,7 +21,6 @@ Please add the following settings to your vimrc or init.vim.
 ex.
 let g:aider_command = 'aider --no-auto-commits'
 let g:aider_buffer_open_type = 'floating'
-let g:conversion_path = '/path/to/conversion'
 let g:aider_floatwin_width = 100
 let g:aider_floatwin_height = 20
 nnoremap <silent> <leader>ar :AiderRun<CR>
@@ -40,9 +39,12 @@ To use aider.vim, you can run the following commands within Vim or Neovim:
 - `:AiderAddCurrentFile` Adds the current file to aider's context.
 - `:AiderExit` - Exits aider and cleans up the session.
 - `:AiderVisualTextWithPrompt`
-  - Edit the selected text in visual mode in a floating window and send it to aider.
-  - In the floating window, send to aider with `<CR>` in normal mode, and close the floating window with `q`.
-- `:AiderAddWeb` - Displays a prompt for the specified URL and adds it to the aider context.
+  - Edit the selected text in visual mode in a floating window and send it to
+    aider.
+  - In the floating window, send to aider with `<CR>` in normal mode, and close
+    the floating window with `q`.
+- `:AiderAddWeb` - Displays a prompt for the specified URL and adds it to the
+  aider context.
 
 ## TODO
 
