@@ -83,6 +83,17 @@ export async function main(denops: Denops): Promise<void> {
       row: row,
       col: col,
     });
+    await n.nvim_buf_set_keymap(
+      denops,
+      bufnr,
+      "n",
+      "q",
+      "<cmd>close!<cr>",
+      {
+        silent: true,
+      },
+    );
+
     await denops.cmd("set nonumber");
   }
 
@@ -219,7 +230,6 @@ export async function main(denops: Denops): Promise<void> {
 
   async function sendPromptFromFloatingWindow(): Promise<void> {
     const bufnr = await getAiderBufferNr() as number;
-    // await openFloatingWindow(denops, bufnr as number);
 
     await feedkeys(denops, "G");
     await feedkeys(denops, '"qp');
