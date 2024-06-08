@@ -45,6 +45,8 @@ To use aider.vim, you can run the following commands within Vim or Neovim:
     the floating window with `q`.
 - `:AiderAddWeb` - Displays a prompt for the specified URL and adds it to the
   aider context.
+- `:AiderOpenIgnore` - Opens the `.aiderignore` file in the git root directory
+  if it exists.
 
 ## TODO
 

@@ -298,6 +298,17 @@ export async function main(denops: Denops): Promise<void> {
       await v.r.set(denops, "q", prompt);
       await this.sendPromptWithInput();
     },
+    async openIgnore(): Promise<void> {
+      const gitRoot = (await fn.system(denops, "git rev-parse --show-toplevel"))
+        .trim();
+      const filePathToOpen = `${gitRoot}/.aiderignore`;
+      console.log(filePathToOpen);
+      if (await fn.filereadable(denops, filePathToOpen)) {
+        await denops.cmd(`edit ${filePathToOpen}`);
+        return;
+      }
+      console.log("No .aiderignore file found.");
+    },
     async selectedCodeWithPrompt(
       start: unknown,
       end: unknown,
@@ -370,5 +381,8 @@ export async function main(denops: Denops): Promise<void> {
   );
   await denops.cmd(
     `command! -nargs=* -range AiderVisualTextWithPrompt call denops#notify("${denops.name}", "selectedCodeWithPrompt", [<line1>, <line2>])`,
+  );
+  await denops.cmd(
+    `command! -nargs=* -range AiderOpenIgnore call denops#notify("${denops.name}", "openIgnore", [])`,
   );
 }
