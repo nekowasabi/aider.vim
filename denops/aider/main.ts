@@ -76,6 +76,8 @@ export async function main(denops: Denops): Promise<void> {
     const col = Math.floor((terminal_width - floatWinWidth) / 2);
 
     await n.nvim_open_win(denops, bufnr, true, {
+      title:
+        "| normal mode > qq: quit, terminal mode > <Esc><Esc>: quit | visual mode > <CR>: send prompt |",
       relative: "editor",
       border: "double",
       width: floatWinWidth,
@@ -86,8 +88,28 @@ export async function main(denops: Denops): Promise<void> {
     await n.nvim_buf_set_keymap(
       denops,
       bufnr,
+      "t",
+      "<Esc>",
+      "<cmd>close!<cr>",
+      {
+        silent: true,
+      },
+    );
+    await n.nvim_buf_set_keymap(
+      denops,
+      bufnr,
       "n",
       "q",
+      "<cmd>close!<cr>",
+      {
+        silent: true,
+      },
+    );
+    await n.nvim_buf_set_keymap(
+      denops,
+      bufnr,
+      "n",
+      "<Esc>",
       "<cmd>close!<cr>",
       {
         silent: true,
