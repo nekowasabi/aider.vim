@@ -351,6 +351,7 @@ export async function main(denops: Denops): Promise<void> {
       file.push(`!${currentFile}`);
 
       await fn.writefile(denops, file, filePathToOpen);
+      console.log(`Added ${currentFile} to .aiderignore`);
     },
     async selectedCodeWithPrompt(
       start: unknown,
