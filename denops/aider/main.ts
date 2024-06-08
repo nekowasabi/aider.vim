@@ -334,12 +334,23 @@ export async function main(denops: Denops): Promise<void> {
       const gitRoot = (await fn.system(denops, "git rev-parse --show-toplevel"))
         .trim();
       const filePathToOpen = `${gitRoot}/.aiderignore`;
-      console.log(filePathToOpen);
       if (await fn.filereadable(denops, filePathToOpen)) {
         await denops.cmd(`edit ${filePathToOpen}`);
         return;
       }
       console.log("No .aiderignore file found.");
+    },
+    async addIgnoreCurrentFile(): Promise<void> {
+      const currentFile = await getCurrentFilePath();
+
+      const gitRoot = (await fn.system(denops, "git rev-parse --show-toplevel"))
+        .trim();
+      const filePathToOpen = `${gitRoot}/.aiderignore`;
+
+      const file = await fn.readfile(denops, filePathToOpen);
+      file.push(`!${currentFile}`);
+
+      await fn.writefile(denops, file, filePathToOpen);
     },
     async selectedCodeWithPrompt(
       start: unknown,
@@ -416,5 +427,8 @@ export async function main(denops: Denops): Promise<void> {
   );
   await denops.cmd(
     `command! -nargs=* -range AiderOpenIgnore call denops#notify("${denops.name}", "openIgnore", [])`,
+  );
+  await denops.cmd(
+    `command! -nargs=* -range AiderAddIgnoreCurrentFile call denops#notify("${denops.name}", "addIgnoreCurrentFile", [])`,
   );
 }

@@ -28,6 +28,8 @@ nnoremap <silent> <leader>aa :AiderAddCurrentFile<CR>
 nnoremap <silent> <leader>aw :AiderAddWeb<CR>
 nnoremap <silent> <leader>ap :AiderSendPromptWithInput<CR>
 nnoremap <silent> <leader>ax :AiderExit<CR>
+nnoremap <silent> <leader>ai :AiderAddIgnoreCurrentFile<CR>
+nnoremap <silent> <leader>aI :AiderOpenIgnore<CR>
 vmap <leader>av :AiderVisualTextWithPrompt<CR>
 ```
 
@@ -47,6 +49,7 @@ To use aider.vim, you can run the following commands within Vim or Neovim:
   aider context.
 - `:AiderOpenIgnore` - Opens the `.aiderignore` file in the git root directory
   if it exists.
+- `:AiderAddIgnoreCurrentFile` - Adds the current file to the `.aiderignore`
 
 ## TODO
 
