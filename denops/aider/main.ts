@@ -148,6 +148,12 @@ export async function main(denops: Denops): Promise<void> {
     return;
   }
 
+  function isValidBufferLayout(): boolean {
+    return !Object.values(BufferLayout).includes(openBufferType as BufferLayout)
+      ? false
+      : true;
+  }
+
   /**
    * 非同期関数 openAiderBuffer は、Aiderバッファを開きます。
    * 既にAiderバッファが開いている場合は、そのバッファを開きます。
@@ -161,11 +167,8 @@ export async function main(denops: Denops): Promise<void> {
    */
   async function openAiderBuffer(): Promise<void | undefined | boolean> {
     try {
-      if (
-        !Object.values(BufferLayout).includes(openBufferType as BufferLayout)
-      ) {
+      if (!isValidBufferLayout()) {
         console.log("invalid split type.");
-        throw new Error();
       }
 
       const aiderBufnr = await getAiderBufferNr();
