@@ -349,9 +349,10 @@ export async function main(denops: Denops): Promise<void> {
       const gitRoot = (await fn.system(denops, "git rev-parse --show-toplevel"))
         .trim();
       const filePathToOpen = `${gitRoot}/.aiderignore`;
+      const forAiderIgnorePath = currentFile.replace(gitRoot, "");
 
       const file = await fn.readfile(denops, filePathToOpen);
-      file.push(`!${currentFile}`);
+      file.push(`!${forAiderIgnorePath}`);
 
       await fn.writefile(denops, file, filePathToOpen);
       console.log(`Added ${currentFile} to .aiderignore`);
