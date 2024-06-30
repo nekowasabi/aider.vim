@@ -343,9 +343,11 @@ export async function main(denops: Denops): Promise<void> {
       console.log("No .aiderignore file found.");
     },
     async debug(): Promise<void> {
-      // add buffer
+      // hide buffer
+      await denops.cmd("b#");
+    },
+    async silentRunAider(): Promise<void> {
       await denops.cmd("enew");
-      // const bufnr = await n.nvim_get_current_buf(denops) as number;
 
       const aiderCommand = ensure(
         await v.g.get(denops, "aider_command"),
@@ -353,7 +355,6 @@ export async function main(denops: Denops): Promise<void> {
       );
       await denops.cmd(`terminal ${aiderCommand}`);
 
-      // hide buffer
       await denops.cmd("b#");
     },
     async addIgnoreCurrentFile(): Promise<void> {
@@ -427,6 +428,9 @@ export async function main(denops: Denops): Promise<void> {
   );
   await denops.cmd(
     `command! -nargs=0 AiderRun call denops#notify("${denops.name}", "runAider", [])`,
+  );
+  await denops.cmd(
+    `command! -nargs=0 AiderSilentRun call denops#notify("${denops.name}", "silentRunAider", [])`,
   );
   await denops.cmd(
     `command! -nargs=1 AiderAddFile call denops#notify("${denops.name}", "addFile", [<f-args>])`,
