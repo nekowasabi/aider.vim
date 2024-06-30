@@ -201,7 +201,7 @@ export async function main(denops: Denops): Promise<void> {
    * @param {function} callback - ジョブID、ウィンドウ番号、バッファ番号を引数に取るコールバック関数
    * @returns {Promise<void>}
    */
-  async function idenfityTerminalBuffer(
+  async function identifyTerminalBuffer(
     callback: (
       job_id: number | undefined,
       winnr?: number,
@@ -225,7 +225,7 @@ export async function main(denops: Denops): Promise<void> {
     }
   }
   async function sendPromptFromSplitWindow() {
-    await idenfityTerminalBuffer(async (job_id, winnr, _bufnr) => {
+    await identifyTerminalBuffer(async (job_id, winnr, _bufnr) => {
       await denops.cmd(`bdelete!`);
       if (await v.g.get(denops, "aider_buffer_open_type") !== "floating") {
         await denops.cmd(`${winnr}wincmd w`);
@@ -251,6 +251,12 @@ export async function main(denops: Denops): Promise<void> {
       await denops.call("chansend", job_id, "\n");
       await denops.cmd("wincmd p");
     });
+  }
+
+  /**
+   * job_id に対応するターミナルバッファにプロンプトを送信します。
+   */
+  async function sendPromptSilent() {
   }
 
   async function sendPromptFromFloatingWindow(): Promise<void> {
