@@ -253,12 +253,6 @@ export async function main(denops: Denops): Promise<void> {
     });
   }
 
-  /**
-   * job_id に対応するターミナルバッファにプロンプトを送信します。
-   */
-  async function sendPromptSilent() {
-  }
-
   async function sendPromptFromFloatingWindow(): Promise<void> {
     const bufnr = await getAiderBufferNr() as number;
 
