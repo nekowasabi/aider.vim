@@ -329,9 +329,8 @@ export async function main(denops: Denops): Promise<void> {
       await denops.cmd(`terminal ${aiderCommand}`);
     },
     async exit(): Promise<void> {
-      const prompt = `/exit`;
-      await v.r.set(denops, "q", prompt);
-      await this.sendPromptWithInput();
+      const bufnr = await getAiderBufferNr();
+      await denops.cmd(`${bufnr}bdelete!`);
     },
     async openIgnore(): Promise<void> {
       const gitRoot = (await fn.system(denops, "git rev-parse --show-toplevel"))
@@ -342,6 +341,20 @@ export async function main(denops: Denops): Promise<void> {
         return;
       }
       console.log("No .aiderignore file found.");
+    },
+    async debug(): Promise<void> {
+      // add buffer
+      await denops.cmd("enew");
+      // const bufnr = await n.nvim_get_current_buf(denops) as number;
+
+      const aiderCommand = ensure(
+        await v.g.get(denops, "aider_command"),
+        is.String,
+      );
+      await denops.cmd(`terminal ${aiderCommand}`);
+
+      // hide buffer
+      await denops.cmd("b#");
     },
     async addIgnoreCurrentFile(): Promise<void> {
       const currentFile = await getCurrentFilePath();
@@ -435,5 +448,8 @@ export async function main(denops: Denops): Promise<void> {
   );
   await denops.cmd(
     `command! -nargs=* -range AiderAddIgnoreCurrentFile call denops#notify("${denops.name}", "addIgnoreCurrentFile", [])`,
+  );
+  await denops.cmd(
+    `command! -nargs=* -range AiderDebug call denops#notify("${denops.name}", "debug", [])`,
   );
 }
