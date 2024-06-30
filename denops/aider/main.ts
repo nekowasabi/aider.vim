@@ -356,6 +356,8 @@ export async function main(denops: Denops): Promise<void> {
       await denops.cmd(`terminal ${aiderCommand}`);
 
       await denops.cmd("b#");
+
+      console.log("Aider is running in the background.");
     },
     async addIgnoreCurrentFile(): Promise<void> {
       const currentFile = await getCurrentFilePath();
