@@ -300,6 +300,11 @@ export async function main(denops: Denops): Promise<void> {
         : sendPromptFromSplitWindow();
     },
     async addCurrentFile(): Promise<void> {
+      const bufnr = await fn.bufnr(denops, "%") as number;
+      const bufType = await fn.getbufvar(denops, bufnr, "&buftype") as string;
+      if (bufType === "terminal") {
+        return;
+      }
       const currentFile = await getCurrentFilePath();
       const prompt = `/add ${currentFile}`;
       await v.r.set(denops, "q", prompt);
