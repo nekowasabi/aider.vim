@@ -51,7 +51,3 @@ To use aider.vim, you can run the following commands within Vim or Neovim:
   if it exists.
 - `:AiderAddIgnoreCurrentFile` - Adds the current file to the `.aiderignore`
 
-## TODO
-
-- [ ] Add must reading CONVENSION.md prompt.
-- [ ] Add optional prompt setting.
