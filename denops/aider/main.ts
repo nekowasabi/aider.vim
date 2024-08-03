@@ -306,6 +306,9 @@ export async function main(denops: Denops): Promise<void> {
     },
     async addCurrentFile(): Promise<void> {
       const bufnr = await fn.bufnr(denops, "%") as number;
+      if (await getAiderBufferNr() === undefined) {
+        await this.silentRunAider();
+      }
       const bufType = await fn.getbufvar(denops, bufnr, "&buftype") as string;
       if (bufType === "terminal") {
         return;
