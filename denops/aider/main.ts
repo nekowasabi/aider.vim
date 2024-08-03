@@ -2,7 +2,11 @@ import { Denops } from "https://deno.land/x/denops_std@v6.4.0/mod.ts";
 import * as fn from "https://deno.land/x/denops_std@v6.4.0/function/mod.ts";
 import * as n from "https://deno.land/x/denops_std@v6.4.0/function/nvim/mod.ts";
 import * as v from "https://deno.land/x/denops_std@v6.4.0/variable/mod.ts";
-import { ensure, is } from "https://deno.land/x/unknownutil@v3.17.0/mod.ts";
+import {
+  ensure,
+  is,
+  maybe,
+} from "https://deno.land/x/unknownutil@v3.17.0/mod.ts";
 import { feedkeys } from "https://deno.land/x/denops_std@v6.4.0/function/mod.ts";
 
 /**
@@ -14,11 +18,9 @@ export async function main(denops: Denops): Promise<void> {
   /**
    * Enum representing different buffer layout options.
    */
-  enum BufferLayout {
-    split = "split",
-    vsplit = "vsplit",
-    floating = "floating",
-  }
+
+  const bufferLayouts = ["split", "vsplit", "floating"] as const;
+  type BufferLayout = typeof bufferLayouts[number];
 
   /**
    * Retrieves the buffer opening type from the global variable "aider_buffer_open_type".
@@ -26,7 +28,10 @@ export async function main(denops: Denops): Promise<void> {
    * vsplit: vertical split
    * floating: floating window
    */
-  const openBufferType = await v.g.get(denops, "aider_buffer_open_type");
+  const openBufferType: BufferLayout = maybe(
+    await v.g.get(denops, "aider_buffer_open_type"),
+    is.LiteralOneOf(bufferLayouts),
+  ) ?? "floating";
 
   /**
    * Gets the current file path.
@@ -153,9 +158,7 @@ export async function main(denops: Denops): Promise<void> {
    * @returns {boolean} True if the buffer layout is valid, false otherwise.
    */
   function isValidBufferLayout(): boolean {
-    return !Object.values(BufferLayout).includes(openBufferType as BufferLayout)
-      ? false
-      : true;
+    return !bufferLayouts.includes(openBufferType) ? false : true;
   }
 
   /**
@@ -186,7 +189,7 @@ export async function main(denops: Denops): Promise<void> {
         return;
       }
 
-      const bufnr = ensure<number>(
+      const bufnr = ensure(
         await n.nvim_create_buf(denops, false, true),
         is.Number,
       );
