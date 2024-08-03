@@ -140,7 +140,6 @@ export async function main(denops: Denops): Promise<void> {
       ) as string;
 
       if (bufname.startsWith("term://")) {
-        await openFloatingWindow(denops, bufnr);
         return bufnr;
       }
     }
@@ -254,7 +253,11 @@ export async function main(denops: Denops): Promise<void> {
   }
 
   async function sendPromptFromFloatingWindow(): Promise<void> {
-    const bufnr = await getAiderBufferNr() as number;
+    const bufnr = await getAiderBufferNr() ;
+    if (bufnr === undefined) {
+      return;
+    }
+    await openFloatingWindow(denops, bufnr);
 
     await feedkeys(denops, "G");
     await feedkeys(denops, '"qp');
@@ -294,6 +297,8 @@ export async function main(denops: Denops): Promise<void> {
         await denops.cmd("AiderRun");
         return;
       }
+
+      await openFloatingWindow(denops, bufnr);
 
       openBufferType === "floating"
         ? sendPromptFromFloatingWindow()
