@@ -153,13 +153,6 @@ export async function main(denops: Denops): Promise<void> {
     return;
   }
 
-  /**
-   * Checks if the current buffer layout is valid.
-   * @returns {boolean} True if the buffer layout is valid, false otherwise.
-   */
-  function isValidBufferLayout(): boolean {
-    return !bufferLayouts.includes(openBufferType) ? false : true;
-  }
 
   /**
    * 非同期関数 openAiderBuffer は、Aiderバッファを開きます。
@@ -173,11 +166,6 @@ export async function main(denops: Denops): Promise<void> {
    * @throws {Error} openBufferType が無効な値の場合、エラーがスローされます。
    */
   async function openAiderBuffer(): Promise<void | undefined | boolean> {
-    try {
-      if (!isValidBufferLayout()) {
-        console.log("invalid split type.");
-      }
-
       const aiderBufnr = await getAiderBufferNr();
       if (aiderBufnr) {
         await openFloatingWindow(denops, aiderBufnr);
@@ -200,10 +188,6 @@ export async function main(denops: Denops): Promise<void> {
       );
 
       return;
-    } catch (e) {
-      console.log(e);
-      await denops.cmd("split");
-    }
   }
 
   /**
