@@ -140,7 +140,6 @@ export async function main(denops: Denops): Promise<void> {
       ) as string;
 
       if (bufname.startsWith("term://")) {
-        await openFloatingWindow(denops, bufnr);
         return bufnr;
       }
     }
@@ -254,7 +253,11 @@ export async function main(denops: Denops): Promise<void> {
   }
 
   async function sendPromptFromFloatingWindow(): Promise<void> {
-    const bufnr = await getAiderBufferNr() as number;
+    const bufnr = await getAiderBufferNr();
+    if (bufnr === undefined) {
+      return;
+    }
+    await openFloatingWindow(denops, bufnr);
 
     await feedkeys(denops, "G");
     await feedkeys(denops, '"qp');
@@ -295,12 +298,17 @@ export async function main(denops: Denops): Promise<void> {
         return;
       }
 
+      await openFloatingWindow(denops, bufnr);
+
       openBufferType === "floating"
         ? sendPromptFromFloatingWindow()
         : sendPromptFromSplitWindow();
     },
     async addCurrentFile(): Promise<void> {
       const bufnr = await fn.bufnr(denops, "%") as number;
+      if (await getAiderBufferNr() === undefined) {
+        await this.silentRunAider();
+      }
       const bufType = await fn.getbufvar(denops, bufnr, "&buftype") as string;
       if (bufType === "terminal") {
         return;
@@ -335,7 +343,9 @@ export async function main(denops: Denops): Promise<void> {
     },
     async exit(): Promise<void> {
       const bufnr = await getAiderBufferNr();
-      await denops.cmd(`${bufnr}bdelete!`);
+      if (bufnr !== undefined) {
+        await denops.cmd(`${bufnr}bdelete!`);
+      }
     },
     async openIgnore(): Promise<void> {
       const gitRoot = (await fn.system(denops, "git rev-parse --show-toplevel"))
