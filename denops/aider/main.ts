@@ -253,7 +253,7 @@ export async function main(denops: Denops): Promise<void> {
   }
 
   async function sendPromptFromFloatingWindow(): Promise<void> {
-    const bufnr = await getAiderBufferNr() ;
+    const bufnr = await getAiderBufferNr();
     if (bufnr === undefined) {
       return;
     }
