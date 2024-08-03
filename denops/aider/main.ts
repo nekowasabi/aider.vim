@@ -343,7 +343,9 @@ export async function main(denops: Denops): Promise<void> {
     },
     async exit(): Promise<void> {
       const bufnr = await getAiderBufferNr();
-      await denops.cmd(`${bufnr}bdelete!`);
+      if (bufnr !== undefined) {
+        await denops.cmd(`${bufnr}bdelete!`);
+      }
     },
     async openIgnore(): Promise<void> {
       const gitRoot = (await fn.system(denops, "git rev-parse --show-toplevel"))
