@@ -9,7 +9,7 @@ import {
 } from "https://deno.land/x/unknownutil@v3.17.0/mod.ts";
 import { feedkeys } from "https://deno.land/x/denops_std@v6.4.0/function/mod.ts";
 import { getCurrentFilePath, getTerminalBufferNr } from "./utils.ts";
-import { command } from "./command.ts";
+import { aiderCommand } from "./aiderCommand.ts";
 
 /**
  * The main function that sets up the Aider plugin functionality.
@@ -309,7 +309,7 @@ export async function main(denops: Denops): Promise<void> {
       console.log("No .aiderignore file found.");
     },
     async debug(): Promise<void> {
-      await command.debug(denops);
+      await aiderCommand.debug(denops);
     },
     async silentRunAider(): Promise<void> {
       await denops.cmd("enew");
