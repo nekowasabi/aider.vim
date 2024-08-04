@@ -122,7 +122,7 @@ export const buffer = {
   ): Promise<void | undefined | boolean> {
     const aiderBufnr = await getTerminalBufferNr(denops);
     if (aiderBufnr) {
-      await this.openFloatingWindow(denops, aiderBufnr);
+      await buffer.openFloatingWindow(denops, aiderBufnr);
       return true;
     }
 
@@ -136,7 +136,7 @@ export const buffer = {
       is.Number,
     );
 
-    await this.openFloatingWindow(
+    await buffer.openFloatingWindow(
       denops,
       bufnr,
     );
@@ -149,7 +149,7 @@ export const buffer = {
     if (bufnr === undefined) {
       return;
     }
-    await this.openFloatingWindow(denops, bufnr);
+    await buffer.openFloatingWindow(denops, bufnr);
 
     await feedkeys(denops, "G");
     await feedkeys(denops, '"qp');
@@ -213,12 +213,12 @@ export const buffer = {
       return;
     }
 
-    await this.openFloatingWindow(denops, bufnr);
+    await buffer.openFloatingWindow(denops, bufnr);
 
-    const openBufferType = await this.getOpenBufferType(denops);
+    const openBufferType = await buffer.getOpenBufferType(denops);
     openBufferType === "floating"
-      ? await this.sendPromptFromFloatingWindow(denops)
-      : await this.sendPromptFromSplitWindow(denops);
+      ? await buffer.sendPromptFromFloatingWindow(denops)
+      : await buffer.sendPromptFromSplitWindow(denops);
   },
   async sendPrompt(
     denops: Denops,
@@ -229,8 +229,8 @@ export const buffer = {
     await denops.cmd("bdelete!");
 
     openBufferType === "floating"
-      ? this.sendPromptFromFloatingWindow(denops)
-      : this.sendPromptFromSplitWindow(denops);
+      ? buffer.sendPromptFromFloatingWindow(denops)
+      : buffer.sendPromptFromSplitWindow(denops);
 
     return;
   },
@@ -264,7 +264,7 @@ export const buffer = {
       await n.nvim_create_buf(denops, false, true),
       is.Number,
     );
-    await this.openFloatingWindow(
+    await buffer.openFloatingWindow(
       denops,
       bufnr,
     );
