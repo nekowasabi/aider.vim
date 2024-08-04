@@ -122,14 +122,19 @@ export async function main(denops: Denops): Promise<void> {
    * @throws {Error} openBufferType が無効な値の場合、エラーがスローされます。
    */
   async function openAiderBuffer(): Promise<void | undefined | boolean> {
-    if (openBufferType === "split" || openBufferType === "vsplit") {
-      await denops.cmd(openBufferType);
+    const aiderBufnr = await getTerminalBufferNr(denops);
+    if (aiderBufnr) {
+      await openFloatingWindow(denops, aiderBufnr);
       return true;
     }
 
+    if (openBufferType === "split" || openBufferType === "vsplit") {
+      await denops.cmd(openBufferType);
+      return;
+    }
+
     const bufnr = ensure(
-      await getTerminalBufferNr(denops) ??
-        await n.nvim_create_buf(denops, false, true),
+      await n.nvim_create_buf(denops, false, true),
       is.Number,
     );
 
@@ -138,7 +143,7 @@ export async function main(denops: Denops): Promise<void> {
       bufnr,
     );
 
-    return true;
+    return;
   }
 
   /**
