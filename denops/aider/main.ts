@@ -228,7 +228,7 @@ export async function main(denops: Denops): Promise<void> {
       if (exsitsAider === true) {
         return;
       }
-      await this.runAiderCommand();
+      await aiderCommand.run(denops);
     },
     async sendPrompt(): Promise<void> {
       // テキストを取得してプロンプト入力ウインドウを閉じる
@@ -242,7 +242,7 @@ export async function main(denops: Denops): Promise<void> {
       return;
     },
     async sendPromptWithInput(): Promise<void> {
-      const bufnr = await getAiderBufferNr(denops);
+      const bufnr = await getTerminalBufferNr(denops);
       if (bufnr === undefined) {
         await denops.cmd("echo 'Aider is not running'");
         await denops.cmd("AiderRun");
@@ -257,7 +257,7 @@ export async function main(denops: Denops): Promise<void> {
     },
     async addCurrentFile(): Promise<void> {
       const bufnr = await fn.bufnr(denops, "%");
-      if (await getAiderBufferNr(denops) === undefined) {
+      if (await getTerminalBufferNr(denops) === undefined) {
         await this.silentRunAider();
       }
       const bufType = await fn.getbufvar(denops, bufnr, "&buftype");
@@ -285,15 +285,8 @@ export async function main(denops: Denops): Promise<void> {
       await v.r.set(denops, "q", prompt);
       await this.sendPromptWithInput();
     },
-    async runAiderCommand(): Promise<void> {
-      const aiderCommand = ensure(
-        await v.g.get(denops, "aider_command"),
-        is.String,
-      );
-      await denops.cmd(`terminal ${aiderCommand}`);
-    },
     async exit(): Promise<void> {
-      const bufnr = await getAiderBufferNr(denops);
+      const bufnr = await getTerminalBufferNr(denops);
       if (bufnr !== undefined) {
         await denops.cmd(`${bufnr}bdelete!`);
       }
@@ -347,7 +340,7 @@ export async function main(denops: Denops): Promise<void> {
         is.ArrayOf(is.String),
       );
       if (openBufferType !== "floating") {
-        const bufnr = await getAiderBufferNr(denops);
+        const bufnr = await getTerminalBufferNr(denops);
         if (bufnr === undefined) {
           await denops.cmd("echo 'Aider is not running'");
           await denops.cmd("AiderRun");
