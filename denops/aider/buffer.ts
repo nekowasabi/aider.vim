@@ -1,10 +1,6 @@
 import { Denops } from "https://deno.land/x/denops_std@v6.4.0/mod.ts";
 import * as v from "https://deno.land/x/denops_std@v6.4.0/variable/mod.ts";
-import {
-  ensure,
-  is,
-  maybe,
-} from "https://deno.land/x/unknownutil@v3.17.0/mod.ts";
+import { is, maybe } from "https://deno.land/x/unknownutil@v3.17.0/mod.ts";
 
 /**
  * Enum representing different buffer layout options.
