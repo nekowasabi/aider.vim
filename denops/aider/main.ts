@@ -1,9 +1,7 @@
 import { Denops } from "https://deno.land/x/denops_std@v6.4.0/mod.ts";
 import * as fn from "https://deno.land/x/denops_std@v6.4.0/function/mod.ts";
-import * as n from "https://deno.land/x/denops_std@v6.4.0/function/nvim/mod.ts";
 import * as v from "https://deno.land/x/denops_std@v6.4.0/variable/mod.ts";
 import { ensure, is } from "https://deno.land/x/unknownutil@v3.17.0/mod.ts";
-import { feedkeys } from "https://deno.land/x/denops_std@v6.4.0/function/mod.ts";
 import { getCurrentFilePath, getTerminalBufferNr } from "./utils.ts";
 import { aiderCommand } from "./aiderCommand.ts";
 import { buffer, BufferLayout } from "./buffer.ts";
@@ -17,6 +15,12 @@ export async function main(denops: Denops): Promise<void> {
   const openBufferType: BufferLayout = await buffer.getOpenBufferType(denops);
 
   denops.dispatcher = {
+    /**
+     * Aiderを実行します。
+     * 既存のAiderバッファがある場合はそれを開き、
+     * ない場合は新しいAiderコマンドを実行します。
+     * @returns {Promise<void>}
+     */
     async runAider(): Promise<void> {
       if (await buffer.openAiderBuffer(denops, openBufferType)) {
         return;
@@ -24,15 +28,7 @@ export async function main(denops: Denops): Promise<void> {
       await aiderCommand.run(denops);
     },
     async sendPrompt(): Promise<void> {
-      // テキストを取得してプロンプト入力ウインドウを閉じる
-      await feedkeys(denops, 'ggVG"qy');
-      await denops.cmd("bdelete!");
-
-      openBufferType === "floating"
-        ? buffer.sendPromptFromFloatingWindow(denops)
-        : buffer.sendPromptFromSplitWindow(denops);
-
-      return;
+      await buffer.sendPrompt(denops, openBufferType);
     },
     async sendPromptWithInput(): Promise<void> {
       await buffer.sendPromptWithInput(denops);
@@ -117,53 +113,11 @@ export async function main(denops: Denops): Promise<void> {
       start: unknown,
       end: unknown,
     ): Promise<void> {
-      const words = ensure(
-        await denops.call("getline", start, end),
-        is.ArrayOf(is.String),
-      );
-      if (openBufferType !== "floating") {
-        const bufnr = await getTerminalBufferNr(denops);
-        if (bufnr === undefined) {
-          await denops.cmd("echo 'Aider is not running'");
-          await denops.cmd("AiderRun");
-          return;
-        }
-      }
-
-      const filetype = ensure(
-        await fn.getbufvar(denops, "%", "&filetype"),
-        is.String,
-      );
-      words.unshift("```" + filetype);
-      words.push("```");
-
-      const bufnr = ensure(
-        await n.nvim_create_buf(denops, false, true),
-        is.Number,
-      );
-      await buffer.openFloatingWindow(
+      await buffer.openFloatingWindowWithSelectedCode(
         denops,
-        bufnr,
-      );
-
-      await n.nvim_buf_set_lines(denops, bufnr, -1, -1, true, words);
-      await n.nvim_buf_set_lines(denops, bufnr, 0, 1, true, []);
-      await n.nvim_buf_set_lines(denops, bufnr, -1, -1, true, [""]);
-
-      await feedkeys(denops, "Gi");
-
-      await n.nvim_buf_set_keymap(denops, bufnr, "n", "q", "<cmd>close!<cr>", {
-        silent: true,
-      });
-      await n.nvim_buf_set_keymap(
-        denops,
-        bufnr,
-        "n",
-        "<cr>",
-        "<cmd>AiderSendPrompt<cr>",
-        {
-          silent: true,
-        },
+        start,
+        end,
+        openBufferType,
       );
     },
   };

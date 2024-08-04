@@ -220,6 +220,75 @@ export const buffer = {
       ? await this.sendPromptFromFloatingWindow(denops)
       : await this.sendPromptFromSplitWindow(denops);
   },
+  async sendPrompt(
+    denops: Denops,
+    openBufferType: BufferLayout,
+  ): Promise<void> {
+    // テキストを取得してプロンプト入力ウインドウを閉じる
+    await feedkeys(denops, 'ggVG"qy');
+    await denops.cmd("bdelete!");
+
+    openBufferType === "floating"
+      ? this.sendPromptFromFloatingWindow(denops)
+      : this.sendPromptFromSplitWindow(denops);
+
+    return;
+  },
+  async openFloatingWindowWithSelectedCode(
+    denops: Denops,
+    start: unknown,
+    end: unknown,
+    openBufferType: BufferLayout,
+  ): Promise<void> {
+    const words = ensure(
+      await denops.call("getline", start, end),
+      is.ArrayOf(is.String),
+    );
+    if (openBufferType !== "floating") {
+      const bufnr = await getTerminalBufferNr(denops);
+      if (bufnr === undefined) {
+        await denops.cmd("echo 'Aider is not running'");
+        await denops.cmd("AiderRun");
+        return;
+      }
+    }
+
+    const filetype = ensure(
+      await fn.getbufvar(denops, "%", "&filetype"),
+      is.String,
+    );
+    words.unshift("```" + filetype);
+    words.push("```");
+
+    const bufnr = ensure(
+      await n.nvim_create_buf(denops, false, true),
+      is.Number,
+    );
+    await this.openFloatingWindow(
+      denops,
+      bufnr,
+    );
+
+    await n.nvim_buf_set_lines(denops, bufnr, -1, -1, true, words);
+    await n.nvim_buf_set_lines(denops, bufnr, 0, 1, true, []);
+    await n.nvim_buf_set_lines(denops, bufnr, -1, -1, true, [""]);
+
+    await feedkeys(denops, "Gi");
+
+    await n.nvim_buf_set_keymap(denops, bufnr, "n", "q", "<cmd>close!<cr>", {
+      silent: true,
+    });
+    await n.nvim_buf_set_keymap(
+      denops,
+      bufnr,
+      "n",
+      "<cr>",
+      "<cmd>AiderSendPrompt<cr>",
+      {
+        silent: true,
+      },
+    );
+  },
 };
 
 /**
