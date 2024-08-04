@@ -195,7 +195,7 @@ export async function main(denops: Denops): Promise<void> {
     `command! -nargs=0 AiderAddCurrentFile call denops#notify("${denops.name}", "addCurrentFile", [])`,
   );
   await denops.cmd(
-    `command! -nargs=0 AiderAddWeb call denops#notify("${denops.name}", "addWeb", [input("URL: ")])`,
+    `command! -nargs=1 AiderAddWeb call denops#notify("${denops.name}", "addWeb", [input("URL: ")])`,
   );
   await denops.cmd(
     `command! -nargs=0 AiderExit call denops#notify("${denops.name}", "exit", [])`,
