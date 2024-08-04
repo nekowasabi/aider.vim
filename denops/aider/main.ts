@@ -224,9 +224,7 @@ export async function main(denops: Denops): Promise<void> {
 
   denops.dispatcher = {
     async runAider(): Promise<void> {
-      const exsitsAider = await openAiderBuffer();
-
-      if (exsitsAider === true) {
+      if (await openAiderBuffer()) {
         return;
       }
       await aiderCommand.run(denops);
