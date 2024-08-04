@@ -36,7 +36,7 @@ export const aiderCommand = {
   async addCurrentFile(denops: Denops): Promise<void> {
     const bufnr = await fn.bufnr(denops, "%");
     if (await getTerminalBufferNr(denops) === undefined) {
-      await this.run(denops);
+      await aiderCommand.run(denops);
     }
     const bufType = await fn.getbufvar(denops, bufnr, "&buftype");
     if (bufType === "terminal") {

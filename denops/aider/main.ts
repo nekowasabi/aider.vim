@@ -42,7 +42,7 @@ export async function main(denops: Denops): Promise<void> {
       }
       const prompt = `/add ${path}`;
       await v.r.set(denops, "q", prompt);
-      await this.sendPromptWithInput();
+      await denops.dispatcher.sendPromptWithInput();
     },
     async addWeb(url: unknown): Promise<void> {
       if (url === "") {
@@ -50,7 +50,7 @@ export async function main(denops: Denops): Promise<void> {
       }
       const prompt = `/web ${url}`;
       await v.r.set(denops, "q", prompt);
-      await this.sendPromptWithInput();
+      await denops.dispatcher.sendPromptWithInput();
     },
     async exit(): Promise<void> {
       const bufnr = await getTerminalBufferNr(denops);
