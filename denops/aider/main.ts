@@ -10,6 +10,7 @@ import {
 import { feedkeys } from "https://deno.land/x/denops_std@v6.4.0/function/mod.ts";
 import { getCurrentFilePath, getTerminalBufferNr } from "./utils.ts";
 import { aiderCommand } from "./aiderCommand.ts";
+import { g } from "https://deno.land/x/denops_std@v6.4.0/variable/variable.ts";
 
 /**
  * The main function that sets up the Aider plugin functionality.
@@ -121,19 +122,14 @@ export async function main(denops: Denops): Promise<void> {
    * @throws {Error} openBufferType が無効な値の場合、エラーがスローされます。
    */
   async function openAiderBuffer(): Promise<void | undefined | boolean> {
-    const aiderBufnr = await getTerminalBufferNr(denops);
-    if (aiderBufnr) {
-      await openFloatingWindow(denops, aiderBufnr);
+    if (openBufferType === "split" || openBufferType === "vsplit") {
+      await denops.cmd(openBufferType);
       return true;
     }
 
-    if (openBufferType === "split" || openBufferType === "vsplit") {
-      await denops.cmd(openBufferType);
-      return;
-    }
-
     const bufnr = ensure(
-      await n.nvim_create_buf(denops, false, true),
+      await getTerminalBufferNr(denops) ??
+        await n.nvim_create_buf(denops, false, true),
       is.Number,
     );
 
@@ -142,7 +138,7 @@ export async function main(denops: Denops): Promise<void> {
       bufnr,
     );
 
-    return;
+    return true;
   }
 
   /**
