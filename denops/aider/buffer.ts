@@ -204,6 +204,22 @@ export const buffer = {
       await denops.cmd("wincmd p");
     });
   },
+
+  async sendPromptWithInput(denops: Denops): Promise<void> {
+    const bufnr = await getTerminalBufferNr(denops);
+    if (bufnr === undefined) {
+      await denops.cmd("echo 'Aider is not running'");
+      await denops.cmd("AiderRun");
+      return;
+    }
+
+    await this.openFloatingWindow(denops, bufnr);
+
+    const openBufferType = await this.getOpenBufferType(denops);
+    openBufferType === "floating"
+      ? await this.sendPromptFromFloatingWindow(denops)
+      : await this.sendPromptFromSplitWindow(denops);
+  },
 };
 
 /**

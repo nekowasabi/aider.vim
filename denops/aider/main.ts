@@ -35,18 +35,7 @@ export async function main(denops: Denops): Promise<void> {
       return;
     },
     async sendPromptWithInput(): Promise<void> {
-      const bufnr = await getTerminalBufferNr(denops);
-      if (bufnr === undefined) {
-        await denops.cmd("echo 'Aider is not running'");
-        await denops.cmd("AiderRun");
-        return;
-      }
-
-      await buffer.openFloatingWindow(denops, bufnr);
-
-      openBufferType === "floating"
-        ? buffer.sendPromptFromFloatingWindow(denops)
-        : buffer.sendPromptFromSplitWindow(denops);
+      await buffer.sendPromptWithInput(denops);
     },
     async addCurrentFile(): Promise<void> {
       const bufnr = await fn.bufnr(denops, "%");
@@ -195,7 +184,7 @@ export async function main(denops: Denops): Promise<void> {
     `command! -nargs=0 AiderAddCurrentFile call denops#notify("${denops.name}", "addCurrentFile", [])`,
   );
   await denops.cmd(
-    `command! -nargs=1 AiderAddWeb call denops#notify("${denops.name}", "addWeb", [input("URL: ")])`,
+    `command! -nargs=1 AiderAddWeb call denops#notify("${denops.name}", "addWeb", [<f-args>])`,
   );
   await denops.cmd(
     `command! -nargs=0 AiderExit call denops#notify("${denops.name}", "exit", [])`,
