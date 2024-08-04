@@ -59,14 +59,7 @@ export async function main(denops: Denops): Promise<void> {
       }
     },
     async openIgnore(): Promise<void> {
-      const gitRoot = (await fn.system(denops, "git rev-parse --show-toplevel"))
-        .trim();
-      const filePathToOpen = `${gitRoot}/.aiderignore`;
-      if (await fn.filereadable(denops, filePathToOpen)) {
-        await denops.cmd(`edit ${filePathToOpen}`);
-        return;
-      }
-      console.log("No .aiderignore file found.");
+      await aiderCommand.openIgnore(denops);
     },
     async debug(): Promise<void> {
       await aiderCommand.debug(denops);

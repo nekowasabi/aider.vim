@@ -10,6 +10,17 @@ export const aiderCommand = {
     await denops.cmd("b#");
   },
 
+  async openIgnore(denops: Denops): Promise<void> {
+    const gitRoot = (await fn.system(denops, "git rev-parse --show-toplevel"))
+      .trim();
+    const filePathToOpen = `${gitRoot}/.aiderignore`;
+    if (await fn.filereadable(denops, filePathToOpen)) {
+      await denops.cmd(`edit ${filePathToOpen}`);
+      return;
+    }
+    console.log(".aiderignoreファイルが見つかりません。");
+  },
+
   async run(denops: Denops): Promise<void> {
     const aiderCommand = ensure(
       await v.g.get(denops, "aider_command"),
