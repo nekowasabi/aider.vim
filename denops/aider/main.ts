@@ -311,7 +311,7 @@ export async function main(denops: Denops): Promise<void> {
 
       await denops.cmd("b#");
 
-      console.log("Aider is running in the background.");
+      await denops.cmd("Aider is running in the background.");
     },
     async addIgnoreCurrentFile(): Promise<void> {
       const currentFile = await getCurrentFilePath(denops);
@@ -327,7 +327,7 @@ export async function main(denops: Denops): Promise<void> {
       await fn.writefile(denops, file, filePathToOpen);
       console.log(`Added ${currentFile} to .aiderignore`);
     },
-    async selectedCodeWithPrompt(
+    async openFloatingWindowWithSelectedCode(
       start: unknown,
       end: unknown,
     ): Promise<void> {
@@ -404,7 +404,7 @@ export async function main(denops: Denops): Promise<void> {
     `command! -nargs=0 AiderExit call denops#notify("${denops.name}", "exit", [])`,
   );
   await denops.cmd(
-    `command! -nargs=* -range AiderVisualTextWithPrompt call denops#notify("${denops.name}", "selectedCodeWithPrompt", [<line1>, <line2>])`,
+    `command! -nargs=* -range AiderVisualTextWithPrompt call denops#notify("${denops.name}", "openFloatingWindowWithSelectedCode", [<line1>, <line2>])`,
   );
   await denops.cmd(
     `command! -nargs=* -range AiderOpenIgnore call denops#notify("${denops.name}", "openIgnore", [])`,
