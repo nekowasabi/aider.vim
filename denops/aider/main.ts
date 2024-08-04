@@ -34,18 +34,7 @@ export async function main(denops: Denops): Promise<void> {
       await buffer.sendPromptWithInput(denops);
     },
     async addCurrentFile(): Promise<void> {
-      const bufnr = await fn.bufnr(denops, "%");
-      if (await getTerminalBufferNr(denops) === undefined) {
-        await this.silentRunAider();
-      }
-      const bufType = await fn.getbufvar(denops, bufnr, "&buftype");
-      if (bufType === "terminal") {
-        return;
-      }
-      const currentFile = await getCurrentFilePath(denops);
-      const prompt = `/add ${currentFile}`;
-      await v.r.set(denops, "q", prompt);
-      await this.sendPromptWithInput();
+      await aiderCommand.addCurrentFile(denops);
     },
     async addFile(path: unknown): Promise<void> {
       if (path === "") {
