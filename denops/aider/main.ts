@@ -6,12 +6,7 @@ import { ensure, is } from "https://deno.land/x/unknownutil@v3.17.0/mod.ts";
 import { feedkeys } from "https://deno.land/x/denops_std@v6.4.0/function/mod.ts";
 import { getCurrentFilePath, getTerminalBufferNr } from "./utils.ts";
 import { aiderCommand } from "./aiderCommand.ts";
-import {
-  BufferLayout,
-  getOpenBufferType,
-  openAiderBuffer,
-  openFloatingWindow,
-} from "./buffer.ts";
+import { buffer, BufferLayout } from "./buffer.ts";
 
 /**
  * The main function that sets up the Aider plugin functionality.
@@ -19,7 +14,7 @@ import {
  * @returns {Promise<void>}
  */
 export async function main(denops: Denops): Promise<void> {
-  const openBufferType: BufferLayout = await getOpenBufferType(denops);
+  const openBufferType: BufferLayout = await buffer.getOpenBufferType(denops);
 
   /**
    * 開いているウィンドウの中からターミナルバッファを識別し、そのジョブID、ウィンドウ番号、バッファ番号をコールバック関数に渡します。
@@ -84,7 +79,7 @@ export async function main(denops: Denops): Promise<void> {
     if (bufnr === undefined) {
       return;
     }
-    await openFloatingWindow(denops, bufnr);
+    await buffer.openFloatingWindow(denops, bufnr);
 
     await feedkeys(denops, "G");
     await feedkeys(denops, '"qp');
@@ -99,7 +94,7 @@ export async function main(denops: Denops): Promise<void> {
 
   denops.dispatcher = {
     async runAider(): Promise<void> {
-      if (await openAiderBuffer(denops, openBufferType)) {
+      if (await buffer.openAiderBuffer(denops, openBufferType)) {
         return;
       }
       await aiderCommand.run(denops);
@@ -123,7 +118,7 @@ export async function main(denops: Denops): Promise<void> {
         return;
       }
 
-      await openFloatingWindow(denops, bufnr);
+      await buffer.openFloatingWindow(denops, bufnr);
 
       openBufferType === "floating"
         ? sendPromptFromFloatingWindow()
@@ -233,7 +228,7 @@ export async function main(denops: Denops): Promise<void> {
         await n.nvim_create_buf(denops, false, true),
         is.Number,
       );
-      await openFloatingWindow(
+      await buffer.openFloatingWindow(
         denops,
         bufnr,
       );
