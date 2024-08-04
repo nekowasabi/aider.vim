@@ -6,7 +6,12 @@ import { ensure, is } from "https://deno.land/x/unknownutil@v3.17.0/mod.ts";
 import { feedkeys } from "https://deno.land/x/denops_std@v6.4.0/function/mod.ts";
 import { getCurrentFilePath, getTerminalBufferNr } from "./utils.ts";
 import { aiderCommand } from "./aiderCommand.ts";
-import { BufferLayout, getOpenBufferType } from "./buffer.ts";
+import {
+  BufferLayout,
+  getOpenBufferType,
+  openAiderBuffer,
+  openFloatingWindow,
+} from "./buffer.ts";
 
 /**
  * The main function that sets up the Aider plugin functionality.
@@ -15,116 +20,6 @@ import { BufferLayout, getOpenBufferType } from "./buffer.ts";
  */
 export async function main(denops: Denops): Promise<void> {
   const openBufferType: BufferLayout = await getOpenBufferType(denops);
-
-  /**
-   * Opens a floating window for the specified buffer.
-   * The floating window is positioned at the center of the terminal.
-   *
-   * @param {Denops} denops - The Denops instance.
-   * @param {number} bufnr - The buffer number.
-   * @returns {Promise<void>}
-   */
-  async function openFloatingWindow(
-    denops: Denops,
-    bufnr: number,
-  ): Promise<void> {
-    const terminal_width = Math.floor(
-      ensure(await n.nvim_get_option(denops, "columns"), is.Number),
-    );
-    const terminal_height = Math.floor(
-      ensure(await n.nvim_get_option(denops, "lines"), is.Number),
-    );
-    const floatWinHeight = ensure(
-      await v.g.get(denops, "aider_floatwin_height"),
-      is.Number,
-    );
-    const floatWinWidth = ensure(
-      await v.g.get(denops, "aider_floatwin_width"),
-      is.Number,
-    );
-
-    const row = Math.floor((terminal_height - floatWinHeight) / 2);
-    const col = Math.floor((terminal_width - floatWinWidth) / 2);
-
-    await n.nvim_open_win(denops, bufnr, true, {
-      title:
-        "| normal mode > qq: quit, terminal mode > <Esc><Esc>: quit | visual mode > <CR>: send prompt |",
-      relative: "editor",
-      border: "double",
-      width: floatWinWidth,
-      height: floatWinHeight,
-      row: row,
-      col: col,
-    });
-    await n.nvim_buf_set_keymap(
-      denops,
-      bufnr,
-      "t",
-      "<Esc>",
-      "<cmd>close!<cr>",
-      {
-        silent: true,
-      },
-    );
-    await n.nvim_buf_set_keymap(
-      denops,
-      bufnr,
-      "n",
-      "q",
-      "<cmd>close!<cr>",
-      {
-        silent: true,
-      },
-    );
-    await n.nvim_buf_set_keymap(
-      denops,
-      bufnr,
-      "n",
-      "<Esc>",
-      "<cmd>close!<cr>",
-      {
-        silent: true,
-      },
-    );
-
-    await denops.cmd("set nonumber");
-  }
-
-  /**
-   * 非同期関数 openAiderBuffer は、Aiderバッファを開きます。
-   * 既にAiderバッファが開いている場合は、そのバッファを開きます。
-   * Aiderバッファが開いていない場合は、新たにバッファを作成し、それを開きます。
-   * バッファの開き方は、openBufferType の値によります。
-   * openBufferType が "split" または "vsplit" の場合、バッファは分割されて開きます。
-   * それ以外の場合、バッファはフローティングウィンドウとして開きます。
-   *
-   * @returns {Promise<void | undefined | boolean>}
-   * @throws {Error} openBufferType が無効な値の場合、エラーがスローされます。
-   */
-  async function openAiderBuffer(): Promise<void | undefined | boolean> {
-    const aiderBufnr = await getTerminalBufferNr(denops);
-    if (aiderBufnr) {
-      await openFloatingWindow(denops, aiderBufnr);
-      return true;
-    }
-
-    if (openBufferType === "split" || openBufferType === "vsplit") {
-      await denops.cmd(openBufferType);
-      return;
-    }
-
-    const bufnr = ensure(
-      await n.nvim_create_buf(denops, false, true),
-      is.Number,
-    );
-
-    await openFloatingWindow(
-      denops,
-      bufnr,
-    );
-
-    return;
-  }
 
   /**
    * 開いているウィンドウの中からターミナルバッファを識別し、そのジョブID、ウィンドウ番号、バッファ番号をコールバック関数に渡します。
@@ -204,7 +99,7 @@ export async function main(denops: Denops): Promise<void> {
 
   denops.dispatcher = {
     async runAider(): Promise<void> {
-      if (await openAiderBuffer()) {
+      if (await openAiderBuffer(denops, openBufferType)) {
         return;
       }
       await aiderCommand.run(denops);
