@@ -8,6 +8,7 @@ import {
   maybe,
 } from "https://deno.land/x/unknownutil@v3.17.0/mod.ts";
 import { feedkeys } from "https://deno.land/x/denops_std@v6.4.0/function/mod.ts";
+import { getBufferName, getCurrentFilePath } from "./utils.ts";
 
 /**
  * The main function that sets up the Aider plugin functionality.
@@ -32,27 +33,6 @@ export async function main(denops: Denops): Promise<void> {
     await v.g.get(denops, "aider_buffer_open_type"),
     is.LiteralOneOf(bufferLayouts),
   ) ?? "floating";
-
-  /**
-   * Gets the current file path.
-   * @returns {Promise<string>} A promise that resolves to the current file path.
-   */
-  async function getCurrentFilePath(): Promise<string> {
-    const path = await fn.expand(denops, "%:p");
-    return ensure(path, is.String);
-  }
-
-  /**
-   * Gets the buffer name for a given buffer number.
-   * @param {Denops} denops - The Denops instance.
-   * @param {number} bufnr - The buffer number.
-   * @returns {Promise<string>} A promise that resolves to the buffer name.
-   * @throws {Error} Throws an error if the buffer name is not a string.
-   */
-  async function getBufferName(denops: Denops, bufnr: number): Promise<string> {
-    const bufname = await fn.bufname(denops, bufnr);
-    return ensure(bufname, is.String);
-  }
 
   /**
    * Opens a floating window for the specified buffer.
@@ -153,7 +133,6 @@ export async function main(denops: Denops): Promise<void> {
     return;
   }
 
-
   /**
    * 非同期関数 openAiderBuffer は、Aiderバッファを開きます。
    * 既にAiderバッファが開いている場合は、そのバッファを開きます。
@@ -166,28 +145,28 @@ export async function main(denops: Denops): Promise<void> {
    * @throws {Error} openBufferType が無効な値の場合、エラーがスローされます。
    */
   async function openAiderBuffer(): Promise<void | undefined | boolean> {
-      const aiderBufnr = await getAiderBufferNr();
-      if (aiderBufnr) {
-        await openFloatingWindow(denops, aiderBufnr);
-        return true;
-      }
+    const aiderBufnr = await getAiderBufferNr();
+    if (aiderBufnr) {
+      await openFloatingWindow(denops, aiderBufnr);
+      return true;
+    }
 
-      if (openBufferType === "split" || openBufferType === "vsplit") {
-        await denops.cmd(openBufferType);
-        return;
-      }
-
-      const bufnr = ensure(
-        await n.nvim_create_buf(denops, false, true),
-        is.Number,
-      );
-
-      await openFloatingWindow(
-        denops,
-        bufnr,
-      );
-
+    if (openBufferType === "split" || openBufferType === "vsplit") {
+      await denops.cmd(openBufferType);
       return;
+    }
+
+    const bufnr = ensure(
+      await n.nvim_create_buf(denops, false, true),
+      is.Number,
+    );
+
+    await openFloatingWindow(
+      denops,
+      bufnr,
+    );
+
+    return;
   }
 
   /**
@@ -309,7 +288,7 @@ export async function main(denops: Denops): Promise<void> {
       if (bufType === "terminal") {
         return;
       }
-      const currentFile = await getCurrentFilePath();
+      const currentFile = await getCurrentFilePath(denops);
       const prompt = `/add ${currentFile}`;
       await v.r.set(denops, "q", prompt);
       await this.sendPromptWithInput();
@@ -371,7 +350,7 @@ export async function main(denops: Denops): Promise<void> {
       console.log("Aider is running in the background.");
     },
     async addIgnoreCurrentFile(): Promise<void> {
-      const currentFile = await getCurrentFilePath();
+      const currentFile = await getCurrentFilePath(denops);
 
       const gitRoot = (await fn.system(denops, "git rev-parse --show-toplevel"))
         .trim();
