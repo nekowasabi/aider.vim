@@ -50,4 +50,3 @@ To use aider.vim, you can run the following commands within Vim or Neovim:
 - `:AiderOpenIgnore` - Opens the `.aiderignore` file in the git root directory
   if it exists.
 - `:AiderAddIgnoreCurrentFile` - Adds the current file to the `.aiderignore`
-
