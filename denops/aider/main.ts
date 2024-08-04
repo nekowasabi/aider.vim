@@ -8,7 +8,7 @@ import {
   maybe,
 } from "https://deno.land/x/unknownutil@v3.17.0/mod.ts";
 import { feedkeys } from "https://deno.land/x/denops_std@v6.4.0/function/mod.ts";
-import { getBufferName, getCurrentFilePath } from "./utils.ts";
+import { getCurrentFilePath, getTerminalBufferNr } from "./utils.ts";
 import { command } from "./command.ts";
 
 /**
@@ -110,31 +110,6 @@ export async function main(denops: Denops): Promise<void> {
   }
 
   /**
-   * Gets the buffer number of the first buffer with a name starting with "term://".
-   * If no matching buffer is found, the function returns undefined.
-   *
-   * @returns {Promise<number | undefined>} The buffer number or undefined.
-   */
-  async function getAiderBufferNr(): Promise<number | undefined> {
-    // Get all open buffer numbers
-    const buf_count = ensure(
-      await fn.bufnr(denops, "$"),
-      is.Number,
-    );
-
-    for (let i = 1; i <= buf_count; i++) {
-      const bufnr = ensure(await fn.bufnr(denops, i), is.Number);
-      const bufname = await getBufferName(denops, bufnr);
-
-      if (bufname.startsWith("term://")) {
-        return bufnr;
-      }
-    }
-
-    return;
-  }
-
-  /**
    * 非同期関数 openAiderBuffer は、Aiderバッファを開きます。
    * 既にAiderバッファが開いている場合は、そのバッファを開きます。
    * Aiderバッファが開いていない場合は、新たにバッファを作成し、それを開きます。
@@ -146,7 +121,7 @@ export async function main(denops: Denops): Promise<void> {
    * @throws {Error} openBufferType が無効な値の場合、エラーがスローされます。
    */
   async function openAiderBuffer(): Promise<void | undefined | boolean> {
-    const aiderBufnr = await getAiderBufferNr();
+    const aiderBufnr = await getTerminalBufferNr(denops);
     if (aiderBufnr) {
       await openFloatingWindow(denops, aiderBufnr);
       return true;
@@ -229,7 +204,7 @@ export async function main(denops: Denops): Promise<void> {
   }
 
   async function sendPromptFromFloatingWindow(): Promise<void> {
-    const bufnr = await getAiderBufferNr();
+    const bufnr = await getTerminalBufferNr(denops);
     if (bufnr === undefined) {
       return;
     }
@@ -267,7 +242,7 @@ export async function main(denops: Denops): Promise<void> {
       return;
     },
     async sendPromptWithInput(): Promise<void> {
-      const bufnr = await getAiderBufferNr();
+      const bufnr = await getAiderBufferNr(denops);
       if (bufnr === undefined) {
         await denops.cmd("echo 'Aider is not running'");
         await denops.cmd("AiderRun");
@@ -282,7 +257,7 @@ export async function main(denops: Denops): Promise<void> {
     },
     async addCurrentFile(): Promise<void> {
       const bufnr = await fn.bufnr(denops, "%");
-      if (await getAiderBufferNr() === undefined) {
+      if (await getAiderBufferNr(denops) === undefined) {
         await this.silentRunAider();
       }
       const bufType = await fn.getbufvar(denops, bufnr, "&buftype");
@@ -318,7 +293,7 @@ export async function main(denops: Denops): Promise<void> {
       await denops.cmd(`terminal ${aiderCommand}`);
     },
     async exit(): Promise<void> {
-      const bufnr = await getAiderBufferNr();
+      const bufnr = await getAiderBufferNr(denops);
       if (bufnr !== undefined) {
         await denops.cmd(`${bufnr}bdelete!`);
       }
@@ -372,7 +347,7 @@ export async function main(denops: Denops): Promise<void> {
         is.ArrayOf(is.String),
       );
       if (openBufferType !== "floating") {
-        const bufnr = await getAiderBufferNr();
+        const bufnr = await getAiderBufferNr(denops);
         if (bufnr === undefined) {
           await denops.cmd("echo 'Aider is not running'");
           await denops.cmd("AiderRun");

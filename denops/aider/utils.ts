@@ -26,3 +26,31 @@ export async function getBufferName(
   const bufname = await fn.bufname(denops, bufnr);
   return ensure(bufname, is.String);
 }
+
+/**
+ * Gets the buffer number of the first buffer with a name starting with "term://".
+ * If no matching buffer is found, the function returns undefined.
+ *
+ * @param {Denops} denops - The Denops instance.
+ * @returns {Promise<number | undefined>} The buffer number or undefined.
+ */
+export async function getTerminalBufferNr(
+  denops: Denops,
+): Promise<number | undefined> {
+  // Get all open buffer numbers
+  const buf_count = ensure(
+    await fn.bufnr(denops, "$"),
+    is.Number,
+  );
+
+  for (let i = 1; i <= buf_count; i++) {
+    const bufnr = ensure(await fn.bufnr(denops, i), is.Number);
+    const bufname = await getBufferName(denops, bufnr);
+
+    if (bufname.startsWith("term://")) {
+      return bufnr;
+    }
+  }
+
+  return undefined;
+}
