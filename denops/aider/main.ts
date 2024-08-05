@@ -1,7 +1,6 @@
 import { Denops } from "https://deno.land/x/denops_std@v6.4.0/mod.ts";
 import * as fn from "https://deno.land/x/denops_std@v6.4.0/function/mod.ts";
 import * as v from "https://deno.land/x/denops_std@v6.4.0/variable/mod.ts";
-import { ensure, is } from "https://deno.land/x/unknownutil@v3.17.0/mod.ts";
 import { getCurrentFilePath, getTerminalBufferNr } from "./utils.ts";
 import { aiderCommand } from "./aiderCommand.ts";
 import { buffer, BufferLayout } from "./buffer.ts";
