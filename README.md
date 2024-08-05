@@ -23,6 +23,7 @@ let g:aider_command = 'aider --no-auto-commits'
 let g:aider_buffer_open_type = 'floating'
 let g:aider_floatwin_width = 100
 let g:aider_floatwin_height = 20
+let g:aider_additional_prompt = 'Your additional prompt here'
 nnoremap <silent> <leader>ar :AiderRun<CR>
 nnoremap <silent> <leader>aa :AiderAddCurrentFile<CR>
 nnoremap <silent> <leader>aw :AiderAddWeb<CR>
@@ -51,3 +52,13 @@ To use aider.vim, you can run the following commands within Vim or Neovim:
   if it exists.
 - `:AiderAddIgnoreCurrentFile` - Adds the current file to the `.aiderignore`
 
+## Additional Prompt
+
+You can set an additional prompt that will be automatically added to every interaction with aider. This is useful for setting consistent rules or guidelines for the AI.
+
+To use this feature, set the `g:aider_additional_prompt` variable in your vimrc or init.vim:
+
+```vim
+let g:aider_additional_prompt = 'Your additional prompt here'
+
+This prompt will be displayed in the floating window when using visual mode selections, allowing you to see and edit it before sending to aider.
