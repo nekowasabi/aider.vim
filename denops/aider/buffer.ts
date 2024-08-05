@@ -7,7 +7,7 @@ import {
   is,
   maybe,
 } from "https://deno.land/x/unknownutil@v3.17.0/mod.ts";
-import { getTerminalBufferNr } from "./utils.ts";
+import { getAdditionalPrompt, getTerminalBufferNr } from "./utils.ts";
 import { feedkeys } from "https://deno.land/x/denops_std@v6.4.0/function/mod.ts";
 
 /**
@@ -273,6 +273,19 @@ export const buffer = {
     await n.nvim_buf_set_lines(denops, bufnr, 0, 1, true, []);
     await n.nvim_buf_set_lines(denops, bufnr, -1, -1, true, [""]);
 
+    const additionalPrompt = ensure(
+      await getAdditionalPrompt(denops),
+      is.String,
+    );
+    if (additionalPrompt) {
+      await n.nvim_buf_set_lines(denops, bufnr, -1, -1, true, ["# rule"]);
+      await n.nvim_buf_set_lines(denops, bufnr, -1, -1, true, [
+        additionalPrompt,
+      ]);
+      await n.nvim_buf_set_lines(denops, bufnr, -1, -1, true, [""]);
+    }
+    await n.nvim_buf_set_lines(denops, bufnr, -1, -1, true, ["# prompt"]);
+    await n.nvim_buf_set_lines(denops, bufnr, -1, -1, true, [""]);
     await feedkeys(denops, "Gi");
 
     await n.nvim_buf_set_keymap(denops, bufnr, "n", "q", "<cmd>close!<cr>", {
