@@ -28,6 +28,19 @@ export const aiderCommand = {
     );
     await denops.cmd(`terminal ${aiderCommand}`);
   },
+  async silentRunAider(denops: Denops): Promise<void> {
+    await denops.cmd("enew");
+
+    const aiderCommand = ensure(
+      await v.g.get(denops, "aider_command"),
+      is.String,
+    );
+    await denops.cmd(`terminal ${aiderCommand}`);
+
+    await denops.cmd("b#");
+
+    await denops.cmd("echo 'Aider is running in the background.'");
+  },
   /**
    * 現在のファイルをAiderに追加します。
    * @param {Denops} denops - Denopsインスタンス
@@ -36,7 +49,7 @@ export const aiderCommand = {
   async addCurrentFile(denops: Denops): Promise<void> {
     const bufnr = await fn.bufnr(denops, "%");
     if (await getTerminalBufferNr(denops) === undefined) {
-      await aiderCommand.run(denops);
+      await aiderCommand.silentRunAider(denops);
     }
     const bufType = await fn.getbufvar(denops, bufnr, "&buftype");
     if (bufType === "terminal") {
