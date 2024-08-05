@@ -28,7 +28,7 @@ export const aiderCommand = {
     );
     await denops.cmd(`terminal ${aiderCommand}`);
   },
-  async silentRunAider(denops: Denops): Promise<void> {
+  async silentRun(denops: Denops): Promise<void> {
     await denops.cmd("enew");
 
     const aiderCommand = ensure(
@@ -49,7 +49,7 @@ export const aiderCommand = {
   async addCurrentFile(denops: Denops): Promise<void> {
     const bufnr = await fn.bufnr(denops, "%");
     if (await getTerminalBufferNr(denops) === undefined) {
-      await aiderCommand.silentRunAider(denops);
+      await aiderCommand.silentRun(denops);
     }
     const bufType = await fn.getbufvar(denops, bufnr, "&buftype");
     if (bufType === "terminal") {

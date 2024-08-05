@@ -64,7 +64,7 @@ export async function main(denops: Denops): Promise<void> {
       await aiderCommand.debug(denops);
     },
     async silentRunAider(): Promise<void> {
-      await aiderCommand.silentRunAider(denops);
+      await aiderCommand.silentRun(denops);
     },
     async addIgnoreCurrentFile(): Promise<void> {
       const currentFile = await getCurrentFilePath(denops);
