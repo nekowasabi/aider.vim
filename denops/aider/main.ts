@@ -67,18 +67,7 @@ export async function main(denops: Denops): Promise<void> {
       await aiderCommand.silentRun(denops);
     },
     async addIgnoreCurrentFile(): Promise<void> {
-      const currentFile = await getCurrentFilePath(denops);
-
-      const gitRoot = (await fn.system(denops, "git rev-parse --show-toplevel"))
-        .trim();
-      const filePathToOpen = `${gitRoot}/.aiderignore`;
-      const forAiderIgnorePath = currentFile.replace(gitRoot, "");
-
-      const file = await fn.readfile(denops, filePathToOpen);
-      file.push(`!${forAiderIgnorePath}`);
-
-      await fn.writefile(denops, file, filePathToOpen);
-      console.log(`Added ${currentFile} to .aiderignore`);
+      await aiderCommand.addIgnoreCurrentFile(denops);
     },
     async openFloatingWindowWithSelectedCode(
       start: unknown,

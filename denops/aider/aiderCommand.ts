@@ -60,4 +60,18 @@ export const aiderCommand = {
     await v.r.set(denops, "q", prompt);
     await buffer.sendPromptWithInput(denops);
   },
+  async addIgnoreCurrentFile(denops: Denops): Promise<void> {
+    const currentFile = await getCurrentFilePath(denops);
+
+    const gitRoot = (await fn.system(denops, "git rev-parse --show-toplevel"))
+      .trim();
+    const filePathToOpen = `${gitRoot}/.aiderignore`;
+    const forAiderIgnorePath = currentFile.replace(gitRoot, "");
+
+    const file = await fn.readfile(denops, filePathToOpen);
+    file.push(`!${forAiderIgnorePath}`);
+
+    await fn.writefile(denops, file, filePathToOpen);
+    console.log(`Added ${currentFile} to .aiderignore`);
+  },
 };
