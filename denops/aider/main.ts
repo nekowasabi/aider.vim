@@ -1,7 +1,5 @@
 import { Denops } from "https://deno.land/x/denops_std@v6.4.0/mod.ts";
-import * as fn from "https://deno.land/x/denops_std@v6.4.0/function/mod.ts";
 import * as v from "https://deno.land/x/denops_std@v6.4.0/variable/mod.ts";
-import { getCurrentFilePath, getTerminalBufferNr } from "./utils.ts";
 import { aiderCommand } from "./aiderCommand.ts";
 import { buffer, BufferLayout } from "./buffer.ts";
 
@@ -43,19 +41,10 @@ export async function main(denops: Denops): Promise<void> {
       await v.r.set(denops, "q", prompt);
       await denops.dispatcher.sendPromptWithInput();
     },
-    async addWeb(url: unknown): Promise<void> {
-      if (url === "") {
-        return;
-      }
-      const prompt = `/web ${url}`;
+    async ask(question: unknown): Promise<void> {
+      const prompt = `/ask ${question}`;
       await v.r.set(denops, "q", prompt);
       await denops.dispatcher.sendPromptWithInput();
-    },
-    async exit(): Promise<void> {
-      const bufnr = await getTerminalBufferNr(denops);
-      if (bufnr !== undefined) {
-        await denops.cmd(`${bufnr}bdelete!`);
-      }
     },
     async openIgnore(): Promise<void> {
       await aiderCommand.openIgnore(denops);
@@ -99,6 +88,9 @@ export async function main(denops: Denops): Promise<void> {
   );
   await denops.cmd(
     `command! -nargs=1 AiderAddWeb call denops#notify("${denops.name}", "addWeb", [<f-args>])`,
+  );
+  await denops.cmd(
+    `command! -nargs=1 AiderAsk call denops#notify("${denops.name}", "ask", [<f-args>])`,
   );
   await denops.cmd(
     `command! -nargs=0 AiderExit call denops#notify("${denops.name}", "exit", [])`,
