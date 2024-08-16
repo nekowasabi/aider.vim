@@ -4,5 +4,5 @@ import { getCurrentFilePath } from "../denops/aider/utils.ts";
 
 test("vim", "Start Vim to test denops features", async (denops) => {
   const path = await getCurrentFilePath(denops);
-  assertEquals(path, "aaaaaaaaaaaaa");
+  assertEquals(path, "");
 });

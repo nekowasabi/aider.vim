@@ -2,12 +2,12 @@ import { assert, assertEquals, assertFalse } from "jsr:@std/assert";
 import { test } from "jsr:@denops/test";
 
 test("vim", "Start Vim to test denops features", async (denops) => {
-  assertFalse(await denops.call("has", "nvim"));
+  assertFalse(await denops.call("has", "vim"));
 });
 
 test({
   mode: "nvim",
-  name: "Start Neovim to test denops features",
+  name: "111111111 Start Neovim to test denops features",
   fn: async (denops) => {
     assert(await denops.call("has", "nvim"));
   },
