@@ -16,15 +16,24 @@ Minimal helper plugin for aider with neovim.
 ## Settings
 
 ### vimscript
+
 Please add the following settings to your vimrc or init.vim.
 
 ```vim
+" Aider.vim settings
 ex.
+" Aider command configuration
 let g:aider_command = 'aider --no-auto-commits'
+
+" Floating window settings
 let g:aider_buffer_open_type = 'floating'
 let g:aider_floatwin_width = 100
 let g:aider_floatwin_height = 20
+
+" Additional prompt setting
 let g:aider_additional_prompt = 'Your additional prompt here'
+
+" Key mappings
 nnoremap <silent> <leader>ar :AiderRun<CR>
 nnoremap <silent> <leader>aa :AiderAddCurrentFile<CR>
 nnoremap <silent> <leader>aw :AiderAddWeb<CR>
@@ -34,19 +43,22 @@ nnoremap <silent> <leader>aI :AiderOpenIgnore<CR>
 nnoremap <silent> <leader>ah :AiderHide<CR>
 tnoremap <C-x><C-x> <C-\><C-n>:AiderHide<CR>
 vmap <leader>av :AiderVisualTextWithPrompt<CR>
+
+" Autocommand group for Aider
 augroup AiderOpenGroup
   autocmd!
   autocmd User AiderOpen call s:AiderOpenHandler()
 augroup END
 
 function! s:AiderOpenHandler() abort
-  " Set key mappings for the buffer
-  execute 'tnoremap <buffer=' . a:args.buf . '> <Esc> <C-\><C-n>'
-  execute 'nnoremap <buffer=' . a:args.buf . '> <Esc> :AiderHide<CR>'
+  " Set key mappings for the Aider buffer
+  tnoremap <buffer> <Esc> <C-\><C-n>
+  nnoremap <buffer> <Esc> :AiderHide<CR>
 endfunction
 ```
 
 ### lua (lazy.nvim)
+
 Please add the following settings to your lazy settings.
 
 ```lua
