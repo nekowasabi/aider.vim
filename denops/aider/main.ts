@@ -2,6 +2,7 @@ import { Denops } from "https://deno.land/x/denops_std@v6.4.0/mod.ts";
 import * as v from "https://deno.land/x/denops_std@v6.4.0/variable/mod.ts";
 import { aiderCommand } from "./aiderCommand.ts";
 import { buffer, BufferLayout } from "./buffer.ts";
+import { feedkeys } from "https://deno.land/x/denops_std@v6.4.0/function/mod.ts";
 
 /**
  * The main function that sets up the Aider plugin functionality.
@@ -51,6 +52,10 @@ export async function main(denops: Denops): Promise<void> {
     },
     async exit(): Promise<void> {
       await buffer.exitAiderBuffer(denops);
+    },
+    async hide(): Promise<void> {
+      await denops.cmd("close!");
+      await denops.cmd(`silent! e!`);
     },
     async debug(): Promise<void> {
       await aiderCommand.debug(denops);
@@ -109,5 +114,8 @@ export async function main(denops: Denops): Promise<void> {
   );
   await denops.cmd(
     `command! -nargs=* -range AiderDebug call denops#notify("${denops.name}", "debug", [])`,
+  );
+  await denops.cmd(
+    `command! -nargs=* -range AiderHide call denops#notify("${denops.name}", "hide", [])`,
   );
 }
