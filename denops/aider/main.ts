@@ -49,6 +49,9 @@ export async function main(denops: Denops): Promise<void> {
     async openIgnore(): Promise<void> {
       await aiderCommand.openIgnore(denops);
     },
+    async exit(): Promise<void> {
+      await buffer.exitAiderBuffer(denops);
+    },
     async debug(): Promise<void> {
       await aiderCommand.debug(denops);
     },

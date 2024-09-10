@@ -27,6 +27,12 @@ export type BufferLayout = typeof bufferLayouts[number];
  * floating: floating window
  */
 export const buffer = {
+  async exitAiderBuffer(denops: Denops): Promise<void> {
+    await identifyAiderBuffer(denops, async (job_id, _winnr, bufnr) => {
+      await denops.call("chansend", job_id, "/exit\n");
+      await denops.cmd(`bdelete! ${bufnr}`);
+    });
+  },
   async getOpenBufferType(denops: Denops): Promise<BufferLayout> {
     return maybe(
       await v.g.get(denops, "aider_buffer_open_type"),
