@@ -340,7 +340,7 @@ async function identifyAiderBuffer(
  * @param {number} bufnr - バッファ番号
  * @returns {Promise<boolean>}
  */
-async function checkIfAiderBuffer(
+export async function checkIfAiderBuffer(
   denops: Denops,
   bufnr: number,
 ): Promise<boolean> {
@@ -348,7 +348,7 @@ async function checkIfAiderBuffer(
     await fn.getbufinfo(denops, bufnr),
     is.ArrayOf(is.ObjectOf({ name: is.String })),
   );
-  if (termInfo === undefined) {
+  if (termInfo === undefined || termInfo.length === 0) {
     return false;
   }
   console.log(termInfo[0].name);
