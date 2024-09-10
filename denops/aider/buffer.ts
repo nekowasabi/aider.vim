@@ -7,7 +7,11 @@ import {
   is,
   maybe,
 } from "https://deno.land/x/unknownutil@v3.17.0/mod.ts";
-import { getAdditionalPrompt, getTerminalBufferNr } from "./utils.ts";
+import {
+  getAdditionalPrompt,
+  getAiderBufferNr,
+  getBufferName,
+} from "./utils.ts";
 import { feedkeys } from "https://deno.land/x/denops_std@v6.4.0/function/mod.ts";
 
 /**
@@ -120,7 +124,7 @@ export const buffer = {
     denops: Denops,
     openBufferType: BufferLayout,
   ): Promise<void | undefined | boolean> {
-    const aiderBufnr = await getTerminalBufferNr(denops);
+    const aiderBufnr = await getAiderBufferNr(denops);
     if (aiderBufnr) {
       await buffer.openFloatingWindow(denops, aiderBufnr);
       return true;
@@ -145,7 +149,7 @@ export const buffer = {
   },
 
   async sendPromptFromFloatingWindow(denops: Denops): Promise<void> {
-    const bufnr = await getTerminalBufferNr(denops);
+    const bufnr = await getAiderBufferNr(denops);
     if (bufnr === undefined) {
       return;
     }
@@ -177,7 +181,7 @@ export const buffer = {
    * @param {Denops} denops - Denopsインスタンス
    */
   async sendPromptFromSplitWindow(denops: Denops): Promise<void> {
-    await identifyTerminalBuffer(denops, async (job_id, winnr, _bufnr) => {
+    await identifyAiderBuffer(denops, async (job_id, winnr, _bufnr) => {
       await denops.cmd(`bdelete!`);
       if (await v.g.get(denops, "aider_buffer_open_type") !== "floating") {
         await denops.cmd(`${winnr}wincmd w`);
@@ -206,7 +210,7 @@ export const buffer = {
   },
 
   async sendPromptWithInput(denops: Denops): Promise<void> {
-    const bufnr = await getTerminalBufferNr(denops);
+    const bufnr = await getAiderBufferNr(denops);
     if (bufnr === undefined) {
       await denops.cmd("echo 'Aider is not running'");
       await denops.cmd("AiderRun");
@@ -245,7 +249,7 @@ export const buffer = {
       is.ArrayOf(is.String),
     );
     if (openBufferType !== "floating") {
-      const bufnr = await getTerminalBufferNr(denops);
+      const bufnr = await getAiderBufferNr(denops);
       if (bufnr === undefined) {
         await denops.cmd("echo 'Aider is not running'");
         await denops.cmd("AiderRun");
@@ -310,7 +314,7 @@ export const buffer = {
  * @param {function} callback - ジョブID、ウィンドウ番号、バッファ番号を引数に取るコールバック関数
  * @returns {Promise<void>}
  */
-async function identifyTerminalBuffer(
+async function identifyAiderBuffer(
   denops: Denops,
   callback: (
     job_id: number | undefined,
@@ -322,8 +326,7 @@ async function identifyTerminalBuffer(
   for (let i = 1; i <= win_count; i++) {
     const bufnr = ensure(await fn.winbufnr(denops, i), is.Number);
 
-    const bufType = await fn.getbufvar(denops, bufnr, "&buftype");
-    if (bufType === "terminal") {
+    if (await checkIfAiderBuffer(denops, bufnr)) {
       const job_id = ensure<number>(
         await fn.getbufvar(denops, bufnr, "&channel"),
         is.Number,
@@ -333,4 +336,34 @@ async function identifyTerminalBuffer(
       }
     }
   }
+}
+
+/**
+ * バッファがAiderバッファかどうかを確認します。
+ * @param {Denops} denops - Denopsインスタンス
+ * @param {number} bufnr - バッファ番号
+ * @returns {Promise<boolean>}
+ */
+export async function checkIfAiderBuffer(
+  denops: Denops,
+  bufnr: number,
+): Promise<boolean> {
+  // aiderバッファの場合 `term://{path}//{pid}:aider --4o --no-auto-commits` のような名前になっている
+  const name = await getBufferName(denops, bufnr);
+  const splitted = name.split(" ");
+  return splitted[0].endsWith("aider");
+}
+
+/**
+ * バッファがターミナルバッファかどうかを確認します。
+ * @param {Denops} denops - Denopsインスタンス
+ * @param {number} bufnr - バッファ番号
+ * @returns {Promise<boolean>}
+ */
+export async function checkIfTerminalBuffer(
+  denops: Denops,
+  bufnr: number,
+): Promise<boolean> {
+  const buftype = await fn.getbufvar(denops, bufnr, "&buftype");
+  return buftype === "terminal";
 }
