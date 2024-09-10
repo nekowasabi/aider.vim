@@ -7,7 +7,7 @@ import {
   is,
   maybe,
 } from "https://deno.land/x/unknownutil@v3.17.0/mod.ts";
-import { getAdditionalPrompt, getTerminalBufferNr } from "./utils.ts";
+import { getAdditionalPrompt, getAiderBufferNr } from "./utils.ts";
 import { feedkeys } from "https://deno.land/x/denops_std@v6.4.0/function/mod.ts";
 
 /**
@@ -120,7 +120,7 @@ export const buffer = {
     denops: Denops,
     openBufferType: BufferLayout,
   ): Promise<void | undefined | boolean> {
-    const aiderBufnr = await getTerminalBufferNr(denops);
+    const aiderBufnr = await getAiderBufferNr(denops);
     if (aiderBufnr) {
       await buffer.openFloatingWindow(denops, aiderBufnr);
       return true;
@@ -145,7 +145,7 @@ export const buffer = {
   },
 
   async sendPromptFromFloatingWindow(denops: Denops): Promise<void> {
-    const bufnr = await getTerminalBufferNr(denops);
+    const bufnr = await getAiderBufferNr(denops);
     if (bufnr === undefined) {
       return;
     }
@@ -206,7 +206,7 @@ export const buffer = {
   },
 
   async sendPromptWithInput(denops: Denops): Promise<void> {
-    const bufnr = await getTerminalBufferNr(denops);
+    const bufnr = await getAiderBufferNr(denops);
     if (bufnr === undefined) {
       await denops.cmd("echo 'Aider is not running'");
       await denops.cmd("AiderRun");
@@ -245,7 +245,7 @@ export const buffer = {
       is.ArrayOf(is.String),
     );
     if (openBufferType !== "floating") {
-      const bufnr = await getTerminalBufferNr(denops);
+      const bufnr = await getAiderBufferNr(denops);
       if (bufnr === undefined) {
         await denops.cmd("echo 'Aider is not running'");
         await denops.cmd("AiderRun");
@@ -344,6 +344,7 @@ export async function checkIfAiderBuffer(
   denops: Denops,
   bufnr: number,
 ): Promise<boolean> {
+  // TODO try getname
   const termInfo = maybe(
     await fn.getbufinfo(denops, bufnr),
     is.ArrayOf(is.ObjectOf({ name: is.String })),

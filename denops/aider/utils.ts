@@ -46,7 +46,7 @@ export async function getBufferName(
  * @param {Denops} denops - The Denops instance.
  * @returns {Promise<number | undefined>} The buffer number or undefined.
  */
-export async function getTerminalBufferNr(
+export async function getAiderBufferNr(
   denops: Denops,
 ): Promise<number | undefined> {
   // Get all open buffer numbers
