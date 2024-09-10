@@ -32,6 +32,16 @@ nnoremap <silent> <leader>ai :AiderAddIgnoreCurrentFile<CR>
 nnoremap <silent> <leader>aI :AiderOpenIgnore<CR>
 nnoremap <silent> <leader>ah :AiderHide<CR>
 vmap <leader>av :AiderVisualTextWithPrompt<CR>
+augroup AiderOpenGroup
+  autocmd!
+  autocmd User AiderOpen call s:AiderOpenHandler()
+augroup END
+
+function! s:AiderOpenHandler() abort
+  " Set key mappings for the buffer
+  execute 'tnoremap <buffer=' . a:args.buf . '> <Esc> <C-\><C-n>'
+  execute 'nnoremap <buffer=' . a:args.buf . '> <Esc> :AiderHide<CR>'
+endfunction
 ```
 
 ## Usage
