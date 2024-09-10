@@ -31,6 +31,7 @@ nnoremap <silent> <leader>ax :AiderExit<CR>
 nnoremap <silent> <leader>ai :AiderAddIgnoreCurrentFile<CR>
 nnoremap <silent> <leader>aI :AiderOpenIgnore<CR>
 nnoremap <silent> <leader>ah :AiderHide<CR>
+tnoremap <C-x><C-x> <C-\><C-n>:AiderHide<CR>
 vmap <leader>av :AiderVisualTextWithPrompt<CR>
 ```
 
