@@ -112,7 +112,7 @@ export const buffer = {
       ? sendPromptFromFloatingWindow(denops)
       : sendPromptFromSplitWindow(denops);
 
-    await emit("User", "AiderOpen");
+    await emit(denops, "User", "AiderOpen");
     return;
   },
   async openFloatingWindowWithSelectedCode(
