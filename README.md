@@ -15,7 +15,7 @@ Minimal helper plugin for aider with neovim.
 
 ## Settings
 
-以下の設定をvimrcまたはinit.vimに追加してください。
+Please add the following settings to your vimrc or init.vim.
 
 ```vim
 ex.
