@@ -40,7 +40,7 @@ export async function getBufferName(
 }
 
 /**
- * Gets the buffer number of the first buffer with a name starting with "term://".
+ * Gets the buffer number of the first buffer that matches the condition of checkIfAiderBuffer.
  * If no matching buffer is found, the function returns undefined.
  *
  * @param {Denops} denops - The Denops instance.
