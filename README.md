@@ -15,6 +15,7 @@ Minimal helper plugin for aider with neovim.
 
 ## Settings
 
+### vimscript
 Please add the following settings to your vimrc or init.vim.
 
 ```vim
@@ -42,6 +43,36 @@ function! s:AiderOpenHandler() abort
   execute 'tnoremap <buffer=' . a:args.buf . '> <Esc> <C-\><C-n>'
   execute 'nnoremap <buffer=' . a:args.buf . '> <Esc> :AiderHide<CR>'
 endfunction
+```
+
+### lua (lazy.nvim)
+Please add the following settings to your lazy settings.
+
+```lua
+{ "nekowasabi/aider.vim"
+  , dependencies = "vim-denops/denops.vim"
+  , config = function()
+    vim.g.aider_command = 'aider --no-auto-commits'
+    vim.g.aider_buffer_open_type = 'floating'
+    vim.g.aider_floatwin_width = 100
+    vim.g.aider_floatwin_height = 20
+    vim.api.nvim_set_keymap('n', '<leader>ar', ':AiderRun<CR>', { noremap = true, silent = true })
+    vim.api.nvim_set_keymap('n', '<leader>aa', ':AiderAddCurrentFile<CR>', { noremap = true, silent = true })
+    vim.api.nvim_set_keymap('n', '<leader>aw', ':AiderAddWeb<CR>', { noremap = true, silent = true })
+    vim.api.nvim_set_keymap('n', '<leader>ask', ':AiderAsk ', { noremap = true, silent = true })
+    vim.api.nvim_set_keymap('n', '<leader>ase', ':AiderSendPrompt ', { noremap = true, silent = true })
+
+    vim.api.nvim_create_autocmd('User',
+      {
+        pattern = 'AiderOpen',
+        callback =
+            function(args)
+              vim.keymap.set('t', '<Esc>', '<C-\\><C-n>', { buffer = args.buf })
+              vim.keymap.set('n', '<Esc>', '<cmd>AiderHide<CR>', { buffer = args.buf })
+            end
+      })
+  end
+  }
 ```
 
 ## Usage
