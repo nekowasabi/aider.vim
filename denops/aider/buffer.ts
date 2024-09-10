@@ -7,7 +7,11 @@ import {
   is,
   maybe,
 } from "https://deno.land/x/unknownutil@v3.17.0/mod.ts";
-import { getAdditionalPrompt, getAiderBufferNr } from "./utils.ts";
+import {
+  getAdditionalPrompt,
+  getAiderBufferNr,
+  getBufferName,
+} from "./utils.ts";
 import { feedkeys } from "https://deno.land/x/denops_std@v6.4.0/function/mod.ts";
 
 /**
@@ -344,16 +348,8 @@ export async function checkIfAiderBuffer(
   denops: Denops,
   bufnr: number,
 ): Promise<boolean> {
-  // TODO try getname
-  const termInfo = maybe(
-    await fn.getbufinfo(denops, bufnr),
-    is.ArrayOf(is.ObjectOf({ name: is.String })),
-  );
-  if (termInfo === undefined || termInfo.length === 0) {
-    return false;
-  }
-  console.log(termInfo[0].name);
-  const splitted = termInfo[0].name.split(" ");
+  const name = await getBufferName(denops, bufnr);
+  const splitted = name.split(" ");
   return splitted[0].endsWith("aider");
 }
 
