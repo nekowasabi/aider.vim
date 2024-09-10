@@ -1,5 +1,6 @@
 import { Denops } from "https://deno.land/x/denops_std@v6.4.0/mod.ts";
 import * as v from "https://deno.land/x/denops_std@v6.4.0/variable/mod.ts";
+import { emit } from "https://deno.land/x/denops_std@v6.5.1/autocmd/mod.ts";
 import * as n from "https://deno.land/x/denops_std@v6.4.0/function/nvim/mod.ts";
 import * as fn from "https://deno.land/x/denops_std@v6.4.0/function/mod.ts";
 import {
@@ -27,92 +28,19 @@ export type BufferLayout = typeof bufferLayouts[number];
  * floating: floating window
  */
 export const buffer = {
-  async exitAiderBuffer(denops: Denops): Promise<void> {
-    await identifyAiderBuffer(denops, async (job_id, _winnr, bufnr) => {
-      await denops.call("chansend", job_id, "/exit\n");
-      await denops.cmd(`bdelete! ${bufnr}`);
-    });
-  },
   async getOpenBufferType(denops: Denops): Promise<BufferLayout> {
     return maybe(
       await v.g.get(denops, "aider_buffer_open_type"),
       is.LiteralOneOf(bufferLayouts),
     ) ?? "floating";
   },
-
-  /**
-   * Opens a floating window for the specified buffer.
-   * The floating window is positioned at the center of the terminal.
-   *
-   * @param {Denops} denops - The Denops instance.
-   * @param {number} bufnr - The buffer number.
-   * @returns {Promise<void>}
-   */
-  async openFloatingWindow(
-    denops: Denops,
-    bufnr: number,
-  ): Promise<void> {
-    const terminal_width = Math.floor(
-      ensure(await n.nvim_get_option(denops, "columns"), is.Number),
-    );
-    const terminal_height = Math.floor(
-      ensure(await n.nvim_get_option(denops, "lines"), is.Number),
-    );
-    const floatWinHeight = ensure(
-      await v.g.get(denops, "aider_floatwin_height"),
-      is.Number,
-    );
-    const floatWinWidth = ensure(
-      await v.g.get(denops, "aider_floatwin_width"),
-      is.Number,
-    );
-
-    const row = Math.floor((terminal_height - floatWinHeight) / 2);
-    const col = Math.floor((terminal_width - floatWinWidth) / 2);
-
-    await n.nvim_open_win(denops, bufnr, true, {
-      title:
-        "| normal mode > qq: quit, terminal mode > <Esc><Esc>: quit | visual mode > <CR>: send prompt |",
-      relative: "editor",
-      border: "double",
-      width: floatWinWidth,
-      height: floatWinHeight,
-      row: row,
-      col: col,
+  async exitAiderBuffer(denops: Denops): Promise<void> {
+    await identifyAiderBuffer(denops, async (job_id, _winnr, bufnr) => {
+      await denops.call("chansend", job_id, "/exit\n");
+      await denops.cmd(`bdelete! ${bufnr}`);
     });
-    await n.nvim_buf_set_keymap(
-      denops,
-      bufnr,
-      "t",
-      "<Esc>",
-      "<cmd>close!<cr>",
-      {
-        silent: true,
-      },
-    );
-    await n.nvim_buf_set_keymap(
-      denops,
-      bufnr,
-      "n",
-      "q",
-      "<cmd>close!<cr>",
-      {
-        silent: true,
-      },
-    );
-    await n.nvim_buf_set_keymap(
-      denops,
-      bufnr,
-      "n",
-      "<Esc>",
-      "<cmd>close!<cr>",
-      {
-        silent: true,
-      },
-    );
-
-    await denops.cmd("set nonumber");
   },
+
   /**
    * Opens an Aider buffer.
    * If an Aider buffer is already open, it opens that buffer.
@@ -132,12 +60,14 @@ export const buffer = {
   ): Promise<void | undefined | boolean> {
     const aiderBufnr = await getAiderBufferNr(denops);
     if (aiderBufnr) {
-      await buffer.openFloatingWindow(denops, aiderBufnr);
+      await openFloatingWindow(denops, aiderBufnr);
+      await emit(denops, "User", "AiderOpen");
       return true;
     }
 
     if (openBufferType === "split" || openBufferType === "vsplit") {
       await denops.cmd(openBufferType);
+      await emit(denops, "User", "AiderOpen");
       return;
     }
 
@@ -146,73 +76,13 @@ export const buffer = {
       is.Number,
     );
 
-    await buffer.openFloatingWindow(
+    await openFloatingWindow(
       denops,
       bufnr,
     );
 
+    await emit(denops, "User", "AiderOpen");
     return;
-  },
-
-  async sendPromptFromFloatingWindow(denops: Denops): Promise<void> {
-    const bufnr = await getAiderBufferNr(denops);
-    if (bufnr === undefined) {
-      return;
-    }
-    await buffer.openFloatingWindow(denops, bufnr);
-
-    await feedkeys(denops, "G");
-    await feedkeys(denops, '"qp');
-
-    const jobId = ensure(
-      await fn.getbufvar(denops, bufnr, "&channel"),
-      is.Number,
-    );
-
-    await denops.call("chansend", jobId, "\n");
-  },
-
-  /**
-   * スプリットウィンドウからプロンプトを送信する非同期関数
-   *
-   * この関数は以下の操作を行います：
-   * 1. ターミナルバッファを識別
-   * 2. 現在のバッファを閉じる
-   * 3. ターミナルウィンドウに移動
-   * 4. カーソルを最後に移動
-   * 5. レジスタ 'q' の内容を貼り付け
-   * 6. Enter キーを送信
-   * 7. 元のウィンドウに戻る
-   *
-   * @param {Denops} denops - Denopsインスタンス
-   */
-  async sendPromptFromSplitWindow(denops: Denops): Promise<void> {
-    await identifyAiderBuffer(denops, async (job_id, winnr, _bufnr) => {
-      await denops.cmd(`bdelete!`);
-      if (await v.g.get(denops, "aider_buffer_open_type") !== "floating") {
-        await denops.cmd(`${winnr}wincmd w`);
-      } else {
-        const totalWindows = ensure<number>(
-          await denops.call("winnr", "$"),
-          is.Number,
-        );
-
-        for (let winnr = 1; winnr <= totalWindows; winnr++) {
-          const bufnr = await denops.call("winbufnr", winnr);
-
-          const buftype = await denops.call("getbufvar", bufnr, "&buftype");
-
-          if (buftype === "terminal") {
-            await denops.cmd(`${winnr}wincmd w`);
-            break;
-          }
-        }
-      }
-      await feedkeys(denops, "G");
-      await feedkeys(denops, '"qp');
-      await denops.call("chansend", job_id, "\n");
-      await denops.cmd("wincmd p");
-    });
   },
 
   async sendPromptWithInput(denops: Denops): Promise<void> {
@@ -223,12 +93,12 @@ export const buffer = {
       return;
     }
 
-    await buffer.openFloatingWindow(denops, bufnr);
-
     const openBufferType = await buffer.getOpenBufferType(denops);
+    await buffer.openAiderBuffer(denops, openBufferType);
+
     openBufferType === "floating"
-      ? await buffer.sendPromptFromFloatingWindow(denops)
-      : await buffer.sendPromptFromSplitWindow(denops);
+      ? await sendPromptFromFloatingWindow(denops)
+      : await sendPromptFromSplitWindow(denops);
   },
   async sendPrompt(
     denops: Denops,
@@ -239,9 +109,10 @@ export const buffer = {
     await denops.cmd("bdelete!");
 
     openBufferType === "floating"
-      ? buffer.sendPromptFromFloatingWindow(denops)
-      : buffer.sendPromptFromSplitWindow(denops);
+      ? sendPromptFromFloatingWindow(denops)
+      : sendPromptFromSplitWindow(denops);
 
+    await emit("User", "AiderOpen");
     return;
   },
   async openFloatingWindowWithSelectedCode(
@@ -274,7 +145,7 @@ export const buffer = {
       await n.nvim_create_buf(denops, false, true),
       is.Number,
     );
-    await buffer.openFloatingWindow(
+    await openFloatingWindow(
       denops,
       bufnr,
     );
@@ -312,6 +183,35 @@ export const buffer = {
       },
     );
   },
+  /**
+   * バッファがAiderバッファかどうかを確認します。
+   * @param {Denops} denops - Denopsインスタンス
+   * @param {number} bufnr - バッファ番号
+   * @returns {Promise<boolean>}
+   */
+  async checkIfAiderBuffer(
+    denops: Denops,
+    bufnr: number,
+  ): Promise<boolean> {
+    // aiderバッファの場合 `term://{path}//{pid}:aider --4o --no-auto-commits` のような名前になっている
+    const name = await getBufferName(denops, bufnr);
+    const splitted = name.split(" ");
+    return splitted[0].endsWith("aider");
+  },
+
+  /**
+   * バッファがターミナルバッファかどうかを確認します。
+   * @param {Denops} denops - Denopsインスタンス
+   * @param {number} bufnr - バッファ番号
+   * @returns {Promise<boolean>}
+   */
+  async checkIfTerminalBuffer(
+    denops: Denops,
+    bufnr: number,
+  ): Promise<boolean> {
+    const buftype = await fn.getbufvar(denops, bufnr, "&buftype");
+    return buftype === "terminal";
+  },
 };
 
 /**
@@ -332,7 +232,7 @@ async function identifyAiderBuffer(
   for (let i = 1; i <= win_count; i++) {
     const bufnr = ensure(await fn.winbufnr(denops, i), is.Number);
 
-    if (await checkIfAiderBuffer(denops, bufnr)) {
+    if (await buffer.checkIfAiderBuffer(denops, bufnr)) {
       const job_id = ensure<number>(
         await fn.getbufvar(denops, bufnr, "&channel"),
         is.Number,
@@ -345,31 +245,102 @@ async function identifyAiderBuffer(
 }
 
 /**
- * バッファがAiderバッファかどうかを確認します。
- * @param {Denops} denops - Denopsインスタンス
- * @param {number} bufnr - バッファ番号
- * @returns {Promise<boolean>}
+ * Opens a floating window for the specified buffer.
+ * The floating window is positioned at the center of the terminal.
+ *
+ * @param {Denops} denops - The Denops instance.
+ * @param {number} bufnr - The buffer number.
+ * @returns {Promise<void>}
  */
-export async function checkIfAiderBuffer(
+async function openFloatingWindow(
   denops: Denops,
   bufnr: number,
-): Promise<boolean> {
-  // aiderバッファの場合 `term://{path}//{pid}:aider --4o --no-auto-commits` のような名前になっている
-  const name = await getBufferName(denops, bufnr);
-  const splitted = name.split(" ");
-  return splitted[0].endsWith("aider");
-}
+): Promise<void> {
+  const terminal_width = Math.floor(
+    ensure(await n.nvim_get_option(denops, "columns"), is.Number),
+  );
+  const terminal_height = Math.floor(
+    ensure(await n.nvim_get_option(denops, "lines"), is.Number),
+  );
+  const floatWinHeight = ensure(
+    await v.g.get(denops, "aider_floatwin_height"),
+    is.Number,
+  );
+  const floatWinWidth = ensure(
+    await v.g.get(denops, "aider_floatwin_width"),
+    is.Number,
+  );
 
+  const row = Math.floor((terminal_height - floatWinHeight) / 2);
+  const col = Math.floor((terminal_width - floatWinWidth) / 2);
+
+  await n.nvim_open_win(denops, bufnr, true, {
+    relative: "editor",
+    border: "double",
+    width: floatWinWidth,
+    height: floatWinHeight,
+    row: row,
+    col: col,
+  });
+
+  await denops.cmd("set nonumber");
+}
+async function sendPromptFromFloatingWindow(denops: Denops): Promise<void> {
+  const bufnr = await getAiderBufferNr(denops);
+  if (bufnr === undefined) {
+    return;
+  }
+  await openFloatingWindow(denops, bufnr);
+
+  await feedkeys(denops, "G");
+  await feedkeys(denops, '"qp');
+
+  const jobId = ensure(
+    await fn.getbufvar(denops, bufnr, "&channel"),
+    is.Number,
+  );
+
+  await denops.call("chansend", jobId, "\n");
+}
 /**
- * バッファがターミナルバッファかどうかを確認します。
+ * スプリットウィンドウからプロンプトを送信する非同期関数
+ *
+ * この関数は以下の操作を行います：
+ * 1. ターミナルバッファを識別
+ * 2. 現在のバッファを閉じる
+ * 3. ターミナルウィンドウに移動
+ * 4. カーソルを最後に移動
+ * 5. レジスタ 'q' の内容を貼り付け
+ * 6. Enter キーを送信
+ * 7. 元のウィンドウに戻る
+ *
  * @param {Denops} denops - Denopsインスタンス
- * @param {number} bufnr - バッファ番号
- * @returns {Promise<boolean>}
  */
-export async function checkIfTerminalBuffer(
-  denops: Denops,
-  bufnr: number,
-): Promise<boolean> {
-  const buftype = await fn.getbufvar(denops, bufnr, "&buftype");
-  return buftype === "terminal";
+async function sendPromptFromSplitWindow(denops: Denops): Promise<void> {
+  await identifyAiderBuffer(denops, async (job_id, winnr, _bufnr) => {
+    await denops.cmd(`bdelete!`);
+    if (await v.g.get(denops, "aider_buffer_open_type") !== "floating") {
+      await denops.cmd(`${winnr}wincmd w`);
+    } else {
+      const totalWindows = ensure<number>(
+        await denops.call("winnr", "$"),
+        is.Number,
+      );
+
+      for (let winnr = 1; winnr <= totalWindows; winnr++) {
+        const bufnr = await denops.call("winbufnr", winnr);
+
+        const buftype = await denops.call("getbufvar", bufnr, "&buftype");
+
+        if (buftype === "terminal") {
+          await denops.cmd(`${winnr}wincmd w`);
+          break;
+        }
+      }
+    }
+    await feedkeys(denops, "G");
+    await feedkeys(denops, '"qp');
+    await denops.call("chansend", job_id, "\n");
+    await denops.cmd("wincmd p");
+  });
 }
