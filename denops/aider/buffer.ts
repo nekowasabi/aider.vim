@@ -348,6 +348,7 @@ export async function checkIfAiderBuffer(
   denops: Denops,
   bufnr: number,
 ): Promise<boolean> {
+  // aiderバッファの場合 `term://{path}//{pid}:aider --4o --no-auto-commits` のような名前になっている
   const name = await getBufferName(denops, bufnr);
   const splitted = name.split(" ");
   return splitted[0].endsWith("aider");
