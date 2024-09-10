@@ -3,7 +3,7 @@ import * as v from "https://deno.land/x/denops_std@v6.4.0/variable/mod.ts";
 import { ensure, is } from "https://deno.land/x/unknownutil@v3.17.0/mod.ts";
 import * as fn from "https://deno.land/x/denops_std@v6.4.0/function/mod.ts";
 import { getAiderBufferNr, getCurrentFilePath } from "./utils.ts";
-import { buffer, checkIfTerminalBuffer } from "./buffer.ts";
+import { buffer } from "./buffer.ts";
 
 export const aiderCommand = {
   async debug(denops: Denops): Promise<void> {
@@ -51,7 +51,7 @@ export const aiderCommand = {
     if (await getAiderBufferNr(denops) === undefined) {
       await aiderCommand.silentRun(denops);
     }
-    if (await checkIfTerminalBuffer(denops, bufnr)) {
+    if (await buffer.checkIfTerminalBuffer(denops, bufnr)) {
       return;
     }
     const currentFile = await getCurrentFilePath(denops);
