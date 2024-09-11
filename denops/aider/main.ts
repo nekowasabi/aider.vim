@@ -18,11 +18,16 @@ export async function main(denops: Denops): Promise<void> {
      * ない場合は新しいAiderコマンドを実行します。
      * @returns {Promise<void>}
      */
-    async runAider(): Promise<void> {
+    async run(): Promise<void> {
       if (await buffer.openAiderBuffer(denops, openBufferType)) {
         return;
       }
       await aiderCommand.run(denops);
+    },
+    async addWeb(url: unknown): Promise<void> {
+      const prompt = `/web ${url}`;
+      await v.r.set(denops, "q", prompt);
+      await denops.dispatcher.sendPromptWithInput();
     },
     async sendPrompt(): Promise<void> {
       await buffer.sendPrompt(denops, openBufferType);
@@ -59,7 +64,7 @@ export async function main(denops: Denops): Promise<void> {
     async debug(): Promise<void> {
       await aiderCommand.debug(denops);
     },
-    async silentRunAider(): Promise<void> {
+    async silentRun(): Promise<void> {
       await aiderCommand.silentRun(denops);
     },
     async addIgnoreCurrentFile(): Promise<void> {
@@ -78,66 +83,46 @@ export async function main(denops: Denops): Promise<void> {
     },
   };
 
-  /**
-   * The main function that sets up the Aider plugin functionality.
-   * @param {Denops} denops - The Denops instance.
-   * @returns {Promise<void>}
-   */
   function declCommand(
     denops: Denops,
     dispatcherMethod: string,
-    args: "0" | "1" | {
-      tag: "*";
+    args: { num: "0" } | { num: "1" } | {
+      num: "*";
       pattern: "[<f-args>]" | "[<line1>, <line2>]";
-    } = "0",
+    } = { num: "0" },
     range: boolean = false,
   ): Promise<void> {
     const rangePart = range ? "-range " : "";
-    const commandName = dispatcherMethod.charAt(0).toUpperCase() +
+    const commandName = "Aider" + dispatcherMethod.charAt(0).toUpperCase() +
       dispatcherMethod.slice(1);
-    const nargsUsage = args === "0" || args === "1" ? args : args.pattern;
+    const nargsUsage = args.num === "*" ? args.pattern : "";
     return denops.cmd(
-      `command! -nargs=${args} ${rangePart} ${commandName} call denops#notify("${denops.name}", "${dispatcherMethod}", ${nargsUsage})`,
+      `command! -nargs=${args.num} ${rangePart} ${commandName} call denops#notify("${denops.name}", "${dispatcherMethod}", ${nargsUsage})`,
     );
   }
 
-  await denops.cmd(
-    `command! -nargs=0 AiderSendPrompt call denops#notify("${denops.name}", "sendPrompt", [])`,
+  await declCommand(denops, "sendPrompt");
+  await declCommand(denops, "run");
+  await declCommand(denops, "silentRun");
+  await declCommand(denops, "addFile", { num: "1" });
+  await declCommand(denops, "addCurrentFile");
+  await declCommand(denops, "addWeb", { num: "1" });
+  await declCommand(denops, "ask", { num: "1" });
+  await declCommand(denops, "exit");
+  await declCommand(denops, "openFloatingWindowWithSelectedCode", {
+    num: "*",
+    pattern: "[<line1>, <line2>]",
+  }, true);
+  await declCommand(
+    denops,
+    "openIgnore",
+    { num: "*", pattern: "[<f-args>]" },
+    true,
   );
-  await denops.cmd(
-    `command! -nargs=0 AiderRun call denops#notify("${denops.name}", "runAider", [])`,
-  );
-  await denops.cmd(
-    `command! -nargs=0 AiderSilentRun call denops#notify("${denops.name}", "silentRunAider", [])`,
-  );
-  await denops.cmd(
-    `command! -nargs=1 AiderAddFile call denops#notify("${denops.name}", "addFile", [<f-args>])`,
-  );
-  await denops.cmd(
-    `command! -nargs=0 AiderAddCurrentFile call denops#notify("${denops.name}", "addCurrentFile", [])`,
-  );
-  await denops.cmd(
-    `command! -nargs=1 AiderAddWeb call denops#notify("${denops.name}", "addWeb", [<f-args>])`,
-  );
-  await denops.cmd(
-    `command! -nargs=1 AiderAsk call denops#notify("${denops.name}", "ask", [<f-args>])`,
-  );
-  await denops.cmd(
-    `command! -nargs=0 AiderExit call denops#notify("${denops.name}", "exit", [])`,
-  );
-  await denops.cmd(
-    `command! -nargs=* -range AiderVisualTextWithPrompt call denops#notify("${denops.name}", "openFloatingWindowWithSelectedCode", [<line1>, <line2>])`,
-  );
-  await denops.cmd(
-    `command! -nargs=* -range AiderOpenIgnore call denops#notify("${denops.name}", "openIgnore", [])`,
-  );
-  await denops.cmd(
-    `command! -nargs=* -range AiderAddIgnoreCurrentFile call denops#notify("${denops.name}", "addIgnoreCurrentFile", [])`,
-  );
-  await denops.cmd(
-    `command! -nargs=* -range AiderDebug call denops#notify("${denops.name}", "debug", [])`,
-  );
-  await denops.cmd(
-    `command! -nargs=* -range AiderHide call denops#notify("${denops.name}", "hide", [])`,
-  );
+  await declCommand(denops, "addIgnoreCurrentFile", {
+    num: "*",
+    pattern: "[<f-args>]",
+  }, true);
+  await declCommand(denops, "debug", { num: "*", pattern: "[<f-args>]" }, true);
+  await declCommand(denops, "hide", { num: "*", pattern: "[<f-args>]" }, true);
 }
