@@ -78,6 +78,29 @@ export async function main(denops: Denops): Promise<void> {
     },
   };
 
+  /**
+   * The main function that sets up the Aider plugin functionality.
+   * @param {Denops} denops - The Denops instance.
+   * @returns {Promise<void>}
+   */
+  function declCommand(
+    denops: Denops,
+    dispatcherMethod: string,
+    args: "0" | "1" | {
+      tag: "*";
+      pattern: "[<f-args>]" | "[<line1>, <line2>]";
+    } = "0",
+    range: boolean = false,
+  ): Promise<void> {
+    const rangePart = range ? "-range " : "";
+    const commandName = dispatcherMethod.charAt(0).toUpperCase() +
+      dispatcherMethod.slice(1);
+    const nargsUsage = args === "0" || args === "1" ? args : args.pattern;
+    return denops.cmd(
+      `command! -nargs=${args} ${rangePart} ${commandName} call denops#notify("${denops.name}", "${dispatcherMethod}", ${nargsUsage})`,
+    );
+  }
+
   await denops.cmd(
     `command! -nargs=0 AiderSendPrompt call denops#notify("${denops.name}", "sendPrompt", [])`,
   );
