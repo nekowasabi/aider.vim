@@ -14,10 +14,6 @@ export async function main(denops: Denops): Promise<void> {
     | ((arg: unknown) => Promise<void>)
     | ((args: unknown[]) => Promise<void>);
 
-  type ArgCount<T extends ImplType> = T extends () => Promise<void> ? "0"
-    : T extends (arg: unknown) => Promise<void> ? "1"
-    : "*";
-
   type Command = {
     methodName: string;
     impl: ImplType;
@@ -39,13 +35,14 @@ export async function main(denops: Denops): Promise<void> {
     range: boolean = false,
   ): Promise<Command> {
     const rangePart = range ? "-range " : "";
+
     const commandName = "Aider" + dispatcherMethod.charAt(0).toUpperCase() +
       dispatcherMethod.slice(1);
     const argCount = (() => {
       if (impl.length === 0) return "0";
       if (impl.length === 1) return "1";
       else return "*";
-    })() as ArgCount<T>;
+    })();
 
     await denops.cmd(
       `command! -nargs=${argCount} ${rangePart} ${commandName} call denops#notify("${denops.name}", "${dispatcherMethod}", ${pattern})`,
