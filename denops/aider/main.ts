@@ -20,7 +20,6 @@ export async function main(denops: Denops): Promise<void> {
 
   type Command = {
     methodName: string;
-    decl: Promise<void>;
     impl: ImplType;
   };
 
@@ -33,26 +32,26 @@ export async function main(denops: Denops): Promise<void> {
    * @param {boolean} [range=false] - コマンドがvisual modeで動作するかどうか。
    * @returns {Command<T>} - メソッド名、command!宣言、実装を含むコマンドオブジェクト。
    */
-  function command<T extends ImplType>(
+  async function command<T extends ImplType>(
     dispatcherMethod: string,
     impl: T,
     pattern: "[<f-args>]" | "[<line1>, <line2>]" | "[]" = "[]",
     range: boolean = false,
-  ): Command {
+  ): Promise<Command> {
     const rangePart = range ? "-range " : "";
     const commandName = "Aider" + dispatcherMethod.charAt(0).toUpperCase() +
       dispatcherMethod.slice(1);
-    const argCount: ArgCount<T> = (() => {
+    const argCount = (() => {
       if (impl.length === 0) return "0";
       if (impl.length === 1) return "1";
-      return "*";
+      else return "*";
     })() as ArgCount<T>;
 
+    await denops.cmd(
+      `command! -nargs=${argCount} ${rangePart} ${commandName} call denops#notify("${denops.name}", "${dispatcherMethod}", ${pattern})`,
+    );
     return {
       methodName: dispatcherMethod,
-      decl: denops.cmd(
-        `command! -nargs=${argCount} ${rangePart} ${commandName} call denops#notify("${denops.name}", "${dispatcherMethod}", ${pattern})`,
-      ),
       impl: impl,
     };
   }
@@ -69,7 +68,6 @@ export async function main(denops: Denops): Promise<void> {
   ): Command {
     return {
       methodName: dispatcherMethod,
-      decl: Promise.resolve(),
       impl: impl,
     };
   }
@@ -77,19 +75,22 @@ export async function main(denops: Denops): Promise<void> {
   const openBufferType: BufferLayout = await buffer.getOpenBufferType(denops);
 
   const commands: Command[] = [
-    command("sendPrompt", () => buffer.sendPrompt(denops, openBufferType)),
-    command("run", async () => {
+    await command(
+      "sendPrompt",
+      () => buffer.sendPrompt(denops, openBufferType),
+    ),
+    await command("run", async () => {
       if (await buffer.openAiderBuffer(denops, openBufferType)) {
         return;
       }
       await aiderCommand.run(denops);
     }),
-    command("silentRun", () => aiderCommand.silentRun(denops)),
+    await command("silentRun", () => aiderCommand.silentRun(denops)),
     dispatchOnly(
       "sendPromptWithInput",
       () => buffer.sendPromptWithInput(denops),
     ),
-    command("addFile", async (path: unknown) => {
+    await command("addFile", async (path: unknown) => {
       console.log(path);
       if (path === "") {
         return;
@@ -98,19 +99,19 @@ export async function main(denops: Denops): Promise<void> {
       await v.r.set(denops, "q", prompt);
       await denops.dispatcher.sendPromptWithInput(path);
     }, "[<f-args>]"),
-    command("addCurrentFile", () => aiderCommand.addCurrentFile(denops)),
-    command("addWeb", async (url: unknown) => {
+    await command("addCurrentFile", () => aiderCommand.addCurrentFile(denops)),
+    await command("addWeb", async (url: unknown) => {
       const prompt = `/web ${url}`;
       await v.r.set(denops, "q", prompt);
       await denops.dispatcher.sendPromptWithInput(url);
     }, "[<f-args>]"),
-    command("ask", async (question: unknown) => {
+    await command("ask", async (question: unknown) => {
       const prompt = `/ask ${question}`;
       await v.r.set(denops, "q", prompt);
       await denops.dispatcher.sendPromptWithInput(question);
     }, "[<f-args>]"),
-    command("exit", () => buffer.exitAiderBuffer(denops)),
-    command(
+    await command("exit", () => buffer.exitAiderBuffer(denops)),
+    await command(
       "openFloatingWindowWithSelectedCode",
       async ([start, end]: unknown[]) => {
         await buffer.openFloatingWindowWithSelectedCode(
@@ -123,13 +124,13 @@ export async function main(denops: Denops): Promise<void> {
       "[<line1>, <line2>]",
       true,
     ),
-    command("openIgnore", () => aiderCommand.openIgnore(denops)),
-    command(
+    await command("openIgnore", () => aiderCommand.openIgnore(denops)),
+    await command(
       "addIgnoreCurrentFile",
       () => aiderCommand.addIgnoreCurrentFile(denops),
     ),
-    command("debug", () => aiderCommand.debug(denops)),
-    command("hide", async () => {
+    await command("debug", () => aiderCommand.debug(denops)),
+    await command("hide", async () => {
       await denops.cmd("close!");
       await denops.cmd(`silent! e!`);
     }),
