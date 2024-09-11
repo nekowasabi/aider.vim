@@ -57,6 +57,12 @@ export async function main(denops: Denops): Promise<void> {
     };
   }
 
+  /**
+   * Denopsディスパッチャー用のコマンドを生成します。command!宣言は生成されません。
+   * @param {string} dispatcherMethod - ディスパッチャーで使用されるメソッド名。
+   * @param {T} impl - コマンドの実装関数。
+   * @returns {Command<T>} - メソッド名、command!宣言、実装を含むコマンドオブジェクト。
+   */
   function dispatchOnly<T extends ImplType>(
     dispatcherMethod: string,
     impl: T,
