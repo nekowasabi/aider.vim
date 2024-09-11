@@ -12,7 +12,7 @@ export async function main(denops: Denops): Promise<void> {
   type ArgCount = "0" | "1" | "*";
   type ImplType<T extends ArgCount> = T extends "0" ? (() => Promise<void>)
     : T extends "1" ? ((arg: string) => Promise<void>)
-    : ((args: string[]) => Promise<void>);
+    : ((arg: string, arg2: string) => Promise<void>); // MEMO: 1つめの引数、2つめの引数という意味
 
   type Command = {
     methodName: string;
@@ -108,7 +108,7 @@ export async function main(denops: Denops): Promise<void> {
     await command(
       "visualTextWithPrompt",
       "*",
-      async ([start, end]: string[]) => {
+      async (start: string, end: string) => {
         await buffer.openFloatingWindowWithSelectedCode(
           denops,
           start,
