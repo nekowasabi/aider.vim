@@ -88,10 +88,6 @@ export async function main(denops: Denops): Promise<void> {
       () => buffer.sendPromptWithInput(denops),
     ),
     await command("addFile", async (path: unknown) => {
-      console.log(path);
-      if (path === "") {
-        return;
-      }
       const prompt = `/add ${path}`;
       await v.r.set(denops, "q", prompt);
       await denops.dispatcher.sendPromptWithInput(path);
