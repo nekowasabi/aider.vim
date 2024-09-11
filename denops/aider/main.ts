@@ -9,23 +9,38 @@ import { buffer, BufferLayout } from "./buffer.ts";
  * @returns {Promise<void>}
  */
 export async function main(denops: Denops): Promise<void> {
-  type ArgCount = "0" | "1" | "*";
-  type ArgType<T extends ArgCount> = T extends "0" ? void
-    : T extends "1" ? string
-    : string[];
-  type Command<T extends ArgCount> = {
+  type ImplType =
+    | (() => Promise<void>)
+    | ((arg: unknown) => Promise<void>)
+    | ((args: unknown[]) => Promise<void>);
+
+  type ArgCount<T extends ImplType> = T extends () => Promise<void> ? "0"
+    : T extends (arg: unknown) => Promise<void> ? "1"
+    : "*";
+
+  type Command = {
     methodName: string;
     decl: Promise<void>;
-    impl: (args: ArgType<T>) => Promise<void>;
+    impl: ImplType;
   };
 
-  function command<T extends ArgCount>(
+  /**
+   * Denopsディスパッチャー用のコマンドとcommand!宣言を生成します。
+   *
+   * @param {string} dispatcherMethod - ディスパッチャーで使用されるメソッド名。vim側に見えるコマンド名は Aider + DispatcherMethod のようになります。
+   * @param {ArgCount} argCount - コマンドが受け取る引数の数。
+   * @param {(args: ArgType<T>) => Promise<void>} impl - コマンドの実装関数。
+   * @param {"[<f-args>]" | "[<line1>, <line2>]" | ""} [pattern=""] - コマンドの引数パターン。argCountが"*"の場合のみ有効。
+   * @param {boolean} [range=false] - コマンドがvisual modeで動作するかどうか。
+   * @returns {Command<T>} - メソッド名、command!宣言、実装を含むコマンドオブジェクト。
+   */
+  function command<T extends ImplType>(
     dispatcherMethod: string,
-    argCount: T,
-    impl: (args: ArgType<T>) => Promise<void>,
+    argCount: ArgCount<T>,
+    impl: T,
     pattern: "[<f-args>]" | "[<line1>, <line2>]" | "" = "",
     range: boolean = false,
-  ): Command<T> {
+  ): Command {
     const rangePart = range ? "-range " : "";
     const commandName = "Aider" + dispatcherMethod.charAt(0).toUpperCase() +
       dispatcherMethod.slice(1);
@@ -39,7 +54,9 @@ export async function main(denops: Denops): Promise<void> {
     };
   }
 
-  const commands: Command<ArgCount>[] = [
+  const openBufferType: BufferLayout = await buffer.getOpenBufferType(denops);
+
+  const commands: Command[] = [
     command(
       "sendPrompt",
       "0",
@@ -52,7 +69,7 @@ export async function main(denops: Denops): Promise<void> {
       await aiderCommand.run(denops);
     }),
     command("silentRun", "0", () => aiderCommand.silentRun(denops)),
-    command("addFile", "1", async (path: string) => {
+    command("addFile", "1", async (path: unknown) => {
       if (path === "") {
         return;
       }
@@ -70,7 +87,7 @@ export async function main(denops: Denops): Promise<void> {
       await v.r.set(denops, "q", prompt);
       await denops.dispatcher.sendPromptWithInput();
     }),
-    command("ask", "1", async (question) => {
+    command("ask", "1", async (question: unknown) => {
       const prompt = `/ask ${question}`;
       await v.r.set(denops, "q", prompt);
       await denops.dispatcher.sendPromptWithInput();
@@ -79,7 +96,7 @@ export async function main(denops: Denops): Promise<void> {
     command(
       "openFloatingWindowWithSelectedCode",
       "*",
-      async ([start, end]) => {
+      async ([start, end]: unknown[]) => {
         await buffer.openFloatingWindowWithSelectedCode(
           denops,
           start,
@@ -93,28 +110,28 @@ export async function main(denops: Denops): Promise<void> {
     command(
       "openIgnore",
       "*",
-      () => aiderCommand.openIgnore(denops),
+      (_args: unknown[]) => aiderCommand.openIgnore(denops),
       "[<f-args>]",
       true,
     ),
     command(
       "addIgnoreCurrentFile",
       "*",
-      () => aiderCommand.addIgnoreCurrentFile(denops),
+      (_args: unknown[]) => aiderCommand.addIgnoreCurrentFile(denops),
       "[<f-args>]",
       true,
     ),
     command(
       "debug",
       "*",
-      () => aiderCommand.debug(denops),
+      (_args: unknown[]) => aiderCommand.debug(denops),
       "[<f-args>]",
       true,
     ),
     command(
       "hide",
       "*",
-      async () => {
+      async (_args: unknown[]) => {
         await denops.cmd("close!");
         await denops.cmd(`silent! e!`);
       },
@@ -122,77 +139,9 @@ export async function main(denops: Denops): Promise<void> {
       true,
     ),
   ];
-  const openBufferType: BufferLayout = await buffer.getOpenBufferType(denops);
 
-  denops.dispatcher = {
-    /**
-     * Aiderを実行します。
-     * 既存のAiderバッファがある場合はそれを開き、
-     * ない場合は新しいAiderコマンドを実行します。
-     * @returns {Promise<void>}
-     */
-    async run(): Promise<void> {
-      if (await buffer.openAiderBuffer(denops, openBufferType)) {
-        return;
-      }
-      await aiderCommand.run(denops);
-    },
-    async addWeb(url: unknown): Promise<void> {
-      const prompt = `/web ${url}`;
-      await v.r.set(denops, "q", prompt);
-      await denops.dispatcher.sendPromptWithInput();
-    },
-    async sendPrompt(): Promise<void> {
-      await buffer.sendPrompt(denops, openBufferType);
-    },
-    async sendPromptWithInput(): Promise<void> {
-      await buffer.sendPromptWithInput(denops);
-    },
-    async addCurrentFile(): Promise<void> {
-      await aiderCommand.addCurrentFile(denops);
-    },
-    async addFile(path: unknown): Promise<void> {
-      if (path === "") {
-        return;
-      }
-      const prompt = `/add ${path}`;
-      await v.r.set(denops, "q", prompt);
-      await denops.dispatcher.sendPromptWithInput();
-    },
-    async ask(question: unknown): Promise<void> {
-      const prompt = `/ask ${question}`;
-      await v.r.set(denops, "q", prompt);
-      await denops.dispatcher.sendPromptWithInput();
-    },
-    async openIgnore(): Promise<void> {
-      await aiderCommand.openIgnore(denops);
-    },
-    async exit(): Promise<void> {
-      await buffer.exitAiderBuffer(denops);
-    },
-    async hide(): Promise<void> {
-      await denops.cmd("close!");
-      await denops.cmd(`silent! e!`);
-    },
-    async debug(): Promise<void> {
-      await aiderCommand.debug(denops);
-    },
-    async silentRun(): Promise<void> {
-      await aiderCommand.silentRun(denops);
-    },
-    async addIgnoreCurrentFile(): Promise<void> {
-      await aiderCommand.addIgnoreCurrentFile(denops);
-    },
-    async openFloatingWindowWithSelectedCode(
-      start: unknown,
-      end: unknown,
-    ): Promise<void> {
-      await buffer.openFloatingWindowWithSelectedCode(
-        denops,
-        start,
-        end,
-        openBufferType,
-      );
-    },
-  };
+  denops.dispatcher = Object.fromEntries(commands.map((command) => [
+    command.methodName,
+    command.impl as (args: unknown) => Promise<void>,
+  ]));
 }
