@@ -109,7 +109,7 @@ export async function main(denops: Denops): Promise<void> {
     }, "[<f-args>]"),
     await command("exit", "0", () => buffer.exitAiderBuffer(denops)),
     await command(
-      "openFloatingWindowWithSelectedCode",
+      "visualTextWithPrompt",
       "*",
       async ([start, end]: string[]) => {
         console.log([start, end]);
