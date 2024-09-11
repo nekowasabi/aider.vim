@@ -117,33 +117,16 @@ export async function main(denops: Denops): Promise<void> {
       "[<line1>, <line2>]",
       true,
     ),
-    command(
-      "openIgnore",
-      (_args: unknown[]) => aiderCommand.openIgnore(denops),
-      "[<f-args>]",
-      true,
-    ),
+    command("openIgnore", () => aiderCommand.openIgnore(denops)),
     command(
       "addIgnoreCurrentFile",
-      (_args: unknown[]) => aiderCommand.addIgnoreCurrentFile(denops),
-      "[<f-args>]",
-      true,
+      () => aiderCommand.addIgnoreCurrentFile(denops),
     ),
-    command(
-      "debug",
-      (_args: unknown[]) => aiderCommand.debug(denops),
-      "[<f-args>]",
-      true,
-    ),
-    command(
-      "hide",
-      async (_args: unknown[]) => {
-        await denops.cmd("close!");
-        await denops.cmd(`silent! e!`);
-      },
-      "[<f-args>]",
-      true,
-    ),
+    command("debug", () => aiderCommand.debug(denops)),
+    command("hide", async () => {
+      await denops.cmd("close!");
+      await denops.cmd(`silent! e!`);
+    }),
   ];
 
   denops.dispatcher = Object.fromEntries(commands.map((command) => [
