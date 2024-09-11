@@ -39,9 +39,6 @@ export async function main(denops: Denops): Promise<void> {
 
     const commandName = "Aider" + dispatcherMethod.charAt(0).toUpperCase() +
       dispatcherMethod.slice(1);
-    console.log(
-      `command! -nargs=${argCount} ${rangePart} ${commandName} call denops#notify("${denops.name}", "${dispatcherMethod}", ${pattern})`,
-    );
     await denops.cmd(
       `command! -nargs=${argCount} ${rangePart} ${commandName} call denops#notify("${denops.name}", "${dispatcherMethod}", ${pattern})`,
     );
@@ -112,7 +109,6 @@ export async function main(denops: Denops): Promise<void> {
       "visualTextWithPrompt",
       "*",
       async ([start, end]: string[]) => {
-        console.log([start, end]);
         await buffer.openFloatingWindowWithSelectedCode(
           denops,
           start,
