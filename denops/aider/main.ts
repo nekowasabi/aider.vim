@@ -20,17 +20,17 @@ export async function main(denops: Denops): Promise<void> {
   };
 
   /**
-   * Denopsディスパッチャー用のコマンドとcommand!宣言を生成します。
+   * Denopsディスパッチャー用のコマンドと`command!`宣言を生成します。
    *
-   * @param {string} dispatcherMethod - ディスパッチャーで使用されるメソッド名。vim側に見えるコマンド名は Aider + DispatcherMethod のようになります。
-   * @param {(args: ArgType<T>) => Promise<void>} impl - コマンドの実装関数。
-   * @param {"[<f-args>]" | "[<line1>, <line2>]" | ""} [pattern=""] - コマンドの引数パターン。
-   * @param {boolean} [range=false] - コマンドがvisual modeで動作するかどうか。
-   * @returns {Command<T>} - メソッド名、command!宣言、実装を含むコマンドオブジェクト。
+   * @param {string} dispatcherMethod - ディスパッチャーで使用されるメソッド名。Vim側に見えるコマンド名は Aider + DispatcherMethod のようになります。
+   * @param {ImplType} impl - コマンドの実装関数。
+   * @param {"[<f-args>]" | "[<line1>, <line2>]" | "[]"} [pattern="[]"] - コマンドの引数パターン。
+   * @param {boolean} [range=false] - コマンドがVisualモードで動作するかどうか。
+   * @returns {Promise<Command>} - メソッド名、`command!`宣言、実装を含むコマンドオブジェクト。
    */
-  async function command<T extends ImplType>(
+  async function command(
     dispatcherMethod: string,
-    impl: T,
+    impl: ImplType,
     pattern: "[<f-args>]" | "[<line1>, <line2>]" | "[]" = "[]",
     range: boolean = false,
   ): Promise<Command> {
@@ -54,14 +54,15 @@ export async function main(denops: Denops): Promise<void> {
   }
 
   /**
-   * Denopsディスパッチャー用のコマンドを生成します。command!宣言は生成されません。
+   * Denopsディスパッチャー用のコマンドを生成します。`command!`宣言は生成されません。
+   *
    * @param {string} dispatcherMethod - ディスパッチャーで使用されるメソッド名。
-   * @param {T} impl - コマンドの実装関数。
-   * @returns {Command<T>} - メソッド名、command!宣言、実装を含むコマンドオブジェクト。
+   * @param {ImplType} impl - コマンドの実装関数。
+   * @returns {Command} - メソッド名と実装を含むコマンドオブジェクト。
    */
-  function dispatchOnly<T extends ImplType>(
+  function dispatchOnly(
     dispatcherMethod: string,
-    impl: T,
+    impl: ImplType,
   ): Command {
     return {
       methodName: dispatcherMethod,
