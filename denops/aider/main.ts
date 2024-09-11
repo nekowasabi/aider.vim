@@ -28,28 +28,42 @@ export async function main(denops: Denops): Promise<void> {
    * Denopsディスパッチャー用のコマンドとcommand!宣言を生成します。
    *
    * @param {string} dispatcherMethod - ディスパッチャーで使用されるメソッド名。vim側に見えるコマンド名は Aider + DispatcherMethod のようになります。
-   * @param {ArgCount} argCount - コマンドが受け取る引数の数。
    * @param {(args: ArgType<T>) => Promise<void>} impl - コマンドの実装関数。
-   * @param {"[<f-args>]" | "[<line1>, <line2>]" | ""} [pattern=""] - コマンドの引数パターン。argCountが"*"の場合のみ有効。
+   * @param {"[<f-args>]" | "[<line1>, <line2>]" | ""} [pattern=""] - コマンドの引数パターン。
    * @param {boolean} [range=false] - コマンドがvisual modeで動作するかどうか。
    * @returns {Command<T>} - メソッド名、command!宣言、実装を含むコマンドオブジェクト。
    */
   function command<T extends ImplType>(
     dispatcherMethod: string,
-    argCount: ArgCount<T>,
     impl: T,
-    pattern: "[<f-args>]" | "[<line1>, <line2>]" | "" = "",
+    pattern: "[<f-args>]" | "[<line1>, <line2>]" | "[]" = "[]",
     range: boolean = false,
   ): Command {
     const rangePart = range ? "-range " : "";
     const commandName = "Aider" + dispatcherMethod.charAt(0).toUpperCase() +
       dispatcherMethod.slice(1);
-    const nargsUsage = argCount === "*" ? pattern : "[]";
+    const argCount: ArgCount<T> = (() => {
+      if (impl.length === 0) return "0";
+      if (impl.length === 1) return "1";
+      return "*";
+    })() as ArgCount<T>;
+
     return {
       methodName: dispatcherMethod,
       decl: denops.cmd(
-        `command! -nargs=${argCount} ${rangePart} ${commandName} call denops#notify("${denops.name}", "${dispatcherMethod}", ${nargsUsage})`,
+        `command! -nargs=${argCount} ${rangePart} ${commandName} call denops#notify("${denops.name}", "${dispatcherMethod}", ${pattern})`,
       ),
+      impl: impl,
+    };
+  }
+
+  function dispatchOnly<T extends ImplType>(
+    dispatcherMethod: string,
+    impl: T,
+  ): Command {
+    return {
+      methodName: dispatcherMethod,
+      decl: Promise.resolve(),
       impl: impl,
     };
   }
@@ -57,45 +71,41 @@ export async function main(denops: Denops): Promise<void> {
   const openBufferType: BufferLayout = await buffer.getOpenBufferType(denops);
 
   const commands: Command[] = [
-    command(
-      "sendPrompt",
-      "0",
-      () => buffer.sendPrompt(denops, openBufferType),
-    ),
-    command("run", "0", async () => {
+    command("sendPrompt", () => buffer.sendPrompt(denops, openBufferType)),
+    command("run", async () => {
       if (await buffer.openAiderBuffer(denops, openBufferType)) {
         return;
       }
       await aiderCommand.run(denops);
     }),
-    command("silentRun", "0", () => aiderCommand.silentRun(denops)),
-    command("addFile", "1", async (path: unknown) => {
+    command("silentRun", () => aiderCommand.silentRun(denops)),
+    dispatchOnly(
+      "sendPromptWithInput",
+      () => buffer.sendPromptWithInput(denops),
+    ),
+    command("addFile", async (path: unknown) => {
+      console.log(path);
       if (path === "") {
         return;
       }
       const prompt = `/add ${path}`;
       await v.r.set(denops, "q", prompt);
-      await denops.dispatcher.sendPromptWithInput();
-    }),
-    command(
-      "addCurrentFile",
-      "0",
-      () => aiderCommand.addCurrentFile(denops),
-    ),
-    command("addWeb", "1", async (url: unknown) => {
+      await denops.dispatcher.sendPromptWithInput(path);
+    }, "[<f-args>]"),
+    command("addCurrentFile", () => aiderCommand.addCurrentFile(denops)),
+    command("addWeb", async (url: unknown) => {
       const prompt = `/web ${url}`;
       await v.r.set(denops, "q", prompt);
-      await denops.dispatcher.sendPromptWithInput();
-    }),
-    command("ask", "1", async (question: unknown) => {
+      await denops.dispatcher.sendPromptWithInput(url);
+    }, "[<f-args>]"),
+    command("ask", async (question: unknown) => {
       const prompt = `/ask ${question}`;
       await v.r.set(denops, "q", prompt);
-      await denops.dispatcher.sendPromptWithInput();
-    }),
-    command("exit", "0", () => buffer.exitAiderBuffer(denops)),
+      await denops.dispatcher.sendPromptWithInput(question);
+    }, "[<f-args>]"),
+    command("exit", () => buffer.exitAiderBuffer(denops)),
     command(
       "openFloatingWindowWithSelectedCode",
-      "*",
       async ([start, end]: unknown[]) => {
         await buffer.openFloatingWindowWithSelectedCode(
           denops,
@@ -109,28 +119,24 @@ export async function main(denops: Denops): Promise<void> {
     ),
     command(
       "openIgnore",
-      "*",
       (_args: unknown[]) => aiderCommand.openIgnore(denops),
       "[<f-args>]",
       true,
     ),
     command(
       "addIgnoreCurrentFile",
-      "*",
       (_args: unknown[]) => aiderCommand.addIgnoreCurrentFile(denops),
       "[<f-args>]",
       true,
     ),
     command(
       "debug",
-      "*",
       (_args: unknown[]) => aiderCommand.debug(denops),
       "[<f-args>]",
       true,
     ),
     command(
       "hide",
-      "*",
       async (_args: unknown[]) => {
         await denops.cmd("close!");
         await denops.cmd(`silent! e!`);
