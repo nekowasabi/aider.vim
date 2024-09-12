@@ -109,8 +109,8 @@ export const buffer = {
     await denops.cmd("bdelete!");
 
     openBufferType === "floating"
-      ? sendPromptFromFloatingWindow(denops)
-      : sendPromptFromSplitWindow(denops);
+      ? await sendPromptFromFloatingWindow(denops)
+      : await sendPromptFromSplitWindow(denops);
 
     await emit(denops, "User", "AiderOpen");
     return;
