@@ -59,7 +59,7 @@ export const buffer = {
     openBufferType: BufferLayout,
   ): Promise<void | undefined | boolean> {
     const aiderBufnr = await getAiderBufferNr(denops);
-    if (aiderBufnr) {
+    if (aiderBufnr && openBufferType === "floating") {
       await openFloatingWindow(denops, aiderBufnr);
       await emit(denops, "User", "AiderOpen");
       return true;
