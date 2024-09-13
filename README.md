@@ -126,3 +126,34 @@ let g:aider_additional_prompt = 'Your additional prompt here'
 
 This prompt will be displayed in the floating window when using visual mode selections, allowing you to see and edit it before sending to aider.
 ```
+
+## ddu Source
+
+aider.vim provides a ddu source and kind, which allows you to easily select
+files from your git repository and add them to the aider context.
+
+To use this feature, you need to have
+[ddu.vim](https://github.com/Shougo/ddu.vim) installed.
+
+Here's an example configuration for your ddu settings:
+
+```vim
+call ddu#custom#patch_global({
+    \ 'sources': [{'name': 'aider'}],
+    \ 'sourceOptions': {
+    \   'aider': {'matchers': ['matcher_substring']},
+    \ },
+    \ 'kindOptions': {
+    \   'aider': {
+    \     'defaultAction': 'add',
+    \   },
+    \ },
+    \ })
+
+nnoremap <silent> <Leader>ad
+      \ <Cmd>call ddu#start({'sources': [{'name': 'aider'}]})<CR>
+```
+
+With this configuration, you can press `<leader>ad` to open ddu with the aider
+source. You can then select files and press `<CR>` to add them to the aider
+context.
