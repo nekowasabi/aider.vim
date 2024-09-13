@@ -318,7 +318,6 @@ async function sendPromptFromFloatingWindow(denops: Denops): Promise<void> {
  */
 async function sendPromptFromSplitWindow(denops: Denops): Promise<void> {
   await identifyAiderBuffer(denops, async (job_id, winnr, _bufnr) => {
-    await denops.cmd(`bdelete!`);
     if (await v.g.get(denops, "aider_buffer_open_type") !== "floating") {
       await denops.cmd(`${winnr}wincmd w`);
     } else {
