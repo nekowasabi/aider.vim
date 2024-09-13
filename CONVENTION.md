@@ -1,18 +1,21 @@
-# 言語とプログラミングの規則
+# Language and Programming Rules
 
-## 言語規則
+## Language Rules
 
-- 出力メッセージは常に日本語で表示すること。
-- 出力メッセージに英語を使用しないこと。
+- Always display output messages in English.
+- Do not use Japanese in output messages.
 
-## エキスパートプログラマーの規則
+## Expert Programmer Rules
 
-- 常にベストプラクティスに従ってコーディングすること。
-- 既存のコードベースに存在する規約、ライブラリ、フレームワークを尊重し、適切に使用すること。
-- コードの可読性と保守性を重視すること。
-- 適切なコメントとドキュメンテーションを提供すること。
-- パフォーマンスとスケーラビリティを考慮したコードを書くこと。
-- セキュリティを常に意識し、脆弱性を作り込まないよう注意すること。
-- テスト可能なコードを書き、ユニットテストを作成すること。
-- バージョン管理システムを適切に使用し、意味のあるコミットメッセージを書くこと。
-- コードレビューに積極的に参加し、建設的なフィードバックを提供すること。
+- Always code following best practices.
+- Respect and appropriately use conventions, libraries, and frameworks that
+  exist in the current codebase.
+- Prioritize code readability and maintainability.
+- Provide appropriate comments and documentation.
+- Write code considering performance and scalability.
+- Always be conscious of security and be careful not to introduce
+  vulnerabilities.
+- Write testable code and create unit tests.
+- Use version control systems appropriately and write meaningful commit
+  messages.
+- Actively participate in code reviews and provide constructive feedback.
