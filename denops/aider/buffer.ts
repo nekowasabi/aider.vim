@@ -59,7 +59,7 @@ export const buffer = {
     openBufferType: BufferLayout,
   ): Promise<void | undefined | boolean> {
     const aiderBufnr = await getAiderBufferNr(denops);
-    if (aiderBufnr) {
+    if (aiderBufnr && openBufferType === "floating") {
       await openFloatingWindow(denops, aiderBufnr);
       await emit(denops, "User", "AiderOpen");
       return true;
@@ -94,11 +94,14 @@ export const buffer = {
     }
 
     const openBufferType = await buffer.getOpenBufferType(denops);
-    await buffer.openAiderBuffer(denops, openBufferType);
 
-    openBufferType === "floating"
-      ? await sendPromptFromFloatingWindow(denops)
-      : await sendPromptFromSplitWindow(denops);
+    if (openBufferType === "floating") {
+      await buffer.openAiderBuffer(denops, openBufferType);
+      await sendPromptFromFloatingWindow(denops);
+      return;
+    }
+
+    await sendPromptFromSplitWindow(denops);
   },
   async sendPrompt(
     denops: Denops,
@@ -318,7 +321,7 @@ async function sendPromptFromFloatingWindow(denops: Denops): Promise<void> {
  */
 async function sendPromptFromSplitWindow(denops: Denops): Promise<void> {
   await identifyAiderBuffer(denops, async (job_id, winnr, _bufnr) => {
-    await denops.cmd(`bdelete!`);
+    // await denops.cmd(`bdelete!`);
     if (await v.g.get(denops, "aider_buffer_open_type") !== "floating") {
       await denops.cmd(`${winnr}wincmd w`);
     } else {
