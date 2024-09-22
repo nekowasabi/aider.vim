@@ -34,6 +34,13 @@ export const aiderCommand = {
     );
     await denops.cmd(`terminal ${aiderCommand}`);
   },
+  /**
+   * Aiderをバックグラウンドで実行します。
+   * 新しいバッファを作成し、Aiderコマンドをターミナルで実行した後、
+   * 前のバッファに戻ります。
+   * @param {Denops} denops - Denopsインスタンス
+   * @returns {Promise<void>}
+   */
   async silentRun(denops: Denops): Promise<void> {
     await denops.cmd("enew");
 
