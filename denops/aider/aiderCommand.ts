@@ -10,6 +10,12 @@ export const aiderCommand = {
     await denops.cmd("b#");
   },
 
+  /**
+   * .aiderignoreファイルを開きます。
+   * ファイルが存在する場合は編集モードで開き、存在しない場合はエラーメッセージを表示します。
+   * @param {Denops} denops - Denopsインスタンス
+   * @returns {Promise<void>}
+   */
   async openIgnore(denops: Denops): Promise<void> {
     const gitRoot = (await fn.system(denops, "git rev-parse --show-toplevel"))
       .trim();
