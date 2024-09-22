@@ -35,12 +35,19 @@ let g:aider_additional_prompt = 'Your additional prompt here'
 
 " Key mappings
 nnoremap <silent> <leader>ar :AiderRun<CR>
+" Add current file to Aider
 nnoremap <silent> <leader>aa :AiderAddCurrentFile<CR>
+" Add Aider web interface
 nnoremap <silent> <leader>aw :AiderAddWeb<CR>
+" Exit Aider
 nnoremap <silent> <leader>ax :AiderExit<CR>
+" Add current file to Aider ignore list
 nnoremap <silent> <leader>ai :AiderAddIgnoreCurrentFile<CR>
+" Open Aider ignore list
 nnoremap <silent> <leader>aI :AiderOpenIgnore<CR>
+" Hide Aider window
 nnoremap <silent> <leader>ah :AiderHide<CR>
+" Hide Aider window in terminal mode
 tnoremap <C-x><C-x> <C-\><C-n>:AiderHide<CR>
 vmap <leader>av :AiderVisualTextWithPrompt<CR>
 
