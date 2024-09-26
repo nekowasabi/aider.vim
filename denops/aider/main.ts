@@ -14,9 +14,22 @@ export async function main(denops: Denops): Promise<void> {
     : T extends "1" ? ((arg: string) => Promise<void>)
     : ((arg: string, arg2: string) => Promise<void>); // MEMO: ArgCountは*だが現状2つのみ対応している
 
-  type Opts<T extends ArgCount> = T extends "0" ? Record<string, never>
-    : T extends "1" ? { pattern?: "[<f-args>]"; complete?: "file" | "shellcmd" }
-    : { pattern?: "[<line1>, <line2>]"; range?: boolean };
+  type OptsBase = { pattern?: string; complete?: string; range?: boolean };
+
+  interface OptsZero extends OptsBase {}
+
+  interface OptsOne extends OptsBase {
+    pattern?: "[<f-args>]";
+    complete?: "file" | "shellcmd";
+  }
+  interface OptsMany extends OptsBase {
+    pattern?: "[<line1>, <line2>]";
+    range?: boolean;
+  }
+
+  type Opts<T extends ArgCount> = T extends "0" ? OptsZero
+    : T extends "1" ? OptsOne
+    : OptsMany;
 
   type Command = {
     methodName: string;
@@ -37,14 +50,12 @@ export async function main(denops: Denops): Promise<void> {
     impl: ImplType<argCount>,
     opts: Opts<argCount> = {} as Opts<argCount>,
   ): Promise<Command> {
-    const rangePart = "range" in opts && opts.range ? "-range" : "";
+    const rangePart = opts.range ? "-range" : "";
 
     const commandName = "Aider" + dispatcherMethod.charAt(0).toUpperCase() +
       dispatcherMethod.slice(1);
-    const completePart = "complete" in opts && opts.complete
-      ? `-complete=${opts.complete}`
-      : "";
-    const patternPart = "pattern" in opts ? opts.pattern : "[]";
+    const completePart = opts.complete ? `-complete=${opts.complete}` : "";
+    const patternPart = opts.pattern ?? "[]";
 
     await denops.cmd(
       `command! -nargs=${argCount} ${completePart} ${rangePart} ${commandName} call denops#notify("${denops.name}", "${dispatcherMethod}", ${patternPart})`,
