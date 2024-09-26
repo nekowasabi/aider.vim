@@ -43,7 +43,7 @@ export async function main(denops: Denops): Promise<void> {
 
     const commandName = "Aider" + dispatcherMethod.charAt(0).toUpperCase() +
       dispatcherMethod.slice(1);
-    const completePart = complete ? "" : `-complete=${complete}`;
+    const completePart = complete === "" ? "" : `-complete=${complete}`;
     await denops.cmd(
       `command! -nargs=${argCount} ${completePart} ${rangePart} ${commandName} call denops#notify("${denops.name}", "${dispatcherMethod}", ${pattern})`,
     );
