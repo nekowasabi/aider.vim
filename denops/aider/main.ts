@@ -37,7 +37,6 @@ export async function main(denops: Denops): Promise<void> {
     impl: ImplType<argCount>,
     opts: Opts<argCount> = {} as Opts<argCount>,
   ): Promise<Command> {
-    //const rangePart = range ? "-range " : "";
     const rangePart = "range" in opts && opts.range ? "-range" : "";
 
     const commandName = "Aider" + dispatcherMethod.charAt(0).toUpperCase() +
