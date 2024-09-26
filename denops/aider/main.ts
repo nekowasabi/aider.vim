@@ -16,14 +16,20 @@ export async function main(denops: Denops): Promise<void> {
 
   type OptsBase = { pattern?: string; complete?: string; range?: boolean };
 
-  interface OptsZero extends OptsBase {}
+  interface OptsZero extends OptsBase {
+    pattern?: undefined;
+    complete?: undefined;
+    range?: undefined;
+  }
 
   interface OptsOne extends OptsBase {
     pattern?: "[<f-args>]";
     complete?: "file" | "shellcmd";
+    range?: undefined;
   }
   interface OptsMany extends OptsBase {
     pattern?: "[<line1>, <line2>]";
+    complete?: undefined;
     range?: boolean;
   }
 
