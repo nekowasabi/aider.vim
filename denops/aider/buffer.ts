@@ -157,10 +157,7 @@ export const buffer = {
     await n.nvim_buf_set_lines(denops, bufnr, 0, 1, true, []);
     await n.nvim_buf_set_lines(denops, bufnr, -1, -1, true, [""]);
 
-    const additionalPrompt = ensure(
-      await getAdditionalPrompt(denops),
-      is.String,
-    );
+    const additionalPrompt = await getAdditionalPrompt(denops);
     if (additionalPrompt) {
       await n.nvim_buf_set_lines(denops, bufnr, -1, -1, true, ["# rule"]);
       await n.nvim_buf_set_lines(denops, bufnr, -1, -1, true, [
