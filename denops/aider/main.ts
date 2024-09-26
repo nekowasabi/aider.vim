@@ -95,7 +95,7 @@ export async function main(denops: Denops): Promise<void> {
       async (path: string) => {
         const prompt = `/add ${path}`;
         await v.r.set(denops, "q", prompt);
-        await denops.dispatcher.sendPromptWithInput(path);
+        await denops.dispatcher.sendPromptWithInput(denops);
       },
       "[<f-args>]",
       false,
@@ -109,12 +109,12 @@ export async function main(denops: Denops): Promise<void> {
     await command("addWeb", "1", async (url: string) => {
       const prompt = `/web ${url}`;
       await v.r.set(denops, "q", prompt);
-      await denops.dispatcher.sendPromptWithInput(url);
+      await denops.dispatcher.sendPromptWithInput(denops);
     }, "[<f-args>]"),
     await command("ask", "1", async (question: string) => {
       const prompt = `/ask ${question}`;
       await v.r.set(denops, "q", prompt);
-      await denops.dispatcher.sendPromptWithInput(question);
+      await denops.dispatcher.sendPromptWithInput(denops);
     }, "[<f-args>]"),
     await command("exit", "0", () => buffer.exitAiderBuffer(denops)),
     await command(
@@ -145,8 +145,10 @@ export async function main(denops: Denops): Promise<void> {
     await command(
       "test",
       "1",
-      async () => {
-        await aiderCommand.simpleCommand(denops, "/test");
+      async (cmd: string) => {
+        const prompt = `/test ${cmd}`;
+        await v.r.set(denops, "q", prompt);
+        await denops.dispatcher.sendPromptWithInput(denops);
       },
       "[<f-args>]",
       false,
