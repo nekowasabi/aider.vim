@@ -12,7 +12,10 @@ export async function main(denops: Denops): Promise<void> {
   type ArgCount = "0" | "1" | "*";
   type ImplType<T extends ArgCount> = T extends "0" ? (() => Promise<void>)
     : T extends "1" ? ((arg: string) => Promise<void>)
-    : ((arg: string, arg2: string) => Promise<void>); // MEMO: 1つめの引数、2つめの引数という意味
+    : ((arg: string, arg2: string) => Promise<void>); // MEMO: 1つめの引数、2つめの引数という意味 ArgCountは*だが現状2つのみ対応している
+  type CompleteType<T extends ArgCount> = T extends "1"
+    ? "file" | "shellcmd" | ""
+    : "";
 
   type Command = {
     methodName: string;
@@ -34,13 +37,15 @@ export async function main(denops: Denops): Promise<void> {
     impl: ImplType<argCount>,
     pattern: "[<f-args>]" | "[<line1>, <line2>]" | "[]" = "[]",
     range: boolean = false,
+    complete: CompleteType<argCount> = "",
   ): Promise<Command> {
     const rangePart = range ? "-range " : "";
 
     const commandName = "Aider" + dispatcherMethod.charAt(0).toUpperCase() +
       dispatcherMethod.slice(1);
+    const completePart = complete ? "" : `-complete=${complete}`;
     await denops.cmd(
-      `command! -nargs=${argCount} ${rangePart} ${commandName} call denops#notify("${denops.name}", "${dispatcherMethod}", ${pattern})`,
+      `command! -nargs=${argCount} ${completePart} ${rangePart} ${commandName} call denops#notify("${denops.name}", "${dispatcherMethod}", ${pattern})`,
     );
     return {
       methodName: dispatcherMethod,
@@ -84,11 +89,18 @@ export async function main(denops: Denops): Promise<void> {
       "sendPromptWithInput",
       () => buffer.sendPromptWithInput(denops),
     ),
-    await command("addFile", "1", async (path: string) => {
-      const prompt = `/add ${path}`;
-      await v.r.set(denops, "q", prompt);
-      await denops.dispatcher.sendPromptWithInput(path);
-    }, "[<f-args>]"),
+    await command(
+      "addFile",
+      "1",
+      async (path: string) => {
+        const prompt = `/add ${path}`;
+        await v.r.set(denops, "q", prompt);
+        await denops.dispatcher.sendPromptWithInput(path);
+      },
+      "[<f-args>]",
+      false,
+      "file",
+    ),
     await command(
       "addCurrentFile",
       "0",
@@ -130,6 +142,16 @@ export async function main(denops: Denops): Promise<void> {
       await denops.cmd("close!");
       await denops.cmd(`silent! e!`);
     }),
+    await command(
+      "test",
+      "1",
+      async () => {
+        await aiderCommand.simpleCommand(denops, "/test");
+      },
+      "[<f-args>]",
+      false,
+      "shellcmd",
+    ),
   ];
 
   denops.dispatcher = Object.fromEntries(commands.map((command) => [
