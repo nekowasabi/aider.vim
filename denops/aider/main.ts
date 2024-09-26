@@ -12,7 +12,7 @@ export async function main(denops: Denops): Promise<void> {
   type ArgCount = "0" | "1" | "*";
   type ImplType<T extends ArgCount> = T extends "0" ? (() => Promise<void>)
     : T extends "1" ? ((arg: string) => Promise<void>)
-    : ((arg: string, arg2: string) => Promise<void>); // MEMO: 1つめの引数、2つめの引数という意味 ArgCountは*だが現状2つのみ対応している
+    : ((arg: string, arg2: string) => Promise<void>); // MEMO: ArgCountは*だが現状2つのみ対応している
   type CompleteType<T extends ArgCount> = T extends "1"
     ? "file" | "shellcmd" | ""
     : "";
