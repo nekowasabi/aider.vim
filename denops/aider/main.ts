@@ -13,9 +13,10 @@ export async function main(denops: Denops): Promise<void> {
   type ImplType<T extends ArgCount> = T extends "0" ? (() => Promise<void>)
     : T extends "1" ? ((arg: string) => Promise<void>)
     : ((arg: string, arg2: string) => Promise<void>); // MEMO: ArgCountは*だが現状2つのみ対応している
-  type CompleteType<T extends ArgCount> = T extends "1"
-    ? "file" | "shellcmd" | ""
-    : "";
+
+  type Opts<T extends ArgCount> = T extends "0" ? Record<string, never>
+    : T extends "1" ? { pattern?: "[<f-args>]"; complete?: "file" | "shellcmd" }
+    : { pattern?: "[<line1>, <line2>]"; range?: boolean };
 
   type Command = {
     methodName: string;
@@ -27,25 +28,27 @@ export async function main(denops: Denops): Promise<void> {
    *
    * @param {string} dispatcherMethod - ディスパッチャーで使用されるメソッド名。Vim側に見えるコマンド名は Aider + DispatcherMethod のようになります。
    * @param {ImplType} impl - コマンドの実装関数。
-   * @param {"[<f-args>]" | "[<line1>, <line2>]" | "[]"} [pattern="[]"] - コマンドの引数パターン。
-   * @param {boolean} [range=false] - コマンドがVisualモードで動作するかどうか。
+   * @param {Opts} opts - オプション。`pattern`はコマンドの引数のパターンを指定します。`complete`はコマンド引数の補完方式を指定します。
    * @returns {Promise<Command>} - メソッド名、`command!`宣言、実装を含むコマンドオブジェクト。
    */
   async function command<argCount extends ArgCount>(
     dispatcherMethod: string,
     argCount: argCount,
     impl: ImplType<argCount>,
-    pattern: "[<f-args>]" | "[<line1>, <line2>]" | "[]" = "[]",
-    range: boolean = false,
-    complete: CompleteType<argCount> = "",
+    opts: Opts<argCount> = {} as Opts<argCount>,
   ): Promise<Command> {
-    const rangePart = range ? "-range " : "";
+    //const rangePart = range ? "-range " : "";
+    const rangePart = "range" in opts && opts.range ? "-range" : "";
 
     const commandName = "Aider" + dispatcherMethod.charAt(0).toUpperCase() +
       dispatcherMethod.slice(1);
-    const completePart = complete === "" ? "" : `-complete=${complete}`;
+    const completePart = "complete" in opts && opts.complete
+      ? `-complete=${opts.complete}`
+      : "";
+    const patternPart = "pattern" in opts ? opts.pattern : "[]";
+
     await denops.cmd(
-      `command! -nargs=${argCount} ${completePart} ${rangePart} ${commandName} call denops#notify("${denops.name}", "${dispatcherMethod}", ${pattern})`,
+      `command! -nargs=${argCount} ${completePart} ${rangePart} ${commandName} call denops#notify("${denops.name}", "${dispatcherMethod}", ${patternPart})`,
     );
     return {
       methodName: dispatcherMethod,
@@ -97,25 +100,33 @@ export async function main(denops: Denops): Promise<void> {
         await v.r.set(denops, "q", prompt);
         await denops.dispatcher.sendPromptWithInput();
       },
-      "[<f-args>]",
-      false,
-      "file",
+      { pattern: "[<f-args>]", complete: "file" },
     ),
     await command(
       "addCurrentFile",
       "0",
       () => aiderCommand.addCurrentFile(denops),
     ),
-    await command("addWeb", "1", async (url: string) => {
-      const prompt = `/web ${url}`;
-      await v.r.set(denops, "q", prompt);
-      await denops.dispatcher.sendPromptWithInput();
-    }, "[<f-args>]"),
-    await command("ask", "1", async (question: string) => {
-      const prompt = `/ask ${question}`;
-      await v.r.set(denops, "q", prompt);
-      await denops.dispatcher.sendPromptWithInput();
-    }, "[<f-args>]"),
+    await command(
+      "addWeb",
+      "1",
+      async (url: string) => {
+        const prompt = `/web ${url}`;
+        await v.r.set(denops, "q", prompt);
+        await denops.dispatcher.sendPromptWithInput();
+      },
+      { pattern: "[<f-args>]" },
+    ),
+    await command(
+      "ask",
+      "1",
+      async (question: string) => {
+        const prompt = `/ask ${question}`;
+        await v.r.set(denops, "q", prompt);
+        await denops.dispatcher.sendPromptWithInput();
+      },
+      { pattern: "[<f-args>]" },
+    ),
     await command("exit", "0", () => buffer.exitAiderBuffer(denops)),
     await command(
       "visualTextWithPrompt",
@@ -128,8 +139,7 @@ export async function main(denops: Denops): Promise<void> {
           openBufferType,
         );
       },
-      "[<line1>, <line2>]",
-      true,
+      { pattern: "[<line1>, <line2>]", range: true },
     ),
     await command("openIgnore", "0", () => aiderCommand.openIgnore(denops)),
     await command(
@@ -150,9 +160,7 @@ export async function main(denops: Denops): Promise<void> {
         await v.r.set(denops, "q", prompt);
         await denops.dispatcher.sendPromptWithInput();
       },
-      "[<f-args>]",
-      false,
-      "shellcmd",
+      { pattern: "[<f-args>]", complete: "shellcmd" },
     ),
   ];
 
