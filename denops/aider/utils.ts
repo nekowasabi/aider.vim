@@ -1,6 +1,10 @@
 import { Denops } from "https://deno.land/x/denops_std@v6.4.0/mod.ts";
 import * as fn from "https://deno.land/x/denops_std@v6.4.0/function/mod.ts";
-import { ensure, is } from "https://deno.land/x/unknownutil@v3.17.0/mod.ts";
+import {
+  ensure,
+  is,
+  maybe,
+} from "https://deno.land/x/unknownutil@v3.17.0/mod.ts";
 import * as v from "https://deno.land/x/denops_std@v6.4.0/variable/mod.ts";
 import { buffer } from "./buffer.ts";
 
@@ -10,8 +14,10 @@ import { buffer } from "./buffer.ts";
  * @param {Denops} denops - The Denops instance.
  * @returns {Promise<string>} A promise that resolves to the current file path.
  */
-export async function getAdditionalPrompt(denops: Denops): Promise<string> {
-  return ensure(await v.g.get(denops, "aider_additional_prompt"), is.String);
+export async function getAdditionalPrompt(
+  denops: Denops,
+): Promise<string | undefined> {
+  return maybe(await v.g.get(denops, "aider_additional_prompt"), is.String);
 }
 
 /**
