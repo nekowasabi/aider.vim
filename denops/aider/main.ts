@@ -28,7 +28,7 @@ export async function main(denops: Denops): Promise<void> {
    *
    * @param {string} dispatcherMethod - ディスパッチャーで使用されるメソッド名。Vim側に見えるコマンド名は Aider + DispatcherMethod のようになります。
    * @param {ImplType} impl - コマンドの実装関数。
-   * @param {Opts} opts - オプション。`pattern`はコマンドの引数のパターンを指定します。`complete`はコマンド引数の補完方式を指定します。
+   * @param {Opts} opts - オプション。フィールドはargCountによって変わるので型を参照。
    * @returns {Promise<Command>} - メソッド名、`command!`宣言、実装を含むコマンドオブジェクト。
    */
   async function command<argCount extends ArgCount>(
