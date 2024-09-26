@@ -14,28 +14,13 @@ export async function main(denops: Denops): Promise<void> {
     : T extends "1" ? ((arg: string) => Promise<void>)
     : ((arg: string, arg2: string) => Promise<void>); // MEMO: ArgCountは*だが現状2つのみ対応している
 
-  type OptsBase = { pattern?: string; complete?: string; range?: boolean };
-
-  interface OptsZero extends OptsBase {
-    pattern?: undefined;
-    complete?: undefined;
-    range?: undefined;
-  }
-
-  interface OptsOne extends OptsBase {
-    pattern?: "[<f-args>]";
-    complete?: "file" | "shellcmd";
-    range?: undefined;
-  }
-  interface OptsMany extends OptsBase {
-    pattern?: "[<line1>, <line2>]";
-    complete?: undefined;
-    range?: boolean;
-  }
-
-  type Opts<T extends ArgCount> = T extends "0" ? OptsZero
-    : T extends "1" ? OptsOne
-    : OptsMany;
+  type Opts<T extends ArgCount> = {
+    pattern?: T extends "0" ? undefined
+      : T extends "1" ? "[<f-args>]"
+      : "[<line1>, <line2>]";
+    complete?: T extends "1" ? "file" | "shellcmd" : undefined;
+    range?: T extends "*" ? boolean : undefined;
+  };
 
   type Command = {
     methodName: string;
