@@ -1,7 +1,9 @@
 import { Denops } from "https://deno.land/x/denops_std@v6.4.0/mod.ts";
+import * as fn from "https://deno.land/x/denops_std@v6.4.0/function/mod.ts";
 import * as v from "https://deno.land/x/denops_std@v6.4.0/variable/mod.ts";
 import { aiderCommand } from "./aiderCommand.ts";
 import { buffer, BufferLayout } from "./buffer.ts";
+import { getAiderBufferNr, getCurrentFilePath } from "./utils.ts";
 
 /**
  * The main function that sets up the Aider plugin functionality.
@@ -106,8 +108,21 @@ export async function main(denops: Denops): Promise<void> {
     await command(
       "addCurrentFile",
       "0",
-      () => aiderCommand.addCurrentFile(denops),
+      async () => {
+        const bufnr = await fn.bufnr(denops, "%");
+        if (await getAiderBufferNr(denops) === undefined) {
+          await aiderCommand.silentRun(denops);
+        }
+        if (await buffer.checkIfTerminalBuffer(denops, bufnr)) {
+          return;
+        }
+        const currentFile = await getCurrentFilePath(denops);
+        const prompt = `/add ${currentFile}`;
+        await v.r.set(denops, "q", prompt);
+        await buffer.sendPromptWithInput(denops);
+      },
     ),
+
     await command(
       "addWeb",
       "1",
@@ -146,7 +161,23 @@ export async function main(denops: Denops): Promise<void> {
     await command(
       "addIgnoreCurrentFile",
       "0",
-      () => aiderCommand.addIgnoreCurrentFile(denops),
+      async () => {
+        {
+          const currentFile = await getCurrentFilePath(denops);
+
+          const gitRoot =
+            (await fn.system(denops, "git rev-parse --show-toplevel"))
+              .trim();
+          const filePathToOpen = `${gitRoot}/.aiderignore`;
+          const forAiderIgnorePath = currentFile.replace(gitRoot, "");
+
+          const file = await fn.readfile(denops, filePathToOpen);
+          file.push(`!${forAiderIgnorePath}`);
+
+          await fn.writefile(denops, file, filePathToOpen);
+          console.log(`Added ${currentFile} to .aiderignore`);
+        }
+      },
     ),
     await command("debug", "0", () => aiderCommand.debug(denops)),
     await command("hide", "0", async () => {

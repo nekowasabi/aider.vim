@@ -54,36 +54,4 @@ export const aiderCommand = {
 
     await denops.cmd("echo 'Aider is running in the background.'");
   },
-  /**
-   * 現在のファイルをAiderに追加します。
-   * @param {Denops} denops - Denopsインスタンス
-   * @returns {Promise<void>}
-   */
-  async addCurrentFile(denops: Denops): Promise<void> {
-    const bufnr = await fn.bufnr(denops, "%");
-    if (await getAiderBufferNr(denops) === undefined) {
-      await aiderCommand.silentRun(denops);
-    }
-    if (await buffer.checkIfTerminalBuffer(denops, bufnr)) {
-      return;
-    }
-    const currentFile = await getCurrentFilePath(denops);
-    const prompt = `/add ${currentFile}`;
-    await v.r.set(denops, "q", prompt);
-    await buffer.sendPromptWithInput(denops);
-  },
-  async addIgnoreCurrentFile(denops: Denops): Promise<void> {
-    const currentFile = await getCurrentFilePath(denops);
-
-    const gitRoot = (await fn.system(denops, "git rev-parse --show-toplevel"))
-      .trim();
-    const filePathToOpen = `${gitRoot}/.aiderignore`;
-    const forAiderIgnorePath = currentFile.replace(gitRoot, "");
-
-    const file = await fn.readfile(denops, filePathToOpen);
-    file.push(`!${forAiderIgnorePath}`);
-
-    await fn.writefile(denops, file, filePathToOpen);
-    console.log(`Added ${currentFile} to .aiderignore`);
-  },
 };
