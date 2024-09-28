@@ -1,3 +1,4 @@
+// Use denops' test() instead of built-in Deno.test()
 import { assert, assertEquals, assertFalse } from "jsr:@std/assert";
 import { test } from "jsr:@denops/test";
 
