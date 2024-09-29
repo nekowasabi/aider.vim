@@ -36,7 +36,7 @@ export const buffer = {
   },
   async exitAiderBuffer(denops: Denops): Promise<void> {
     await identifyAiderBuffer(denops, async (job_id, _winnr, bufnr) => {
-      await denops.call("chansend", job_id, "/exit\n");
+      await denops.call("chansend", job_id, "/exit\n"); // TODO!!!
       await denops.cmd(`bdelete! ${bufnr}`);
     });
   },
@@ -85,7 +85,7 @@ export const buffer = {
     return;
   },
 
-  async sendPromptWithInput(denops: Denops): Promise<void> {
+  async sendPromptWithInput(denops: Denops, input: string): Promise<void> {
     const bufnr = await getAiderBufferNr(denops);
     if (bufnr === undefined) {
       await denops.cmd("echo 'Aider is not running'");
@@ -97,11 +97,11 @@ export const buffer = {
 
     if (openBufferType === "floating") {
       await buffer.openAiderBuffer(denops, openBufferType);
-      await sendPromptFromFloatingWindow(denops);
+      await sendPromptFromFloatingWindow(denops, input);
       return;
     }
 
-    await sendPromptFromSplitWindow(denops);
+    await sendPromptFromSplitWindow(denops, input);
   },
   async sendPrompt(
     denops: Denops,
@@ -112,8 +112,8 @@ export const buffer = {
     await denops.cmd("bdelete!");
 
     openBufferType === "floating"
-      ? await sendPromptFromFloatingWindow(denops)
-      : await sendPromptFromSplitWindow(denops);
+      ? await sendPromptFromFloatingWindow(denops, "")
+      : await sendPromptFromSplitWindow(denops, "");
 
     await emit(denops, "User", "AiderOpen");
     return;
@@ -234,7 +234,7 @@ async function identifyAiderBuffer(
 
     if (await buffer.checkIfAiderBuffer(denops, bufnr)) {
       const job_id = ensure<number>(
-        await fn.getbufvar(denops, bufnr, "&channel"),
+        await fn.getbufvar(denops, bufnr, "&channel"), // TODO!
         is.Number,
       );
       if (job_id !== 0) {
@@ -285,7 +285,10 @@ async function openFloatingWindow(
 
   await denops.cmd("set nonumber");
 }
-async function sendPromptFromFloatingWindow(denops: Denops): Promise<void> {
+async function sendPromptFromFloatingWindow(
+  denops: Denops,
+  prompt: string,
+): Promise<void> {
   const bufnr = await getAiderBufferNr(denops);
   if (bufnr === undefined) {
     return;
@@ -295,8 +298,9 @@ async function sendPromptFromFloatingWindow(denops: Denops): Promise<void> {
   await feedkeys(denops, "G");
   await feedkeys(denops, '"qp');
 
+  await v.r.set(denops, "q", prompt);
   const jobId = ensure(
-    await fn.getbufvar(denops, bufnr, "&channel"),
+    await fn.getbufvar(denops, bufnr, "&channel"), // TODO!!!
     is.Number,
   );
 
@@ -316,7 +320,10 @@ async function sendPromptFromFloatingWindow(denops: Denops): Promise<void> {
  *
  * @param {Denops} denops - Denopsインスタンス
  */
-async function sendPromptFromSplitWindow(denops: Denops): Promise<void> {
+async function sendPromptFromSplitWindow(
+  denops: Denops,
+  prompt: string,
+): Promise<void> {
   await identifyAiderBuffer(denops, async (job_id, winnr, _bufnr) => {
     // await denops.cmd(`bdelete!`);
     if (await v.g.get(denops, "aider_buffer_open_type") !== "floating") {
@@ -340,7 +347,8 @@ async function sendPromptFromSplitWindow(denops: Denops): Promise<void> {
     }
     await feedkeys(denops, "G");
     await feedkeys(denops, '"qp');
-    await denops.call("chansend", job_id, "\n");
+    await v.r.set(denops, "q", prompt);
+    await denops.call("chansend", job_id, "\n"); // TODO!!!
     await denops.cmd("wincmd p");
   });
 }

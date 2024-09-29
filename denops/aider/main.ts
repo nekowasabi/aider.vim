@@ -1,6 +1,5 @@
 import { Denops } from "https://deno.land/x/denops_std@v6.4.0/mod.ts";
 import * as fn from "https://deno.land/x/denops_std@v6.4.0/function/mod.ts";
-import * as v from "https://deno.land/x/denops_std@v6.4.0/variable/mod.ts";
 import { aiderCommand } from "./aiderCommand.ts";
 import { buffer, BufferLayout } from "./buffer.ts";
 import { getAiderBufferNr, getCurrentFilePath } from "./utils.ts";
@@ -59,23 +58,6 @@ export async function main(denops: Denops): Promise<void> {
     };
   }
 
-  /**
-   * Denopsディスパッチャー用のコマンドを生成します。`command!`宣言は生成されません。
-   *
-   * @param {string} dispatcherMethod - ディスパッチャーで使用されるメソッド名。
-   * @param {ImplType} impl - コマンドの実装関数。
-   * @returns {Command} - メソッド名と実装を含むコマンドオブジェクト。
-   */
-  function dispatchOnly(
-    dispatcherMethod: string,
-    impl: ImplType<ArgCount>,
-  ): Command {
-    return {
-      methodName: dispatcherMethod,
-      impl: impl,
-    };
-  }
-
   const openBufferType: BufferLayout = await buffer.getOpenBufferType(denops);
 
   const commands: Command[] = [
@@ -91,17 +73,12 @@ export async function main(denops: Denops): Promise<void> {
       await aiderCommand.run(denops);
     }),
     await command("silentRun", "0", () => aiderCommand.silentRun(denops)),
-    dispatchOnly(
-      "sendPromptWithInput",
-      () => buffer.sendPromptWithInput(denops),
-    ),
     await command(
       "addFile",
       "1",
       async (path: string) => {
         const prompt = `/add ${path}`;
-        await v.r.set(denops, "q", prompt);
-        await denops.dispatcher.sendPromptWithInput();
+        await buffer.sendPromptWithInput(denops, prompt);
       },
       { pattern: "[<f-args>]", complete: "file" },
     ),
@@ -118,8 +95,7 @@ export async function main(denops: Denops): Promise<void> {
         }
         const currentFile = await getCurrentFilePath(denops);
         const prompt = `/add ${currentFile}`;
-        await v.r.set(denops, "q", prompt);
-        await buffer.sendPromptWithInput(denops);
+        await buffer.sendPromptWithInput(denops, prompt);
       },
     ),
 
@@ -128,8 +104,7 @@ export async function main(denops: Denops): Promise<void> {
       "1",
       async (url: string) => {
         const prompt = `/web ${url}`;
-        await v.r.set(denops, "q", prompt);
-        await denops.dispatcher.sendPromptWithInput();
+        await buffer.sendPromptWithInput(denops, prompt);
       },
       { pattern: "[<f-args>]" },
     ),
@@ -138,8 +113,7 @@ export async function main(denops: Denops): Promise<void> {
       "1",
       async (question: string) => {
         const prompt = `/ask ${question}`;
-        await v.r.set(denops, "q", prompt);
-        await denops.dispatcher.sendPromptWithInput();
+        await buffer.sendPromptWithInput(denops, prompt);
       },
       { pattern: "[<f-args>]" },
     ),
@@ -189,8 +163,7 @@ export async function main(denops: Denops): Promise<void> {
       "1",
       async (cmd: string) => {
         const prompt = `/test ${cmd}`;
-        await v.r.set(denops, "q", prompt);
-        await denops.dispatcher.sendPromptWithInput();
+        await buffer.sendPromptWithInput(denops, prompt);
       },
       { pattern: "[<f-args>]", complete: "shellcmd" },
     ),
