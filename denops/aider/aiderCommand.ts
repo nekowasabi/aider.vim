@@ -26,22 +26,6 @@ export const aiderCommand = {
     await denops.call("chansend", jobId, "\n");
   },
 
-  /**
-   * .aiderignoreファイルを開きます。
-   * ファイルが存在する場合は編集モードで開き、存在しない場合はエラーメッセージを表示します。
-   * @param {Denops} denops - Denopsインスタンス
-   * @returns {Promise<void>}
-   */
-  async openIgnore(denops: Denops): Promise<void> {
-    const gitRoot = (await fn.system(denops, "git rev-parse --show-toplevel"))
-      .trim();
-    const filePathToOpen = `${gitRoot}/.aiderignore`;
-    if (await fn.filereadable(denops, filePathToOpen)) {
-      await denops.cmd(`edit ${filePathToOpen}`);
-      return;
-    }
-    console.log(".aiderignoreファイルが見つかりません。");
-  },
 
   async run(denops: Denops): Promise<void> {
     const aiderCommand = ensure(
