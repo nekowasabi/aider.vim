@@ -80,10 +80,7 @@ export const buffer = {
       is.Number,
     );
 
-    await openFloatingWindow(
-      denops,
-      bufnr,
-    );
+    await openFloatingWindow(denops, bufnr);
 
     await emit(denops, "User", "AiderOpen");
     return;
@@ -297,7 +294,7 @@ async function sendPromptFromFloatingWindow(
   await feedkeys(denops, '"qp');
 
   const jobId = ensure(
-    await fn.getbufvar(denops, bufnr, "&channel"), // TODO!!!
+    await fn.getbufvar(denops, bufnr, "&channel"),
     is.Number,
   );
   try {
