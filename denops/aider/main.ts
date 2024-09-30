@@ -1,7 +1,8 @@
 import { Denops } from "https://deno.land/x/denops_std@v6.4.0/mod.ts";
-import * as v from "https://deno.land/x/denops_std@v6.4.0/variable/mod.ts";
+import * as fn from "https://deno.land/x/denops_std@v6.4.0/function/mod.ts";
 import { aiderCommand } from "./aiderCommand.ts";
 import { buffer, BufferLayout } from "./buffer.ts";
+import { getAiderBufferNr, getCurrentFilePath } from "./utils.ts";
 
 /**
  * The main function that sets up the Aider plugin functionality.
@@ -57,30 +58,13 @@ export async function main(denops: Denops): Promise<void> {
     };
   }
 
-  /**
-   * Denopsディスパッチャー用のコマンドを生成します。`command!`宣言は生成されません。
-   *
-   * @param {string} dispatcherMethod - ディスパッチャーで使用されるメソッド名。
-   * @param {ImplType} impl - コマンドの実装関数。
-   * @returns {Command} - メソッド名と実装を含むコマンドオブジェクト。
-   */
-  function dispatchOnly(
-    dispatcherMethod: string,
-    impl: ImplType<ArgCount>,
-  ): Command {
-    return {
-      methodName: dispatcherMethod,
-      impl: impl,
-    };
-  }
-
   const openBufferType: BufferLayout = await buffer.getOpenBufferType(denops);
 
   const commands: Command[] = [
     await command(
       "sendPrompt",
       "0",
-      () => buffer.sendPrompt(denops, openBufferType),
+      () => buffer.sendPromptByBuffer(denops, openBufferType),
     ),
     await command("run", "0", async () => {
       if (await buffer.openAiderBuffer(denops, openBufferType)) {
@@ -89,32 +73,37 @@ export async function main(denops: Denops): Promise<void> {
       await aiderCommand.run(denops);
     }),
     await command("silentRun", "0", () => aiderCommand.silentRun(denops)),
-    dispatchOnly(
-      "sendPromptWithInput",
-      () => buffer.sendPromptWithInput(denops),
-    ),
     await command(
       "addFile",
       "1",
       async (path: string) => {
         const prompt = `/add ${path}`;
-        await v.r.set(denops, "q", prompt);
-        await denops.dispatcher.sendPromptWithInput();
+        await buffer.sendPromptWithInput(denops, prompt);
       },
       { pattern: "[<f-args>]", complete: "file" },
     ),
     await command(
       "addCurrentFile",
       "0",
-      () => aiderCommand.addCurrentFile(denops),
+      async () => {
+        const bufnr = await fn.bufnr(denops, "%");
+        if (await getAiderBufferNr(denops) === undefined) {
+          await aiderCommand.silentRun(denops);
+        }
+        if (await buffer.checkIfTerminalBuffer(denops, bufnr)) {
+          return;
+        }
+        const currentFile = await getCurrentFilePath(denops);
+        const prompt = `/add ${currentFile}`;
+        await buffer.sendPromptWithInput(denops, prompt);
+      },
     ),
     await command(
       "addWeb",
       "1",
       async (url: string) => {
         const prompt = `/web ${url}`;
-        await v.r.set(denops, "q", prompt);
-        await denops.dispatcher.sendPromptWithInput();
+        await buffer.sendPromptWithInput(denops, prompt);
       },
       { pattern: "[<f-args>]" },
     ),
@@ -123,8 +112,7 @@ export async function main(denops: Denops): Promise<void> {
       "1",
       async (question: string) => {
         const prompt = `/ask ${question}`;
-        await v.r.set(denops, "q", prompt);
-        await denops.dispatcher.sendPromptWithInput();
+        await buffer.sendPromptWithInput(denops, prompt);
       },
       { pattern: "[<f-args>]" },
     ),
@@ -142,11 +130,36 @@ export async function main(denops: Denops): Promise<void> {
       },
       { pattern: "[<line1>, <line2>]", range: true },
     ),
-    await command("openIgnore", "0", () => aiderCommand.openIgnore(denops)),
+    await command("openIgnore", "0", async () => {
+      const gitRoot = (await fn.system(denops, "git rev-parse --show-toplevel"))
+        .trim();
+      const filePathToOpen = `${gitRoot}/.aiderignore`;
+      if (await fn.filereadable(denops, filePathToOpen)) {
+        await denops.cmd(`edit ${filePathToOpen}`);
+        return;
+      }
+      console.log(".aiderignoreファイルが見つかりません。");
+    }),
     await command(
       "addIgnoreCurrentFile",
       "0",
-      () => aiderCommand.addIgnoreCurrentFile(denops),
+      async () => {
+        {
+          const currentFile = await getCurrentFilePath(denops);
+
+          const gitRoot =
+            (await fn.system(denops, "git rev-parse --show-toplevel"))
+              .trim();
+          const filePathToOpen = `${gitRoot}/.aiderignore`;
+          const forAiderIgnorePath = currentFile.replace(gitRoot, "");
+
+          const file = await fn.readfile(denops, filePathToOpen);
+          file.push(`!${forAiderIgnorePath}`);
+
+          await fn.writefile(denops, file, filePathToOpen);
+          console.log(`Added ${currentFile} to .aiderignore`);
+        }
+      },
     ),
     await command("debug", "0", () => aiderCommand.debug(denops)),
     await command("hide", "0", async () => {
@@ -158,8 +171,7 @@ export async function main(denops: Denops): Promise<void> {
       "1",
       async (cmd: string) => {
         const prompt = `/test ${cmd}`;
-        await v.r.set(denops, "q", prompt);
-        await denops.dispatcher.sendPromptWithInput();
+        await buffer.sendPromptWithInput(denops, prompt);
       },
       { pattern: "[<f-args>]", complete: "shellcmd" },
     ),
