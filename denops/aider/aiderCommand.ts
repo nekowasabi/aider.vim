@@ -20,8 +20,6 @@ export const aiderCommand = {
     jobId: number,
     prompt: string,
   ): Promise<void> {
-    console.log(prompt);
-    console.log(jobId);
     await v.r.set(denops, "q", prompt);
     await fn.feedkeys(denops, "G");
     await fn.feedkeys(denops, '"qp');
