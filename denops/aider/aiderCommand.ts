@@ -8,25 +8,6 @@ export const aiderCommand = {
     await denops.cmd("b#");
   },
 
-  /**
-   * Aiderバッファにメッセージを送信します。
-   * @param {Denops} denops - Denops instance
-   * @param {number} jobId - The job id to send the message to
-   * @param {string} prompt - The prompt to send
-   * @returns {Promise<void>}
-   */
-  async sendPrompt(
-    denops: Denops,
-    jobId: number,
-    prompt: string,
-  ): Promise<void> {
-    await v.r.set(denops, "q", prompt);
-    await fn.feedkeys(denops, "G");
-    await fn.feedkeys(denops, '"qp');
-    await denops.call("chansend", jobId, "\n");
-  },
-
-
   async run(denops: Denops): Promise<void> {
     const aiderCommand = ensure(
       await v.g.get(denops, "aider_command"),
@@ -53,5 +34,22 @@ export const aiderCommand = {
     await denops.cmd("b#");
 
     await denops.cmd("echo 'Aider is running in the background.'");
+  },
+  /**
+   * Aiderバッファにメッセージを送信します。
+   * @param {Denops} denops - Denops instance
+   * @param {number} jobId - The job id to send the message to
+   * @param {string} prompt - The prompt to send
+   * @returns {Promise<void>}
+   */
+  async sendPrompt(
+    denops: Denops,
+    jobId: number,
+    prompt: string,
+  ): Promise<void> {
+    await v.r.set(denops, "q", prompt);
+    await fn.feedkeys(denops, "G");
+    await fn.feedkeys(denops, '"qp');
+    await denops.call("chansend", jobId, "\n");
   },
 };
