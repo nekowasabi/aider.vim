@@ -20,7 +20,7 @@ Minimal helper plugin for aider with neovim.
 Please add the following settings to your vimrc or init.vim.
 
 ```vim
-" Aider.vim settings
+" aider.vim settings
 ex.
 " Aider command configuration
 let g:aider_command = 'aider --no-auto-commits'
