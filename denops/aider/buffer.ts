@@ -14,6 +14,7 @@ import {
   getBufferName,
 } from "./utils.ts";
 import { feedkeys } from "https://deno.land/x/denops_std@v6.4.0/function/mod.ts";
+import { aiderCommand } from "./aiderCommand.ts";
 
 /**
  * Enum representing different buffer layout options.
@@ -35,11 +36,13 @@ export const buffer = {
     ) ?? "floating";
   },
   async exitAiderBuffer(denops: Denops): Promise<void> {
-    const buffers = await identifyAiderBuffer(denops);
-    for (const { job_id, bufnr } of buffers) {
-      await denops.call("chansend", job_id, "/exit\n");
-      await denops.cmd(`bdelete! ${bufnr}`);
+    const buffer = await identifyAiderBuffer(denops);
+    if (buffer === undefined) {
+      return;
     }
+    const { job_id, bufnr } = buffer;
+    await denops.call("chansend", job_id, "/exit\n");
+    await denops.cmd(`bdelete! ${bufnr}`);
   },
 
   /**
@@ -216,30 +219,24 @@ export const buffer = {
 };
 
 /**
- * 開いているウィンドウの中からターミナルバッファを識別し、そのジョブID、ウィンドウ番号、バッファ番号をコールバック関数に渡します。
+ * 開いているウィンドウの中からAiderバッファを識別し、そのジョブID、ウィンドウ番号、バッファ番号を返します。
  *
- * @param {function} callback - ジョブID、ウィンドウ番号、バッファ番号を引数に取るコールバック関数
- * @returns {Promise<void>}
+ * @returns {Promise<Array<{ job_id: number, winnr: number, bufnr: number }>>}
  */
 async function identifyAiderBuffer(
   denops: Denops,
-  callback: (
-    job_id: number | undefined,
-    winnr?: number,
-    bufnr?: number,
-  ) => Promise<void>,
-): Promise<void> {
+): Promise<{ job_id: number; winnr: number; bufnr: number } | undefined> {
   const win_count = ensure(await fn.winnr(denops, "$"), is.Number);
   for (let i = 1; i <= win_count; i++) {
     const bufnr = ensure(await fn.winbufnr(denops, i), is.Number);
 
     if (await buffer.checkIfAiderBuffer(denops, bufnr)) {
       const job_id = ensure<number>(
-        await fn.getbufvar(denops, bufnr, "&channel"), // TODO!
+        await fn.getbufvar(denops, bufnr, "&channel"),
         is.Number,
       );
       if (job_id !== 0) {
-        await callback(job_id, i, bufnr);
+        return ({ job_id, winnr: i, bufnr });
       }
     }
   }
@@ -299,13 +296,15 @@ async function sendPromptFromFloatingWindow(
   await feedkeys(denops, "G");
   await feedkeys(denops, '"qp');
 
-  await v.r.set(denops, "q", prompt);
   const jobId = ensure(
     await fn.getbufvar(denops, bufnr, "&channel"), // TODO!!!
     is.Number,
   );
-
-  await denops.call("chansend", jobId, "\n");
+  try {
+    await aiderCommand.sendPrompt(denops, jobId, prompt);
+  } catch (error) {
+    await denops.cmd(`echo "Error sending prompt: ${error.message}"`);
+  }
 }
 /**
  * スプリットウィンドウからプロンプトを送信する非同期関数
@@ -325,31 +324,33 @@ async function sendPromptFromSplitWindow(
   denops: Denops,
   prompt: string,
 ): Promise<void> {
-  const buffers = await identifyAiderBuffer(denops);
-  for (const { job_id, winnr } of buffers) {
-    if (await v.g.get(denops, "aider_buffer_open_type") !== "floating") {
-      await denops.cmd(`${winnr}wincmd w`);
-    } else {
-      const totalWindows = ensure<number>(
-        await denops.call("winnr", "$"),
-        is.Number,
-      );
+  const aiderBuffer = await identifyAiderBuffer(denops);
+  if (aiderBuffer === undefined) {
+    return;
+  }
+  const { job_id, winnr } = aiderBuffer;
 
-      for (let winnr = 1; winnr <= totalWindows; winnr++) {
-        const bufnr = await denops.call("winbufnr", winnr);
+  if (await v.g.get(denops, "aider_buffer_open_type") !== "floating") {
+    await denops.cmd(`${winnr}wincmd w`);
+  } else {
+    const totalWindows = ensure<number>(
+      await denops.call("winnr", "$"),
+      is.Number,
+    );
 
-        const buftype = await denops.call("getbufvar", bufnr, "&buftype");
+    for (let winnr = 1; winnr <= totalWindows; winnr++) {
+      const bufnr = await denops.call("winbufnr", winnr);
 
-        if (buftype === "terminal") {
-          await denops.cmd(`${winnr}wincmd w`);
-          break;
-        }
+      const buftype = await denops.call("getbufvar", bufnr, "&buftype");
+
+      if (buftype === "terminal") {
+        await denops.cmd(`${winnr}wincmd w`);
+        break;
       }
     }
-    await feedkeys(denops, "G");
-    await feedkeys(denops, '"qp');
-    await v.r.set(denops, "q", prompt);
-    await denops.call("chansend", job_id, "\n"); // TODO!!!
-    await denops.cmd("wincmd p");
-  });
+  }
+  await feedkeys(denops, "G");
+  await feedkeys(denops, '"qp');
+  await aiderCommand.sendPrompt(denops, job_id, prompt);
+  await denops.cmd("wincmd p");
 }

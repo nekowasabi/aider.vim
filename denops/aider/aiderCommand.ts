@@ -11,6 +11,22 @@ export const aiderCommand = {
   },
 
   /**
+   * Aiderバッファにメッセージを送信します。
+   * @param {Denops} denops - Denops instance
+   * @param {number} jobId - The job id to send the message to
+   * @param {string} prompt - The prompt to send
+   * @returns {Promise<void>}
+   */
+  async sendPrompt(
+    denops: Denops,
+    jobId: number,
+    prompt: string,
+  ): Promise<void> {
+    await v.r.set(denops, "q", prompt);
+    await denops.call("chansend", jobId, "\n");
+  },
+
+  /**
    * .aiderignoreファイルを開きます。
    * ファイルが存在する場合は編集モードで開き、存在しない場合はエラーメッセージを表示します。
    * @param {Denops} denops - Denopsインスタンス
