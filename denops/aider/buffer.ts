@@ -108,13 +108,11 @@ export const buffer = {
     denops: Denops,
     openBufferType: BufferLayout,
   ): Promise<void> {
-    // Get the buffer content as a string
     const bufferContent = ensure(
       await denops.call("getbufline", "%", 1, "$"),
       is.ArrayOf(is.String),
     ).join("\n");
 
-    // Close the prompt input window
     await denops.cmd("bdelete!");
 
     if (openBufferType === "floating") {
