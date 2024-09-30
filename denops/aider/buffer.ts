@@ -218,7 +218,7 @@ export const buffer = {
 /**
  * 開いているウィンドウの中からAiderバッファを識別し、そのジョブID、ウィンドウ番号、バッファ番号を返します。
  *
- * @returns {Promise<Array<{ job_id: number, winnr: number, bufnr: number }>>}
+ * @returns {Promise<{ job_id: number, winnr: number, bufnr: number }>}
  */
 async function identifyAiderBuffer(
   denops: Denops,
