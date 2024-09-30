@@ -104,7 +104,7 @@ export const buffer = {
 
     await sendPromptFromSplitWindow(denops, input);
   },
-  async sendPrompt(
+  async sendPromptByBuffer(
     denops: Denops,
     openBufferType: BufferLayout,
   ): Promise<void> {
@@ -297,9 +297,6 @@ async function sendPromptFromFloatingWindow(
   }
   await openFloatingWindow(denops, bufnr);
 
-  await feedkeys(denops, "G");
-  await feedkeys(denops, '"qp');
-
   const jobId = ensure(
     await fn.getbufvar(denops, bufnr, "&channel"),
     is.Number,
@@ -349,8 +346,5 @@ async function sendPromptFromSplitWindow(
       }
     }
   }
-  await feedkeys(denops, "G");
-  await feedkeys(denops, '"qp');
   await aiderCommand.sendPrompt(denops, job_id, prompt);
-  await denops.cmd("wincmd p");
 }

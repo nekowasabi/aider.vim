@@ -1,4 +1,4 @@
-import { Denops } from "https://deno.land/x/denops_std@v5.0.1/mod.ts";
+import { Denops } from "https://deno.land/x/denops_std@v6.4.0/mod.ts";
 import * as v from "https://deno.land/x/denops_std@v6.4.0/variable/mod.ts";
 import { ensure, is } from "https://deno.land/x/unknownutil@v3.17.0/mod.ts";
 import * as fn from "https://deno.land/x/denops_std@v6.4.0/function/mod.ts";
@@ -20,7 +20,11 @@ export const aiderCommand = {
     jobId: number,
     prompt: string,
   ): Promise<void> {
+    console.log(prompt);
+    console.log(jobId);
     await v.r.set(denops, "q", prompt);
+    await fn.feedkeys(denops, "G");
+    await fn.feedkeys(denops, '"qp');
     await denops.call("chansend", jobId, "\n");
   },
 

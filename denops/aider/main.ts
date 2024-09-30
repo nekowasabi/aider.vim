@@ -64,7 +64,7 @@ export async function main(denops: Denops): Promise<void> {
     await command(
       "sendPrompt",
       "0",
-      () => buffer.sendPrompt(denops, openBufferType),
+      () => buffer.sendPromptByBuffer(denops, openBufferType),
     ),
     await command("run", "0", async () => {
       if (await buffer.openAiderBuffer(denops, openBufferType)) {
