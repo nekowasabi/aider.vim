@@ -1,6 +1,6 @@
 import { Denops } from "https://deno.land/x/denops_std@v6.4.0/mod.ts";
 import * as v from "https://deno.land/x/denops_std@v6.4.0/variable/mod.ts";
-import { emit } from "https://deno.land/x/denops_std@v6.5.1/autocmd/mod.ts";
+import { emit } from "https://deno.land/x/denops_std@v6.4.0/autocmd/mod.ts";
 import * as n from "https://deno.land/x/denops_std@v6.4.0/function/nvim/mod.ts";
 import * as fn from "https://deno.land/x/denops_std@v6.4.0/function/mod.ts";
 import {
