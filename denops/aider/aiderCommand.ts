@@ -2,8 +2,6 @@ import { Denops } from "https://deno.land/x/denops_std@v5.0.1/mod.ts";
 import * as v from "https://deno.land/x/denops_std@v6.4.0/variable/mod.ts";
 import { ensure, is } from "https://deno.land/x/unknownutil@v3.17.0/mod.ts";
 import * as fn from "https://deno.land/x/denops_std@v6.4.0/function/mod.ts";
-import { getAiderBufferNr, getCurrentFilePath } from "./utils.ts";
-import { buffer } from "./buffer.ts";
 
 export const aiderCommand = {
   async debug(denops: Denops): Promise<void> {
