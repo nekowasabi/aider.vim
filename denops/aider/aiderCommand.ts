@@ -52,4 +52,9 @@ export const aiderCommand = {
     await fn.feedkeys(denops, '"qp');
     await denops.call("chansend", jobId, "\n");
   },
+
+  async exit(denops: Denops, jobId: number, bufnr: number): Promise<void> {
+    await denops.call("chansend", jobId, "/exit\n");
+    await denops.cmd(`bdelete! ${bufnr}`);
+  },
 };

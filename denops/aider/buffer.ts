@@ -41,8 +41,7 @@ export const buffer = {
       return;
     }
     const { job_id, bufnr } = buffer;
-    await denops.call("chansend", job_id, "/exit\n");
-    await denops.cmd(`bdelete! ${bufnr}`);
+    aiderCommand.exit(denops, job_id, bufnr);
   },
 
   /**
