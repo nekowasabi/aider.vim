@@ -98,7 +98,6 @@ export async function main(denops: Denops): Promise<void> {
         await buffer.sendPromptWithInput(denops, prompt);
       },
     ),
-
     await command(
       "addWeb",
       "1",
