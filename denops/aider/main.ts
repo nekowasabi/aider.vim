@@ -138,7 +138,7 @@ export async function main(denops: Denops): Promise<void> {
         await denops.cmd(`edit ${filePathToOpen}`);
         return;
       }
-      console.log(".aiderignoreファイルが見つかりません。");
+      console.log(".aiderignore file not found.");
     }),
     await command(
       "addIgnoreCurrentFile",
