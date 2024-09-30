@@ -35,10 +35,11 @@ export const buffer = {
     ) ?? "floating";
   },
   async exitAiderBuffer(denops: Denops): Promise<void> {
-    await identifyAiderBuffer(denops, async (job_id, _winnr, bufnr) => {
-      await denops.call("chansend", job_id, "/exit\n"); // TODO!!!
+    const buffers = await identifyAiderBuffer(denops);
+    for (const { job_id, bufnr } of buffers) {
+      await denops.call("chansend", job_id, "/exit\n");
       await denops.cmd(`bdelete! ${bufnr}`);
-    });
+    }
   },
 
   /**
@@ -324,8 +325,8 @@ async function sendPromptFromSplitWindow(
   denops: Denops,
   prompt: string,
 ): Promise<void> {
-  await identifyAiderBuffer(denops, async (job_id, winnr, _bufnr) => {
-    // await denops.cmd(`bdelete!`);
+  const buffers = await identifyAiderBuffer(denops);
+  for (const { job_id, winnr } of buffers) {
     if (await v.g.get(denops, "aider_buffer_open_type") !== "floating") {
       await denops.cmd(`${winnr}wincmd w`);
     } else {
