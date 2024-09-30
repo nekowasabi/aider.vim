@@ -108,13 +108,20 @@ export const buffer = {
     denops: Denops,
     openBufferType: BufferLayout,
   ): Promise<void> {
-    // テキストを取得してプロンプト入力ウインドウを閉じる
-    await feedkeys(denops, 'ggVG"qy');
+    // Get the buffer content as a string
+    const bufferContent = ensure(
+      await denops.call("getbufline", "%", 1, "$"),
+      is.ArrayOf(is.String),
+    ).join("\n");
+
+    // Close the prompt input window
     await denops.cmd("bdelete!");
 
-    openBufferType === "floating"
-      ? await sendPromptFromFloatingWindow(denops, "")
-      : await sendPromptFromSplitWindow(denops, "");
+    if (openBufferType === "floating") {
+      await sendPromptFromFloatingWindow(denops, bufferContent);
+    } else {
+      await sendPromptFromSplitWindow(denops, bufferContent);
+    }
 
     await emit(denops, "User", "AiderOpen");
     return;
@@ -297,11 +304,7 @@ async function sendPromptFromFloatingWindow(
     await fn.getbufvar(denops, bufnr, "&channel"),
     is.Number,
   );
-  try {
-    await aiderCommand.sendPrompt(denops, jobId, prompt);
-  } catch (error) {
-    await denops.cmd(`echo "Error sending prompt: ${error.message}"`);
-  }
+  await aiderCommand.sendPrompt(denops, jobId, prompt);
 }
 /**
  * スプリットウィンドウからプロンプトを送信する非同期関数
