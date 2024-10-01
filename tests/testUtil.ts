@@ -25,7 +25,7 @@ export function testFloating(
     await fn(denops);
   });
 }
-export function testBuffer(
+export function testVsplit(
   testName: string,
   fn: (denops: Denops) => Promise<void>,
 ) {
