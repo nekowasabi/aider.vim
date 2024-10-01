@@ -73,7 +73,7 @@ export const buffer = {
         await denops.cmd(openBufferType);
         await emit(denops, "User", "AiderOpen");
       } else {
-        await buffer.openSplitWindow(denops, aiderBufnr);
+        await buffer.openSplitWindow(denops);
       }
       return;
     }
@@ -226,14 +226,9 @@ export const buffer = {
    * スプリットウィンドウを開く
    *
    * @param {Denops} denops - Denopsインスタンス
-   * @param {number} bufnr - バッファ番号
    */
-  async openSplitWindow(
-    denops: Denops,
-    bufnr: number,
-  ): Promise<void> {
-    const openBufferType = await buffer.getOpenBufferType(denops);
-    await denops.cmd(openBufferType);
+  async openSplitWindow(denops: Denops): Promise<void> {
+    await denops.cmd(await buffer.getOpenBufferType(denops));
   },
 };
 
