@@ -1,19 +1,19 @@
 import { testFloating, testVsplit } from "./testUtil.ts";
 
-testFloating("AiderRun should work with floating", async (denops) => {
+testFloating("AiderRun should work", async (denops) => {
   await denops.cmd("AiderRun");
 });
 
-testVsplit("AiderRun should work with buffer", async (denops) => {
+testVsplit("AiderRun should work", async (denops) => {
   await denops.cmd("AiderRun");
 });
 
 testFloating(
-  "AiderAddCurrentFile should work with floating",
+  "AiderAddCurrentFile should work",
   async (denops) => {
     await denops.cmd("AiderAddCurrentFile");
   },
 );
-testVsplit("AiderAddCurrentFile should work with buffer", async (denops) => {
+testVsplit("AiderAddCurrentFile should work", async (denops) => {
   await denops.cmd("AiderAddCurrentFile");
 });

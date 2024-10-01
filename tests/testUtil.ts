@@ -20,7 +20,7 @@ export function testFloating(
   testName: string,
   fn: (denops: Denops) => Promise<void>,
 ) {
-  test("nvim", testName, async (denops) => {
+  test("nvim", "(floating):" + testName, async (denops) => {
     await setup(denops, "floating");
     await fn(denops);
   });
@@ -29,7 +29,7 @@ export function testVsplit(
   testName: string,
   fn: (denops: Denops) => Promise<void>,
 ) {
-  test("nvim", testName, async (denops) => {
+  test("nvim", "(vsplit):" + testName, async (denops) => {
     await setup(denops, "vsplit");
     await fn(denops);
   });
