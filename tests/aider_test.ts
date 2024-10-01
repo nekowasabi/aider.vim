@@ -1,8 +1,8 @@
 import { test } from "jsr:@denops/test";
 
 test("nvim", "AiderRun should work", async (denops) => {
-  await denops.cmd('source "setting.vim"');
   await denops.cmd('let g:aider_command = "mockServer.ts"');
+  await denops.cmd('let g:aider_buffer_open_type = "floating"');
   await denops.cmd("AiderRun");
 
   //  AiderRun should work ... FAILED (131ms)
