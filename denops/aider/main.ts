@@ -88,7 +88,15 @@ export async function main(denops: Denops): Promise<void> {
       async () => {
         const bufnr = await fn.bufnr(denops, "%");
         if (await getAiderBufferNr(denops) === undefined) {
-          await aiderCommand.silentRun(denops);
+          if (openBufferType === "floating") {
+            await aiderCommand.silentRun(denops);
+          } else {
+            await buffer.openAiderBuffer(denops, openBufferType);
+            await aiderCommand.run(denops);
+            await denops.cmd("wincmd p");
+            console.log("Run AiderAddCurrentFile again.");
+            return;
+          }
         }
         if (await buffer.checkIfTerminalBuffer(denops, bufnr)) {
           return;
