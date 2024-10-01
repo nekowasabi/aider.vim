@@ -69,8 +69,12 @@ export const buffer = {
     }
 
     if (openBufferType === "split" || openBufferType === "vsplit") {
-      await denops.cmd(openBufferType);
-      await emit(denops, "User", "AiderOpen");
+      if (aiderBufnr === undefined) {
+        await denops.cmd(openBufferType);
+        await emit(denops, "User", "AiderOpen");
+      } else {
+        await buffer.openSplitWindow(denops, aiderBufnr);
+      }
       return;
     }
 
@@ -216,6 +220,20 @@ export const buffer = {
   ): Promise<boolean> {
     const buftype = await fn.getbufvar(denops, bufnr, "&buftype");
     return buftype === "terminal";
+  },
+
+  /**
+   * スプリットウィンドウを開く
+   *
+   * @param {Denops} denops - Denopsインスタンス
+   * @param {number} bufnr - バッファ番号
+   */
+  async openSplitWindow(
+    denops: Denops,
+    bufnr: number,
+  ): Promise<void> {
+    const openBufferType = await buffer.getOpenBufferType(denops);
+    await denops.cmd(openBufferType);
   },
 };
 

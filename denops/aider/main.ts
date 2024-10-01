@@ -70,7 +70,15 @@ export async function main(denops: Denops): Promise<void> {
       if (await buffer.openAiderBuffer(denops, openBufferType)) {
         return;
       }
-      await aiderCommand.run(denops);
+
+      const aiderBufnr = await getAiderBufferNr(denops);
+      if (aiderBufnr === undefined) {
+        // aiderを実行する
+        await aiderCommand.run(denops);
+        return;
+      }
+
+      await denops.cmd(`buffer ${aiderBufnr}`);
     }),
     await command("silentRun", "0", () => aiderCommand.silentRun(denops)),
     await command(
