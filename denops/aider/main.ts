@@ -10,11 +10,30 @@ import { getAiderBufferNr, getCurrentFilePath } from "./utils.ts";
  * @returns {Promise<void>}
  */
 export async function main(denops: Denops): Promise<void> {
+  /**
+   * コマンドの引数の数を定義
+   * "0"は引数なし、"1"は1つの引数、"*"は複数の引数を意味します。
+   */
   type ArgCount = "0" | "1" | "*";
+
+  /**
+   * ArgCountに基づいて異なる型の関数を定義
+   * "0"の場合は引数なしの関数、"1"の場合は1つの引数を取る関数、
+   * "*"の場合は2つの引数を取る関数を意味します。
+   */
   type ImplType<T extends ArgCount> = T extends "0" ? (() => Promise<void>)
     : T extends "1" ? ((arg: string) => Promise<void>)
     : ((arg: string, arg2: string) => Promise<void>); // MEMO: ArgCountは*だが現状2つのみ対応している
 
+  /**
+   * コマンドのオプションを定義
+   * patternは引数のパターンを指定し、completeは補完の種類を指定し、
+   * rangeは範囲指定が可能かどうかを示します。
+   *
+   * @property {string} [pattern] - 引数のパターンを指定します。
+   * @property {("file" | "shellcmd")} [complete] - 補完の種類を指定します。ファイル補完またはシェルコマンド補完が可能です。
+   * @property {boolean} [range] - 範囲指定が可能かどうかを示します。
+   */
   type Opts<T extends ArgCount> = {
     pattern?: T extends "0" ? undefined
       : T extends "1" ? "[<f-args>]"
@@ -23,6 +42,9 @@ export async function main(denops: Denops): Promise<void> {
     range?: T extends "*" ? boolean : undefined;
   };
 
+  /**
+   * Commandは、メソッド名とその実装を含むコマンドオブジェクトを定義します。
+   */
   type Command = {
     methodName: string;
     impl: ImplType<ArgCount>;
