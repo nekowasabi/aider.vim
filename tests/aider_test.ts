@@ -1,8 +1,19 @@
-import { assert, assertEquals, assertFalse } from "jsr:@std/assert";
-import { test } from "jsr:@denops/test";
-import { getCurrentFilePath } from "../denops/aider/utils.ts";
+import { testFloating, testVsplit } from "./testUtil.ts";
 
-test("nvim", "Start NeoVim to test denops features", async (denops) => {
-  const path = await getCurrentFilePath(denops);
-  assertEquals(path, "");
+testFloating("AiderRun should work", async (denops) => {
+  await denops.cmd("AiderRun");
+});
+
+testVsplit("AiderRun should work", async (denops) => {
+  await denops.cmd("AiderRun");
+});
+
+testFloating(
+  "AiderAddCurrentFile should work",
+  async (denops) => {
+    await denops.cmd("AiderAddCurrentFile");
+  },
+);
+testVsplit("AiderAddCurrentFile should work", async (denops) => {
+  await denops.cmd("AiderAddCurrentFile");
 });
