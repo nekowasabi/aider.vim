@@ -37,14 +37,18 @@ export const BookmarkAction: Actions<Params> = {
   }) => {
     // 分割代入
     const { denops, items } = args;
-    // unknownutilのmaybe関数便利
-    const action = maybe(items.at(0)?.action, isDduItemAction);
 
-    if (!action) {
-      return ActionFlags.None;
+    const paths = items
+      .map((item) => {
+        const action = maybe(item?.action, isDduItemAction);
+        return action ? action.path : null;
+      })
+      .filter((path) => path !== null)
+      .join(" ");
+
+    if (paths) {
+      await denops.cmd(`AiderAddFile ${paths}`);
     }
-
-    await denops.cmd(`AiderAddFile ${action.path}`);
 
     return ActionFlags.None;
   },
