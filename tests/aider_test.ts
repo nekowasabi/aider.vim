@@ -1,3 +1,4 @@
+// This comment for vim-test plugin: Use denops' test() instead of built-in Deno.test()
 import { test } from "./testUtil.ts";
 
 test("floating", "AiderRun should work", async (denops) => {
