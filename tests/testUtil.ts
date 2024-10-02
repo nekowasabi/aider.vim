@@ -1,7 +1,7 @@
 import { fromFileUrl } from "https://deno.land/std@0.217.0/path/mod.ts";
 import { Denops } from "https://deno.land/x/denops_std@v6.4.0/mod.ts";
 import { BufferLayout } from "../denops/aider/buffer.ts";
-import { test } from "jsr:@denops/test";
+import { test as denopsTest } from "jsr:@denops/test";
 
 async function setup(denops: Denops, bufferLayout: BufferLayout) {
   const runtimepath = fromFileUrl(import.meta.resolve("../"));
@@ -16,21 +16,13 @@ async function setup(denops: Denops, bufferLayout: BufferLayout) {
   await sleep(10); // sleepを入れないとAiderAddCurrentFileが落ちた。mainのロードが間に合っていない？
 }
 
-export function testFloating(
+export function test(
+  mode: "floating" | "vsplit",
   testName: string,
   fn: (denops: Denops) => Promise<void>,
 ) {
-  test("nvim", "(floating):" + testName, async (denops) => {
-    await setup(denops, "floating");
-    await fn(denops);
-  });
-}
-export function testVsplit(
-  testName: string,
-  fn: (denops: Denops) => Promise<void>,
-) {
-  test("nvim", "(vsplit):" + testName, async (denops) => {
-    await setup(denops, "vsplit");
+  denopsTest("nvim", `(${mode}): ${testName}`, async (denops) => {
+    await setup(denops, mode);
     await fn(denops);
   });
 }
