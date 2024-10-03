@@ -122,6 +122,7 @@ To use aider.vim, you can run the following commands within Vim or Neovim:
 - `:AiderAsk <question>` - Sends a question to aider without adding any files to
   the context
 - `:AiderHide` - Hides the floating window and reloads the buffer.
+- `:AiderPaste` - Pastes the content from the clipboard into the aider context.
 
 ## Additional Prompt
 
