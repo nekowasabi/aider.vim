@@ -31,7 +31,11 @@ let g:aider_floatwin_width = 100
 let g:aider_floatwin_height = 20
 
 " Additional prompt setting
-let g:aider_additional_prompt = 'Your additional prompt here'
+let g:aider_additional_prompt = [
+  "Your additional prompt here",
+  "This will be displayed in the floating window when using visual mode selections",
+  "You can see and edit it before sending to aider",
+]
 
 " Key mappings
 nnoremap <silent> <leader>ar :AiderRun<CR>
