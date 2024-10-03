@@ -137,7 +137,12 @@ To use this feature, set the `g:aider_additional_prompt` variable in your vimrc
 or init.vim:
 
 ```vim
-let g:aider_additional_prompt = 'Your additional prompt here'
+let g:aider_additional_prompt = [
+  "Your additional prompt here",
+  "This will be displayed in the floating window when using visual mode selections",
+  "You can see and edit it before sending to aider",
+]
+```
 
 This prompt will be displayed in the floating window when using visual mode selections, allowing you to see and edit it before sending to aider.
 ```
