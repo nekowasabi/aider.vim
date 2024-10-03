@@ -145,7 +145,6 @@ let g:aider_additional_prompt = [
 ```
 
 This prompt will be displayed in the floating window when using visual mode selections, allowing you to see and edit it before sending to aider.
-```
 
 ## ddu Source
 
