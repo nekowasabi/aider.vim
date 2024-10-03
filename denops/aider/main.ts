@@ -146,6 +146,14 @@ export async function main(denops: Denops): Promise<void> {
       { pattern: "[<f-args>]" },
     ),
     await command(
+      "paste",
+      "0",
+      async () => {
+        const prompt = `/paste`;
+        await buffer.sendPromptWithInput(denops, prompt);
+      },
+    ),
+    await command(
       "ask",
       "1",
       async (question: string) => {
