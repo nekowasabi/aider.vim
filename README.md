@@ -49,6 +49,8 @@ nnoremap <silent> <leader>ax :AiderExit<CR>
 nnoremap <silent> <leader>ai :AiderAddIgnoreCurrentFile<CR>
 " Open Aider ignore list
 nnoremap <silent> <leader>aI :AiderOpenIgnore<CR>
+" Paste content from clipboard into Aider
+nnoremap <silent> <leader>ap :AiderPaste<CR>
 " Hide Aider window
 nnoremap <silent> <leader>ah :AiderHide<CR>
 " Hide Aider window in terminal mode
@@ -96,6 +98,7 @@ Please add the following settings to your lazy settings.
     vim.api.nvim_set_keymap('n', '<leader>ax', ':AiderExit<CR>', { noremap = true, silent = true })
     vim.api.nvim_set_keymap('n', '<leader>ai', ':AiderAddIgnoreCurrentFile<CR>', { noremap = true, silent = true })
     vim.api.nvim_set_keymap('n', '<leader>aI', ':AiderOpenIgnore<CR>', { noremap = true, silent = true })
+    vim.api.nvim_set_keymap('n', '<leader>aI', ':AiderPaste<CR>', { noremap = true, silent = true })
     vim.api.nvim_set_keymap('n', '<leader>ah', ':AiderHide<CR>', { noremap = true, silent = true })
     vim.api.nvim_set_keymap('v', '<leader>av', ':AiderVisualTextWithPrompt<CR>', { noremap = true, silent = true })
   end
