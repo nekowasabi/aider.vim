@@ -6,7 +6,7 @@ import {
   maybe,
 } from "https://deno.land/x/unknownutil@v3.17.0/mod.ts";
 import * as v from "https://deno.land/x/denops_std@v6.4.0/variable/mod.ts";
-import { buffer } from "./buffer.ts";
+import * as buffer from "./buffer.ts";
 
 /**
  * Gets the additional prompt from vim global variable "aider_additional_prompt".
