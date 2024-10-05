@@ -4,27 +4,27 @@ import * as buffer from "../denops/aider/buffer.ts";
 import { getAiderBufferNr } from "../denops/aider/utils.ts";
 
 export const sleep = (msec: number) =>
-	new Promise((resolve) => setTimeout(resolve, msec));
+  new Promise((resolve) => setTimeout(resolve, msec));
 /**
  * Aiderバッファが開かれており、ウィンドウに表示されているかをアサートします
  */
 export async function assertAiderBufferShown(denops: Denops): Promise<void> {
-	const buf = await buffer.identifyAiderBuffer(denops);
-	assert(buf !== undefined);
+  const buf = await buffer.identifyAiderBuffer(denops);
+  assert(buf !== undefined);
 }
 
 /**
  * Aiderバッファがウィンドウに表示されていないことをアサートします
  */
 export async function assertAiderBufferHidden(denops: Denops): Promise<void> {
-	const buf = await buffer.identifyAiderBuffer(denops);
-	assert(buf === undefined);
+  const buf = await buffer.identifyAiderBuffer(denops);
+  assert(buf === undefined);
 }
 
 /**
  * Aiderバッファが開かれていることをアサートします
  */
 export async function assertAiderBufferAlive(denops: Denops): Promise<void> {
-	const bufnr = await getAiderBufferNr(denops);
-	assert(bufnr !== undefined);
+  const bufnr = await getAiderBufferNr(denops);
+  assert(bufnr !== undefined);
 }
