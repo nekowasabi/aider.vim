@@ -53,8 +53,7 @@ export async function exitAiderBuffer(
  *
  * @param {Denops} denops - The Denops instance.
  * @param {BufferLayout} openBufferType - The type of buffer to open.
- * @returns {Promise<void | undefined | boolean>}
- * @throws {Error} If openBufferType is an invalid value.
+ * @returns {Promise<undefined | boolean>}
  */
 export async function openAiderBuffer(
   denops: Denops,
@@ -350,8 +349,13 @@ export async function getAiderBuffer(
         is.Number,
       );
 
+      // TODO testmodeの分岐をどうにかする
+      const testMode =
+        maybe(await v.g.get(denops, "aider_test"), is.Boolean) ?? false;
+
+      // testMode時はjobを走らせていないのでその場合は0でも許容
       // if the process is not running, kill the buffer and continue finding
-      if (jobId === 0) {
+      if (!testMode && jobId === 0) {
         await denops.cmd(`b ${bufnr}`);
         await denops.cmd("bdelete!");
         continue;

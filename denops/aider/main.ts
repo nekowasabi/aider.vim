@@ -89,10 +89,9 @@ export async function main(denops: Denops): Promise<void> {
     };
   }
 
-  const isTest =
+  const testMode =
     maybe(await v.g.get(denops, "aider_test"), is.Boolean) ?? false;
-  console.log(`isTest: ${isTest}`);
-  const aider = isTest
+  const aider = testMode
     ? mockAiderCommand.commands
     : actualAiderCommand.commands;
 
@@ -117,16 +116,12 @@ export async function main(denops: Denops): Promise<void> {
         denops,
         aider.checkIfAiderBuffer,
       );
-      if (await buffer.openAiderBuffer(denops, aiderBuf, openBufferType)) {
-        return;
-      }
+      await buffer.openAiderBuffer(denops, aiderBuf, openBufferType);
 
       if (aiderBuf === undefined) {
         await aider.run(denops);
         return;
       }
-
-      await denops.cmd(`buffer ${aiderBuf}`);
     }),
 
     await command("silentRun", "0", () => aider.silentRun(denops)),
