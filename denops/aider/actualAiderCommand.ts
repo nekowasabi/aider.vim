@@ -3,8 +3,8 @@ import * as fn from "https://deno.land/x/denops_std@v6.4.0/function/mod.ts";
 import type { Denops } from "https://deno.land/x/denops_std@v6.4.0/mod.ts";
 import * as v from "https://deno.land/x/denops_std@v6.4.0/variable/mod.ts";
 import { ensure, is } from "https://deno.land/x/unknownutil@v3.17.0/mod.ts";
-import * as util from "./utils.ts";
 import type { AiderCommand } from "./aiderCommand.ts";
+import * as util from "./utils.ts";
 
 export const commands: AiderCommand = {
   run,
