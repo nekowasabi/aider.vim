@@ -114,7 +114,6 @@ export async function main(denops: Denops): Promise<void> {
       }
 
       if (aiderBuf === undefined) {
-        // aiderを実行する
         await aider.run(denops);
         return;
       }
