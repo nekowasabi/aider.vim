@@ -350,11 +350,11 @@ export async function getAiderBuffer(
         is.Number,
       );
 
-      // if the process is not running, kill the buffer and return undefined
+      // if the process is not running, kill the buffer and continue finding
       if (jobId === 0) {
         await denops.cmd(`b ${bufnr}`);
         await denops.cmd("bdelete!");
-        return undefined;
+        continue;
       }
 
       if (await checkBufferOpen(denops, bufnr)) {
