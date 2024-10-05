@@ -57,6 +57,8 @@ export async function openAiderBuffer(
   aiderBuf: AiderBuffer | undefined,
   openBufferType: BufferLayout,
 ): Promise<undefined | boolean> {
+  // TODO openBufferTypeで大きく分岐するようリファクタすべき
+  // return typeもbooleanにできる
   if (aiderBuf && openBufferType === "floating") {
     await openFloatingWindow(denops, aiderBuf.bufnr);
     return true;
