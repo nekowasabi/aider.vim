@@ -82,9 +82,9 @@ export async function openAiderBuffer(
 
 export async function sendPromptWithInput(
   denops: Denops,
-  aiderBuf: AiderBuffer | undefined,
   input: string,
 ): Promise<void> {
+  const aiderBuf = await getAiderBuffer(denops);
   if (aiderBuf === undefined) {
     await denops.cmd("echo 'Aider is not running'");
     await denops.cmd("AiderRun");

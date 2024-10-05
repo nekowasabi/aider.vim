@@ -112,8 +112,7 @@ export async function main(denops: Denops): Promise<void> {
       async (path: string) => {
         const prompt = `/add ${path}`;
 
-        const buf = await buffer.getAiderBuffer(denops);
-        await buffer.sendPromptWithInput(denops, buf, prompt);
+        await buffer.sendPromptWithInput(denops, prompt);
       },
       { pattern: "[<f-args>]", complete: "file" },
     ),
@@ -137,8 +136,7 @@ export async function main(denops: Denops): Promise<void> {
       }
       const currentFile = await getCurrentFilePath(denops);
       const prompt = `/add ${currentFile}`;
-      const aiderBuf = await buffer.getAiderBuffer(denops);
-      await buffer.sendPromptWithInput(denops, aiderBuf, prompt);
+      await buffer.sendPromptWithInput(denops, prompt);
     }),
 
     await command(
@@ -146,16 +144,14 @@ export async function main(denops: Denops): Promise<void> {
       "1",
       async (url: string) => {
         const prompt = `/web ${url}`;
-        const buf = await buffer.getAiderBuffer(denops);
-        await buffer.sendPromptWithInput(denops, buf, prompt);
+        await buffer.sendPromptWithInput(denops, prompt);
       },
       { pattern: "[<f-args>]" },
     ),
 
     await command("paste", "0", async () => {
       const prompt = "/paste";
-      const buf = await buffer.getAiderBuffer(denops);
-      await buffer.sendPromptWithInput(denops, buf, prompt);
+      await buffer.sendPromptWithInput(denops, prompt);
     }),
 
     await command(
@@ -163,8 +159,7 @@ export async function main(denops: Denops): Promise<void> {
       "1",
       async (question: string) => {
         const prompt = `/ask ${question}`;
-        const aiderBuf = await buffer.getAiderBuffer(denops);
-        await buffer.sendPromptWithInput(denops, aiderBuf, prompt);
+        await buffer.sendPromptWithInput(denops, prompt);
       },
       { pattern: "[<f-args>]" },
     ),
@@ -227,8 +222,7 @@ export async function main(denops: Denops): Promise<void> {
       "1",
       async (cmd: string) => {
         const prompt = `/test ${cmd}`;
-        const aiderBuf = await buffer.getAiderBuffer(denops);
-        await buffer.sendPromptWithInput(denops, aiderBuf, prompt);
+        await buffer.sendPromptWithInput(denops, prompt);
       },
       { pattern: "[<f-args>]", complete: "shellcmd" },
     ),
