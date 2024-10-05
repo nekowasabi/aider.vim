@@ -116,7 +116,7 @@ export async function main(denops: Denops): Promise<void> {
     ),
     await command("addCurrentFile", "0", async () => {
       const bufnr = await fn.bufnr(denops, "%");
-      if ((await getAiderBufferNr(denops)) === undefined) {
+      if (await getAiderBufferNr(denops) === undefined) {
         if (openBufferType === "floating") {
           await aiderCommand.silentRun(denops);
         } else {
@@ -171,9 +171,8 @@ export async function main(denops: Denops): Promise<void> {
       { pattern: "[<line1>, <line2>]", range: true },
     ),
     await command("openIgnore", "0", async () => {
-      const gitRoot = (
-        await fn.system(denops, "git rev-parse --show-toplevel")
-      ).trim();
+      const gitRoot = (await fn.system(denops, "git rev-parse --show-toplevel"))
+        .trim();
       const filePathToOpen = `${gitRoot}/.aiderignore`;
       if (await fn.filereadable(denops, filePathToOpen)) {
         await denops.cmd(`edit ${filePathToOpen}`);

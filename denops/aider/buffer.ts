@@ -20,7 +20,7 @@ import {
  * Enum representing different buffer layout options.
  */
 export const bufferLayouts = ["split", "vsplit", "floating"] as const;
-export type BufferLayout = (typeof bufferLayouts)[number];
+export type BufferLayout = typeof bufferLayouts[number];
 
 /**
  * Retrieves the buffer opening type from the global variable "aider_buffer_open_type".
@@ -29,12 +29,10 @@ export type BufferLayout = (typeof bufferLayouts)[number];
  * floating: floating window
  */
 export async function getOpenBufferType(denops: Denops): Promise<BufferLayout> {
-  return (
-    maybe(
-      await v.g.get(denops, "aider_buffer_open_type"),
-      is.LiteralOneOf(bufferLayouts),
-    ) ?? "floating"
-  );
+  return maybe(
+    await v.g.get(denops, "aider_buffer_open_type"),
+    is.LiteralOneOf(bufferLayouts),
+  ) ?? "floating";
 }
 
 export async function exitAiderBuffer(denops: Denops): Promise<void> {
@@ -333,7 +331,7 @@ async function sendPromptFromSplitWindow(
   }
   const { job_id, winnr } = aiderBuffer;
 
-  if ((await v.g.get(denops, "aider_buffer_open_type")) !== "floating") {
+  if (await v.g.get(denops, "aider_buffer_open_type") !== "floating") {
     await denops.cmd(`${winnr}wincmd w`);
   } else {
     const totalWindows = ensure<number>(
