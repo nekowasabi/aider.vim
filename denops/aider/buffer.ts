@@ -62,7 +62,7 @@ export async function exitAiderBuffer(denops: Denops): Promise<void> {
 export async function openAiderBuffer(
   denops: Denops,
   openBufferType: BufferLayout,
-): Promise<undefined | undefined | boolean> {
+): Promise<undefined | boolean> {
   const aiderBufnr = await getAiderBufferNr(denops);
   if (aiderBufnr && openBufferType === "floating") {
     await openFloatingWindow(denops, aiderBufnr);
