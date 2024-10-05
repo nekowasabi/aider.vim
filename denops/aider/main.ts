@@ -89,7 +89,9 @@ export async function main(denops: Denops): Promise<void> {
     };
   }
 
-  const isTest = maybe(await v.g.get(denops, "aider_testing"), is.Boolean);
+  const isTest =
+    maybe(await v.g.get(denops, "aider_test"), is.Boolean) ?? false;
+  console.log(`isTest: ${isTest}`);
   const aider = isTest
     ? mockAiderCommand.commands
     : actualAiderCommand.commands;

@@ -5,39 +5,38 @@ import type { AiderCommands } from "./aiderCommand.ts";
 import { emit } from "https://deno.land/x/denops_std@v6.4.0/autocmd/mod.ts";
 
 class MockAider {
-  private bufNr: number;
+  private bufNr: number | undefined;
 
-  constructor() {
-    this.bufNr = 0;
-  }
-
-  async run(denops: Denops): Promise<undefined> {
+  run = async (denops: Denops): Promise<undefined> => {
     const newBuf = await fn.bufnr(denops, "dummyaider", true);
     await emit(denops, "User", "AiderOpen");
     this.bufNr = newBuf;
-  }
+  };
 
-  async silentRun(denops: Denops): Promise<undefined> {
+  silentRun = async (denops: Denops): Promise<undefined> => {
     await this.run(denops);
     await denops.cmd("b#"); // hide buffer
-  }
+  };
 
-  async sendPrompt(
+  sendPrompt = async (
     denops: Denops,
-    _: number,
+    _jobId: number,
     prompt: string,
-  ): Promise<undefined> {
+  ): Promise<undefined> => {
     fn.feedkeys(denops, `input: ${prompt}\n`);
-  }
+  };
 
-  async exit(denops: Denops): Promise<undefined> {
-    // open bufNr and close
+  exit = async (denops: Denops): Promise<undefined> => {
+    if (this.bufNr === undefined) {
+      return;
+    }
+
     await fn.bufnr(denops, this.bufNr.toString(), true);
     await denops.cmd("bd!");
-  }
-  async checkIfAiderBuffer(_: Denops, bufnr: number): Promise<boolean> {
+  };
+  checkIfAiderBuffer = async (_: Denops, bufnr: number): Promise<boolean> => {
     return bufnr === this.bufNr;
-  }
+  };
 }
 
 const mockAider = new MockAider();
