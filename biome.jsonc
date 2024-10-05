@@ -1,16 +1,17 @@
 {
-  "$schema": "https://biomejs.dev/schemas/1.9.2/schema.json",
+  "$schema": "https://biomejs.dev/schemas/1.9.3/schema.json",
   "vcs": {
-    "enabled": true,
+    "enabled": false,
     "clientKind": "git",
-    "useIgnoreFile": true
+    "useIgnoreFile": false
   },
   "files": {
     "ignoreUnknown": false,
     "ignore": []
   },
   "formatter": {
-    "enabled": false // use deno fmt
+    "enabled": true,
+    "indentStyle": "tab"
   },
   "organizeImports": {
     "enabled": true
