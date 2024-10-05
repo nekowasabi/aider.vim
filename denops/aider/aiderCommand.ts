@@ -1,7 +1,7 @@
-import { Denops } from "https://deno.land/x/denops_std@v6.4.0/mod.ts";
+import * as fn from "https://deno.land/x/denops_std@v6.4.0/function/mod.ts";
+import type { Denops } from "https://deno.land/x/denops_std@v6.4.0/mod.ts";
 import * as v from "https://deno.land/x/denops_std@v6.4.0/variable/mod.ts";
 import { ensure, is } from "https://deno.land/x/unknownutil@v3.17.0/mod.ts";
-import * as fn from "https://deno.land/x/denops_std@v6.4.0/function/mod.ts";
 
 export async function debug(denops: Denops): Promise<void> {
   await denops.cmd("b#");
@@ -54,7 +54,11 @@ export async function sendPrompt(
   await denops.call("chansend", jobId, "\n");
 }
 
-export async function exit(denops: Denops, jobId: number, bufnr: number): Promise<void> {
+export async function exit(
+  denops: Denops,
+  jobId: number,
+  bufnr: number,
+): Promise<void> {
   await denops.call("chansend", jobId, "/exit\n");
   await denops.cmd(`bdelete! ${bufnr}`);
 }
