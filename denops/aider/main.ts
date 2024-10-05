@@ -99,7 +99,7 @@ export async function main(denops: Denops): Promise<void> {
       await buffer.openAiderBuffer(denops, aiderBuf, openBufferType);
 
       if (aiderBuf === undefined) {
-        aider().run;
+        await aider().run(denops);
         return;
       }
     }),
