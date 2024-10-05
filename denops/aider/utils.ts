@@ -1,11 +1,11 @@
-import { Denops } from "https://deno.land/x/denops_std@v6.4.0/mod.ts";
 import * as fn from "https://deno.land/x/denops_std@v6.4.0/function/mod.ts";
+import type { Denops } from "https://deno.land/x/denops_std@v6.4.0/mod.ts";
+import * as v from "https://deno.land/x/denops_std@v6.4.0/variable/mod.ts";
 import {
   ensure,
   is,
   maybe,
 } from "https://deno.land/x/unknownutil@v3.17.0/mod.ts";
-import * as v from "https://deno.land/x/denops_std@v6.4.0/variable/mod.ts";
 import * as buffer from "./buffer.ts";
 
 /**
@@ -60,10 +60,7 @@ export async function getAiderBufferNr(
   denops: Denops,
 ): Promise<number | undefined> {
   // Get all open buffer numbers
-  const buf_count = ensure(
-    await fn.bufnr(denops, "$"),
-    is.Number,
-  );
+  const buf_count = ensure(await fn.bufnr(denops, "$"), is.Number);
 
   for (let i = 1; i <= buf_count; i++) {
     const bufnr = ensure(await fn.bufnr(denops, i), is.Number);

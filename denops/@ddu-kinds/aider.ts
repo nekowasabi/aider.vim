@@ -1,13 +1,14 @@
+import type { Denops } from "https://deno.land/x/ddu_vim@v3.10.2/deps.ts";
+
 import {
   ActionFlags,
-  Actions,
+  type Actions,
   BaseKind,
-  Context,
-  DduItem,
-  PreviewContext,
-  Previewer,
+  type Context,
+  type DduItem,
+  type PreviewContext,
+  type Previewer,
 } from "https://deno.land/x/ddu_vim@v3.10.2/types.ts";
-import { Denops } from "https://deno.land/x/ddu_vim@v3.10.2/deps.ts";
 import { is, maybe } from "https://deno.land/x/unknownutil@v3.15.0/mod.ts";
 
 export type ActionData = {
@@ -20,13 +21,13 @@ type Params = Record<never, never>;
 const isDduItemAction = is.ObjectOf({ path: is.String });
 
 export const BookmarkAction: Actions<Params> = {
-  open: async (args: {
+  open: (_: {
     denops: Denops;
     context: Context;
     actionParams: unknown;
     items: DduItem[];
   }) => {
-    const action = args.items[0]["action"] as { path: string };
+    // const action = args.items[0].action as { path: string };
     return ActionFlags.None;
   },
   add: async (args: {

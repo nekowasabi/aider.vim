@@ -1,26 +1,26 @@
-import { Denops } from "https://deno.land/x/denops_std@v6.4.0/mod.ts";
-import * as v from "https://deno.land/x/denops_std@v6.4.0/variable/mod.ts";
 import { emit } from "https://deno.land/x/denops_std@v6.4.0/autocmd/mod.ts";
-import * as n from "https://deno.land/x/denops_std@v6.4.0/function/nvim/mod.ts";
 import * as fn from "https://deno.land/x/denops_std@v6.4.0/function/mod.ts";
+import { feedkeys } from "https://deno.land/x/denops_std@v6.4.0/function/mod.ts";
+import * as n from "https://deno.land/x/denops_std@v6.4.0/function/nvim/mod.ts";
+import type { Denops } from "https://deno.land/x/denops_std@v6.4.0/mod.ts";
+import * as v from "https://deno.land/x/denops_std@v6.4.0/variable/mod.ts";
 import {
   ensure,
   is,
   maybe,
 } from "https://deno.land/x/unknownutil@v3.17.0/mod.ts";
+import * as aiderCommand from "./aiderCommand.ts";
 import {
   getAdditionalPrompt,
   getAiderBufferNr,
   getBufferName,
 } from "./utils.ts";
-import { feedkeys } from "https://deno.land/x/denops_std@v6.4.0/function/mod.ts";
-import * as aiderCommand from "./aiderCommand.ts";
 
 /**
  * Enum representing different buffer layout options.
  */
 export const bufferLayouts = ["split", "vsplit", "floating"] as const;
-export type BufferLayout = typeof bufferLayouts[number];
+export type BufferLayout = (typeof bufferLayouts)[number];
 
 /**
  * Retrieves the buffer opening type from the global variable "aider_buffer_open_type".
@@ -29,10 +29,12 @@ export type BufferLayout = typeof bufferLayouts[number];
  * floating: floating window
  */
 export async function getOpenBufferType(denops: Denops): Promise<BufferLayout> {
-  return maybe(
-    await v.g.get(denops, "aider_buffer_open_type"),
-    is.LiteralOneOf(bufferLayouts),
-  ) ?? "floating";
+  return (
+    maybe(
+      await v.g.get(denops, "aider_buffer_open_type"),
+      is.LiteralOneOf(bufferLayouts),
+    ) ?? "floating"
+  );
 }
 
 export async function exitAiderBuffer(denops: Denops): Promise<void> {
@@ -60,7 +62,7 @@ export async function exitAiderBuffer(denops: Denops): Promise<void> {
 export async function openAiderBuffer(
   denops: Denops,
   openBufferType: BufferLayout,
-): Promise<void | undefined | boolean> {
+): Promise<undefined | undefined | boolean> {
   const aiderBufnr = await getAiderBufferNr(denops);
   if (aiderBufnr && openBufferType === "floating") {
     await openFloatingWindow(denops, aiderBufnr);
@@ -78,10 +80,7 @@ export async function openAiderBuffer(
     return;
   }
 
-  const bufnr = ensure(
-    await n.nvim_create_buf(denops, false, true),
-    is.Number,
-  );
+  const bufnr = ensure(await n.nvim_create_buf(denops, false, true), is.Number);
 
   await openFloatingWindow(denops, bufnr);
 
@@ -155,17 +154,11 @@ export async function openFloatingWindowWithSelectedCode(
     await fn.getbufvar(denops, "%", "&filetype"),
     is.String,
   );
-  words.unshift("```" + filetype);
+  words.unshift(`\`\`\`${filetype}`);
   words.push("```");
 
-  const bufnr = ensure(
-    await n.nvim_create_buf(denops, false, true),
-    is.Number,
-  );
-  await openFloatingWindow(
-    denops,
-    bufnr,
-  );
+  const bufnr = ensure(await n.nvim_create_buf(denops, false, true), is.Number);
+  await openFloatingWindow(denops, bufnr);
 
   await n.nvim_buf_set_lines(denops, bufnr, -1, -1, true, words);
   await n.nvim_buf_set_lines(denops, bufnr, 0, 1, true, []);
@@ -252,7 +245,7 @@ async function identifyAiderBuffer(
         is.Number,
       );
       if (job_id !== 0) {
-        return ({ job_id, winnr: i, bufnr });
+        return { job_id, winnr: i, bufnr };
       }
     }
   }
@@ -339,7 +332,7 @@ async function sendPromptFromSplitWindow(
   }
   const { job_id, winnr } = aiderBuffer;
 
-  if (await v.g.get(denops, "aider_buffer_open_type") !== "floating") {
+  if ((await v.g.get(denops, "aider_buffer_open_type")) !== "floating") {
     await denops.cmd(`${winnr}wincmd w`);
   } else {
     const totalWindows = ensure<number>(
