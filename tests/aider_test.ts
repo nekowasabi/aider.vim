@@ -5,7 +5,7 @@ import { test } from "./testRunner.ts";
 
 test("floating", "AiderRun should work", async (denops) => {
   await denops.cmd("AiderRun");
-  await sleep(100);
+  await sleep(10);
   await assertAiderBufferAlive(denops);
 });
 
