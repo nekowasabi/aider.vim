@@ -2,9 +2,9 @@ import * as fn from "https://deno.land/x/denops_std@v6.4.0/function/mod.ts";
 import type { Denops } from "https://deno.land/x/denops_std@v6.4.0/mod.ts";
 import * as v from "https://deno.land/x/denops_std@v6.4.0/variable/mod.ts";
 import {
-  ensure,
-  is,
-  maybe,
+	ensure,
+	is,
+	maybe,
 } from "https://deno.land/x/unknownutil@v3.17.0/mod.ts";
 import * as buffer from "./buffer.ts";
 
@@ -15,13 +15,13 @@ import * as buffer from "./buffer.ts";
  * @returns {Promise<string[] | undefined>} A promise that resolves to an array of additional prompts, or undefined if no prompts are found.
  */
 export async function getAdditionalPrompt(
-  denops: Denops,
+	denops: Denops,
 ): Promise<string[] | undefined> {
-  const prompts = maybe(
-    await v.g.get(denops, "aider_additional_prompt"),
-    is.ArrayOf(is.String),
-  );
-  return prompts || undefined;
+	const prompts = maybe(
+		await v.g.get(denops, "aider_additional_prompt"),
+		is.ArrayOf(is.String),
+	);
+	return prompts || undefined;
 }
 
 /**
@@ -30,8 +30,8 @@ export async function getAdditionalPrompt(
  * @returns {Promise<string>} A promise that resolves to the current file path.
  */
 export async function getCurrentFilePath(denops: Denops): Promise<string> {
-  const path = await fn.expand(denops, "%:p");
-  return ensure(path, is.String);
+	const path = await fn.expand(denops, "%:p");
+	return ensure(path, is.String);
 }
 
 /**
@@ -42,11 +42,11 @@ export async function getCurrentFilePath(denops: Denops): Promise<string> {
  * @throws {Error} Throws an error if the buffer name is not a string.
  */
 export async function getBufferName(
-  denops: Denops,
-  bufnr: number,
+	denops: Denops,
+	bufnr: number,
 ): Promise<string> {
-  const bufname = await fn.bufname(denops, bufnr);
-  return ensure(bufname, is.String);
+	const bufname = await fn.bufname(denops, bufnr);
+	return ensure(bufname, is.String);
 }
 
 /**
@@ -57,18 +57,18 @@ export async function getBufferName(
  * @returns {Promise<number | undefined>} The buffer number or undefined.
  */
 export async function getAiderBufferNr(
-  denops: Denops,
+	denops: Denops,
 ): Promise<number | undefined> {
-  // Get all open buffer numbers
-  const buf_count = ensure(await fn.bufnr(denops, "$"), is.Number);
+	// Get all open buffer numbers
+	const buf_count = ensure(await fn.bufnr(denops, "$"), is.Number);
 
-  for (let i = 1; i <= buf_count; i++) {
-    const bufnr = ensure(await fn.bufnr(denops, i), is.Number);
+	for (let i = 1; i <= buf_count; i++) {
+		const bufnr = ensure(await fn.bufnr(denops, i), is.Number);
 
-    if (await buffer.checkIfAiderBuffer(denops, bufnr)) {
-      return bufnr;
-    }
-  }
+		if (await buffer.checkIfAiderBuffer(denops, bufnr)) {
+			return bufnr;
+		}
+	}
 
-  return undefined;
+	return undefined;
 }
