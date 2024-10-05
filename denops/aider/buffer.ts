@@ -154,7 +154,8 @@ export async function openFloatingWindowWithSelectedCode(
     await fn.getbufvar(denops, "%", "&filetype"),
     is.String,
   );
-  words.unshift(`\`\`\`${filetype}`);
+  // biome-ignore lint: ignore useTemplate to avoid \`\`\`
+  words.unshift("```" + filetype);
   words.push("```");
 
   const bufnr = ensure(await n.nvim_create_buf(denops, false, true), is.Number);
