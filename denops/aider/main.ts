@@ -268,8 +268,6 @@ export async function main(denops: Denops): Promise<void> {
       }
     }),
 
-    await command("debug", "0", () => aider.debug(denops)),
-
     await command("hide", "0", async () => {
       await denops.cmd("close!");
       await denops.cmd("silent! e!");

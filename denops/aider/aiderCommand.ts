@@ -6,7 +6,6 @@ import { ensure, is } from "https://deno.land/x/unknownutil@v3.17.0/mod.ts";
 import * as util from "./utils.ts";
 
 export interface AiderCommands {
-  debug: typeof debug;
   run: typeof run;
   silentRun: typeof silentRun;
   sendPrompt: typeof sendPrompt;
@@ -15,7 +14,6 @@ export interface AiderCommands {
 }
 
 export const commands: AiderCommands = {
-  debug,
   run,
   silentRun,
   sendPrompt,
@@ -37,10 +35,6 @@ async function checkIfAiderBuffer(
   const name = await util.getBufferName(denops, bufnr);
   const splitted = name.split(" ");
   return splitted[0].endsWith("aider");
-}
-
-async function debug(denops: Denops): Promise<void> {
-  await denops.cmd("b#");
 }
 
 async function run(denops: Denops): Promise<void> {
