@@ -22,9 +22,11 @@ export async function main(denops: Denops): Promise<void> {
    * "0"の場合は引数なしの関数、"1"の場合は1つの引数を取る関数、
    * "*"の場合は2つの引数を取る関数を意味します。
    */
-  type ImplType<T extends ArgCount> = T extends "0" ? () => Promise<void>
-    : T extends "1" ? (arg: string) => Promise<void>
-    : (arg: string, arg2: string) => Promise<void>; // MEMO: ArgCountは*だが現状2つのみ対応している
+  type ImplType<T extends ArgCount> = T extends "0"
+    ? () => Promise<void>
+    : T extends "1"
+      ? (arg: string) => Promise<void>
+      : (arg: string, arg2: string) => Promise<void>; // MEMO: ArgCountは*だが現状2つのみ対応している
 
   /**
    * コマンドのオプションを定義
@@ -36,9 +38,11 @@ export async function main(denops: Denops): Promise<void> {
    * @property {boolean} [range] - 範囲指定が可能かどうかを示します。
    */
   type Opts<T extends ArgCount> = {
-    pattern?: T extends "0" ? undefined
-      : T extends "1" ? "[<f-args>]"
-      : "[<line1>, <line2>]";
+    pattern?: T extends "0"
+      ? undefined
+      : T extends "1"
+        ? "[<f-args>]"
+        : "[<line1>, <line2>]";
     complete?: T extends "1" ? "file" | "shellcmd" : undefined;
     range?: T extends "*" ? boolean : undefined;
   };
@@ -67,9 +71,9 @@ export async function main(denops: Denops): Promise<void> {
   ): Promise<Command> {
     const rangePart = opts.range ? "-range" : "";
 
-    const commandName = `Aider${dispatcherMethod.charAt(0).toUpperCase()}${
-      dispatcherMethod.slice(1)
-    }`;
+    const commandName = `Aider${dispatcherMethod.charAt(0).toUpperCase()}${dispatcherMethod.slice(
+      1,
+    )}`;
     const completePart = opts.complete ? `-complete=${opts.complete}` : "";
     const patternPart = opts.pattern ?? "[]";
 
@@ -106,14 +110,19 @@ export async function main(denops: Denops): Promise<void> {
 
     await command("silentRun", "0", () => aiderCommand.silentRun(denops)),
 
-    await command("addFile", "1", async (path: string) => {
-      const prompt = `/add ${path}`;
-      await buffer.sendPromptWithInput(denops, prompt);
-    }, { pattern: "[<f-args>]", complete: "file" }),
+    await command(
+      "addFile",
+      "1",
+      async (path: string) => {
+        const prompt = `/add ${path}`;
+        await buffer.sendPromptWithInput(denops, prompt);
+      },
+      { pattern: "[<f-args>]", complete: "file" },
+    ),
 
     await command("addCurrentFile", "0", async () => {
       const bufnr = await fn.bufnr(denops, "%");
-      if (await getAiderBufferNr(denops) === undefined) {
+      if ((await getAiderBufferNr(denops)) === undefined) {
         if (openBufferType === "floating") {
           await aiderCommand.silentRun(denops);
         } else {
@@ -132,20 +141,30 @@ export async function main(denops: Denops): Promise<void> {
       await buffer.sendPromptWithInput(denops, prompt);
     }),
 
-    await command("addWeb", "1", async (url: string) => {
-      const prompt = `/web ${url}`;
-      await buffer.sendPromptWithInput(denops, prompt);
-    }, { pattern: "[<f-args>]" }),
+    await command(
+      "addWeb",
+      "1",
+      async (url: string) => {
+        const prompt = `/web ${url}`;
+        await buffer.sendPromptWithInput(denops, prompt);
+      },
+      { pattern: "[<f-args>]" },
+    ),
 
     await command("paste", "0", async () => {
       const prompt = "/paste";
       await buffer.sendPromptWithInput(denops, prompt);
     }),
 
-    await command("ask", "1", async (question: string) => {
-      const prompt = `/ask ${question}`;
-      await buffer.sendPromptWithInput(denops, prompt);
-    }, { pattern: "[<f-args>]" }),
+    await command(
+      "ask",
+      "1",
+      async (question: string) => {
+        const prompt = `/ask ${question}`;
+        await buffer.sendPromptWithInput(denops, prompt);
+      },
+      { pattern: "[<f-args>]" },
+    ),
 
     await command("exit", "0", () => buffer.exitAiderBuffer(denops)),
 
@@ -164,8 +183,9 @@ export async function main(denops: Denops): Promise<void> {
     ),
 
     await command("openIgnore", "0", async () => {
-      const gitRoot = (await fn.system(denops, "git rev-parse --show-toplevel"))
-        .trim();
+      const gitRoot = (
+        await fn.system(denops, "git rev-parse --show-toplevel")
+      ).trim();
       const filePathToOpen = `${gitRoot}/.aiderignore`;
       if (await fn.filereadable(denops, filePathToOpen)) {
         await denops.cmd(`edit ${filePathToOpen}`);
@@ -199,10 +219,15 @@ export async function main(denops: Denops): Promise<void> {
       await denops.cmd("silent! e!");
     }),
 
-    await command("test", "1", async (cmd: string) => {
-      const prompt = `/test ${cmd}`;
-      await buffer.sendPromptWithInput(denops, prompt);
-    }, { pattern: "[<f-args>]", complete: "shellcmd" }),
+    await command(
+      "test",
+      "1",
+      async (cmd: string) => {
+        const prompt = `/test ${cmd}`;
+        await buffer.sendPromptWithInput(denops, prompt);
+      },
+      { pattern: "[<f-args>]", complete: "shellcmd" },
+    ),
   ];
 
   denops.dispatcher = Object.fromEntries(

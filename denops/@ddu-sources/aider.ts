@@ -24,10 +24,7 @@ export class Source extends BaseSource<Params> {
       async start(controller) {
         try {
           const result = ensure(
-            await args.denops.call(
-              "system",
-              "git ls-files",
-            ),
+            await args.denops.call("system", "git ls-files"),
             is.String,
           );
           const files = result
