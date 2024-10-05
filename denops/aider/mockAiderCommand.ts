@@ -1,11 +1,11 @@
 import { emit } from "https://deno.land/x/denops_std@v6.4.0/autocmd/mod.ts";
 import * as fn from "https://deno.land/x/denops_std@v6.4.0/function/mod.ts";
 import type { Denops } from "https://deno.land/x/denops_std@v6.4.0/mod.ts";
-import type { AiderCommands } from "./aiderCommand.ts";
+import type { AiderCommand } from "./aiderCommand.ts";
 
 let mockAiderBufnr: number | undefined = undefined;
 
-export const commands: AiderCommands = {
+export const commands: AiderCommand = {
   run: async (denops: Denops): Promise<undefined> => {
     const newBuf = await fn.bufnr(denops, "dummyaider", true);
     await emit(denops, "User", "AiderOpen");

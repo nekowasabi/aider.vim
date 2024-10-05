@@ -3,12 +3,11 @@ import { fromFileUrl } from "https://deno.land/std@0.217.0/path/mod.ts";
 import type { Denops } from "https://deno.land/x/denops_std@v6.4.0/mod.ts";
 import type { BufferLayout } from "../denops/aider/bufferOperation.ts";
 import { main } from "../denops/aider/main.ts";
-import { setupAiderCommands } from "../denops/aider/aiderCommand.ts";
+import * as aider from "../denops/aider/aiderCommand.ts";
 
 async function setup(denops: Denops, bufferLayout: BufferLayout) {
   const runtimepath = fromFileUrl(import.meta.resolve("../"));
-  await denops.cmd("let g:aider_test = v:true");
-  await setupAiderCommands(denops);
+  aider.setTestMode();
   await denops.cmd(`set runtimepath^=${runtimepath}`);
   await denops.cmd(`let g:aider_command = "${runtimepath}tests/mockServer.ts"`);
   await denops.cmd(`let g:aider_buffer_open_type = "${bufferLayout}"`);

@@ -1,6 +1,6 @@
 import * as fn from "https://deno.land/x/denops_std@v6.4.0/function/mod.ts";
 import type { Denops } from "https://deno.land/x/denops_std@v6.4.0/mod.ts";
-import { aider, setupAiderCommands } from "./aiderCommand.ts";
+import { aider } from "./aiderCommand.ts";
 import * as buffer from "./bufferOperation.ts";
 import type { BufferLayout } from "./bufferOperation.ts";
 import { getCurrentFilePath } from "./utils.ts";
@@ -85,8 +85,6 @@ export async function main(denops: Denops): Promise<void> {
       impl: impl,
     };
   }
-
-  await setupAiderCommands(denops);
 
   const openBufferType: BufferLayout = await buffer.getOpenBufferType(denops);
 
