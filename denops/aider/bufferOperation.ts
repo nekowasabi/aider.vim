@@ -126,7 +126,6 @@ export async function sendPromptByBuffer(
 
 export async function openFloatingWindowWithSelectedCode(
   denops: Denops,
-  aiderBuf: AiderBuffer | undefined,
   start: unknown,
   end: unknown,
   openBufferType: BufferLayout,
@@ -135,6 +134,7 @@ export async function openFloatingWindowWithSelectedCode(
     await denops.call("getline", start, end),
     is.ArrayOf(is.String),
   );
+  const aiderBuf = await getAiderBuffer(denops);
   if (openBufferType !== "floating") {
     if (aiderBuf === undefined) {
       await denops.cmd("echo 'Aider is not running'");

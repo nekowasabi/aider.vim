@@ -169,10 +169,8 @@ export async function main(denops: Denops): Promise<void> {
       "visualTextWithPrompt",
       "*",
       async (start: string, end: string) => {
-        const aiderBuf = await buffer.getAiderBuffer(denops);
         await buffer.openFloatingWindowWithSelectedCode(
           denops,
-          aiderBuf,
           start,
           end,
           openBufferType,
