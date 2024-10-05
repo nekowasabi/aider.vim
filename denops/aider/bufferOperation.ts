@@ -1,4 +1,3 @@
-import { emit } from "https://deno.land/x/denops_std@v6.4.0/autocmd/mod.ts";
 import * as fn from "https://deno.land/x/denops_std@v6.4.0/function/mod.ts";
 import { feedkeys } from "https://deno.land/x/denops_std@v6.4.0/function/mod.ts";
 import * as n from "https://deno.land/x/denops_std@v6.4.0/function/nvim/mod.ts";
@@ -64,14 +63,12 @@ export async function openAiderBuffer(
 ): Promise<undefined | boolean> {
   if (aiderBuf && openBufferType === "floating") {
     await openFloatingWindow(denops, aiderBuf.bufnr);
-    await emit(denops, "User", "AiderOpen");
     return true;
   }
 
   if (openBufferType === "split" || openBufferType === "vsplit") {
     if (aiderBuf === undefined) {
       await denops.cmd(openBufferType);
-      await emit(denops, "User", "AiderOpen");
     } else {
       await openSplitWindow(denops);
     }
@@ -82,7 +79,6 @@ export async function openAiderBuffer(
 
   await openFloatingWindow(denops, bufnr);
 
-  await emit(denops, "User", "AiderOpen");
   return;
 }
 
@@ -140,7 +136,6 @@ export async function sendPromptByBuffer(
     );
   }
 
-  await emit(denops, "User", "AiderOpen");
   return;
 }
 
@@ -354,6 +349,14 @@ export async function getAiderBuffer(
         await fn.getbufvar(denops, bufnr, "&channel"),
         is.Number,
       );
+
+      // if the process is not running, kill the buffer and return undefined
+      if (jobId === 0) {
+        await denops.cmd(`b ${bufnr}`);
+        await denops.cmd("bdelete!");
+        return undefined;
+      }
+
       if (await checkBufferOpen(denops, bufnr)) {
         const winnr = ensure(await fn.bufwinnr(denops, bufnr), is.Number);
         return { jobId, winnr, bufnr };
