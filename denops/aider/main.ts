@@ -130,16 +130,11 @@ export async function main(denops: Denops): Promise<void> {
       async (path: string) => {
         const prompt = `/add ${path}`;
 
-        const bufnr = await buffer.getAiderBuffer(
+        const buf = await buffer.getAiderBuffer(
           denops,
           aider.checkIfAiderBuffer,
         );
-        await buffer.sendPromptWithInput(
-          denops,
-          bufnr,
-          aider.sendPrompt,
-          prompt,
-        );
+        await buffer.sendPromptWithInput(denops, buf, aider.sendPrompt, prompt);
       },
       { pattern: "[<f-args>]", complete: "file" },
     ),
@@ -186,27 +181,19 @@ export async function main(denops: Denops): Promise<void> {
       "1",
       async (url: string) => {
         const prompt = `/web ${url}`;
-        const bufnr = await buffer.getAiderBuffer(
+        const buf = await buffer.getAiderBuffer(
           denops,
           aider.checkIfAiderBuffer,
         );
-        await buffer.sendPromptWithInput(
-          denops,
-          bufnr,
-          aider.sendPrompt,
-          prompt,
-        );
+        await buffer.sendPromptWithInput(denops, buf, aider.sendPrompt, prompt);
       },
       { pattern: "[<f-args>]" },
     ),
 
     await command("paste", "0", async () => {
       const prompt = "/paste";
-      const bufnr = await buffer.getAiderBuffer(
-        denops,
-        aider.checkIfAiderBuffer,
-      );
-      await buffer.sendPromptWithInput(denops, bufnr, aider.sendPrompt, prompt);
+      const buf = await buffer.getAiderBuffer(denops, aider.checkIfAiderBuffer);
+      await buffer.sendPromptWithInput(denops, buf, aider.sendPrompt, prompt);
     }),
 
     await command(
