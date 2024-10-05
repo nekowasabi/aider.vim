@@ -10,8 +10,7 @@
     "ignore": []
   },
   "formatter": {
-    "enabled": true,
-    "indentStyle": "space"
+    "enabled": false // use deno fmt
   },
   "organizeImports": {
     "enabled": true

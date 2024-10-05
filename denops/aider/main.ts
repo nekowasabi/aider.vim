@@ -22,11 +22,9 @@ export async function main(denops: Denops): Promise<void> {
    * "0"の場合は引数なしの関数、"1"の場合は1つの引数を取る関数、
    * "*"の場合は2つの引数を取る関数を意味します。
    */
-  type ImplType<T extends ArgCount> = T extends "0"
-    ? () => Promise<void>
-    : T extends "1"
-      ? (arg: string) => Promise<void>
-      : (arg: string, arg2: string) => Promise<void>; // MEMO: ArgCountは*だが現状2つのみ対応している
+  type ImplType<T extends ArgCount> = T extends "0" ? () => Promise<void>
+    : T extends "1" ? (arg: string) => Promise<void>
+    : (arg: string, arg2: string) => Promise<void>; // MEMO: ArgCountは*だが現状2つのみ対応している
 
   /**
    * コマンドのオプションを定義
@@ -38,11 +36,9 @@ export async function main(denops: Denops): Promise<void> {
    * @property {boolean} [range] - 範囲指定が可能かどうかを示します。
    */
   type Opts<T extends ArgCount> = {
-    pattern?: T extends "0"
-      ? undefined
-      : T extends "1"
-        ? "[<f-args>]"
-        : "[<line1>, <line2>]";
+    pattern?: T extends "0" ? undefined
+      : T extends "1" ? "[<f-args>]"
+      : "[<line1>, <line2>]";
     complete?: T extends "1" ? "file" | "shellcmd" : undefined;
     range?: T extends "*" ? boolean : undefined;
   };
@@ -71,7 +67,9 @@ export async function main(denops: Denops): Promise<void> {
   ): Promise<Command> {
     const rangePart = opts.range ? "-range" : "";
 
-    const commandName = `Aider${dispatcherMethod.charAt(0).toUpperCase()}${dispatcherMethod.slice(1)}`;
+    const commandName = `Aider${dispatcherMethod.charAt(0).toUpperCase()}${
+      dispatcherMethod.slice(1)
+    }`;
     const completePart = opts.complete ? `-complete=${opts.complete}` : "";
     const patternPart = opts.pattern ?? "[]";
 
@@ -87,8 +85,10 @@ export async function main(denops: Denops): Promise<void> {
   const openBufferType: BufferLayout = await buffer.getOpenBufferType(denops);
 
   const commands: Command[] = [
-    await command("sendPrompt", "0", () =>
-      buffer.sendPromptByBuffer(denops, openBufferType),
+    await command(
+      "sendPrompt",
+      "0",
+      () => buffer.sendPromptByBuffer(denops, openBufferType),
     ),
     await command("run", "0", async () => {
       if (await buffer.openAiderBuffer(denops, openBufferType)) {
