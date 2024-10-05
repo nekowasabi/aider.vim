@@ -331,13 +331,9 @@ export async function getAiderBuffer(
         is.Number,
       );
 
-      // TODO testmodeの分岐をどうにかする
-      const testMode =
-        maybe(await v.g.get(denops, "aider_test"), is.Boolean) ?? false;
-
       // testMode時はjobを走らせていないのでその場合は0でも許容
       // if the process is not running, kill the buffer and continue finding
-      if (!testMode && jobId === 0) {
+      if (!aider().isTestMode() && jobId === 0) {
         await denops.cmd(`b ${bufnr}`);
         await denops.cmd("bdelete!");
         continue;

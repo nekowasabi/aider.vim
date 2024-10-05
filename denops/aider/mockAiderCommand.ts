@@ -25,7 +25,11 @@ export const commands: AiderCommand = {
     await fn.feedkeys(denops, `input: ${prompt}\n`);
   },
 
-  exit: async (denops: Denops): Promise<undefined> => {
+  exit: async (
+    denops: Denops,
+    _jobId: number,
+    _bufnr: number,
+  ): Promise<undefined> => {
     if (mockAiderBufnr === undefined) {
       return;
     }
@@ -38,4 +42,5 @@ export const commands: AiderCommand = {
   checkIfAiderBuffer: async (_: Denops, bufnr: number): Promise<boolean> => {
     return bufnr === mockAiderBufnr;
   },
+  isTestMode: () => true,
 };

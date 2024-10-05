@@ -10,8 +10,9 @@ export interface AiderCommand {
     jobId: number,
     prompt: string,
   ) => Promise<undefined>;
-  exit: (denops: Denops) => Promise<undefined>;
+  exit: (denops: Denops, jobId: number, bufnr: number) => Promise<undefined>;
   checkIfAiderBuffer: (denops: Denops, bufnr: number) => Promise<boolean>;
+  isTestMode: () => boolean;
 }
 
 let testMode = false;

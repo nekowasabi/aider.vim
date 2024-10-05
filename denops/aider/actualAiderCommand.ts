@@ -4,13 +4,15 @@ import type { Denops } from "https://deno.land/x/denops_std@v6.4.0/mod.ts";
 import * as v from "https://deno.land/x/denops_std@v6.4.0/variable/mod.ts";
 import { ensure, is } from "https://deno.land/x/unknownutil@v3.17.0/mod.ts";
 import * as util from "./utils.ts";
+import type { AiderCommand } from "./aiderCommand.ts";
 
-export const commands = {
+export const commands: AiderCommand = {
   run,
   silentRun,
   sendPrompt,
   exit,
   checkIfAiderBuffer,
+  isTestMode,
 };
 /**
  * バッファがAiderバッファかどうかを確認します。
@@ -84,4 +86,8 @@ async function exit(
 ): Promise<undefined> {
   await denops.call("chansend", jobId, "/exit\n");
   await denops.cmd(`bdelete! ${bufnr}`);
+}
+
+function isTestMode(): boolean {
+  return false;
 }
