@@ -1,4 +1,5 @@
 import * as fn from "https://deno.land/x/denops_std@v6.4.0/function/mod.ts";
+import { emit } from "https://deno.land/x/denops_std@v6.4.0/autocmd/mod.ts";
 import type { Denops } from "https://deno.land/x/denops_std@v6.4.0/mod.ts";
 import * as v from "https://deno.land/x/denops_std@v6.4.0/variable/mod.ts";
 import { ensure, is } from "https://deno.land/x/unknownutil@v3.17.0/mod.ts";
@@ -48,6 +49,7 @@ async function run(denops: Denops): Promise<void> {
     is.String,
   );
   await denops.cmd(`terminal ${aiderCommand}`);
+  await emit(denops, "User", "AiderOpen");
 }
 
 /**
@@ -65,6 +67,7 @@ async function silentRun(denops: Denops): Promise<void> {
     is.String,
   );
   await denops.cmd(`terminal ${aiderCommand}`);
+  await emit(denops, "User", "AiderOpen");
 
   await denops.cmd("b#");
 
