@@ -6,6 +6,8 @@ import {
   type Item,
   type SourceOptions,
 } from "https://deno.land/x/ddu_vim@v3.10.2/types.ts";
+import { ensure, is } from "https://deno.land/x/unknownutil@v3.17.0/mod.ts";
+
 type Params = Record<never, never>;
 
 export class Source extends BaseSource<Params> {
@@ -21,10 +23,13 @@ export class Source extends BaseSource<Params> {
     return new ReadableStream<Item<ActionData>[]>({
       async start(controller) {
         try {
-          const result = (await args.denops.call(
-            "system",
-            "git ls-files",
-          )) as string;
+          const result = ensure(
+            await args.denops.call(
+              "system",
+              "git ls-files",
+            ),
+            is.String,
+          );
           const files = result
             .split("\n")
             .filter((file: string) => file !== "");
