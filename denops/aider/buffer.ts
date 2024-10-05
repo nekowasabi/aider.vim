@@ -233,7 +233,7 @@ export async function openSplitWindow(denops: Denops): Promise<void> {
  *
  * @returns {Promise<{ job_id: number, winnr: number, bufnr: number }>}
  */
-async function identifyAiderBuffer(
+export async function identifyAiderBuffer(
 	denops: Denops,
 ): Promise<{ job_id: number; winnr: number; bufnr: number } | undefined> {
 	const win_count = ensure(await fn.winnr(denops, "$"), is.Number);
