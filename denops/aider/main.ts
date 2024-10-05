@@ -3,7 +3,7 @@ import type { Denops } from "https://deno.land/x/denops_std@v6.4.0/mod.ts";
 import * as aiderCommand from "./aiderCommand.ts";
 import * as buffer from "./buffer.ts";
 import type { BufferLayout } from "./buffer.ts";
-import { getAiderBufferNr, getCurrentFilePath } from "./utils.ts";
+import { getCurrentFilePath } from "./utils.ts";
 
 /**
  * The main function that sets up the Aider plugin functionality.
@@ -98,7 +98,7 @@ export async function main(denops: Denops): Promise<void> {
 				return;
 			}
 
-			const aiderBufnr = await getAiderBufferNr(denops);
+			const aiderBufnr = await aiderCommand.getAiderBufferNr(denops);
 			if (aiderBufnr === undefined) {
 				// aiderを実行する
 				await aiderCommand.run(denops);
@@ -122,7 +122,7 @@ export async function main(denops: Denops): Promise<void> {
 
 		await command("addCurrentFile", "0", async () => {
 			const bufnr = await fn.bufnr(denops, "%");
-			if ((await getAiderBufferNr(denops)) === undefined) {
+			if ((await aiderCommand.getAiderBufferNr(denops)) === undefined) {
 				if (openBufferType === "floating") {
 					await aiderCommand.silentRun(denops);
 				} else {

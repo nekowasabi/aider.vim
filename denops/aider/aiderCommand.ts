@@ -2,6 +2,23 @@ import * as fn from "https://deno.land/x/denops_std@v6.4.0/function/mod.ts";
 import type { Denops } from "https://deno.land/x/denops_std@v6.4.0/mod.ts";
 import * as v from "https://deno.land/x/denops_std@v6.4.0/variable/mod.ts";
 import { ensure, is } from "https://deno.land/x/unknownutil@v3.17.0/mod.ts";
+import * as util from "./utils.ts";
+
+/**
+ * バッファがAiderバッファかどうかを確認します。
+ * @param {Denops} denops - Denopsインスタンス
+ * @param {number} bufnr - バッファ番号
+ * @returns {Promise<boolean>}
+ */
+export async function checkIfAiderBuffer(
+	denops: Denops,
+	bufnr: number,
+): Promise<boolean> {
+	// aiderバッファの場合 `term://{path}//{pid}:aider --4o --no-auto-commits` のような名前になっている
+	const name = await util.getBufferName(denops, bufnr);
+	const splitted = name.split(" ");
+	return splitted[0].endsWith("aider");
+}
 
 export async function debug(denops: Denops): Promise<void> {
 	await denops.cmd("b#");
@@ -61,4 +78,27 @@ export async function exit(
 ): Promise<void> {
 	await denops.call("chansend", jobId, "/exit\n");
 	await denops.cmd(`bdelete! ${bufnr}`);
+}
+/**
+ * Gets the buffer number of the first buffer that matches the condition of checkIfAiderBuffer.
+ * If no matching buffer is found, the function returns undefined.
+ *
+ * @param {Denops} denops - The Denops instance.
+ * @returns {Promise<number | undefined>} The buffer number or undefined.
+ */
+export async function getAiderBufferNr(
+	denops: Denops,
+): Promise<number | undefined> {
+	// Get all open buffer numbers
+	const buf_count = ensure(await fn.bufnr(denops, "$"), is.Number);
+
+	for (let i = 1; i <= buf_count; i++) {
+		const bufnr = ensure(await fn.bufnr(denops, i), is.Number);
+
+		if (await checkIfAiderBuffer(denops, bufnr)) {
+			return bufnr;
+		}
+	}
+
+	return undefined;
 }

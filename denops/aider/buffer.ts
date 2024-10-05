@@ -10,11 +10,7 @@ import {
 	maybe,
 } from "https://deno.land/x/unknownutil@v3.17.0/mod.ts";
 import * as aiderCommand from "./aiderCommand.ts";
-import {
-	getAdditionalPrompt,
-	getAiderBufferNr,
-	getBufferName,
-} from "./utils.ts";
+import { getAdditionalPrompt } from "./utils.ts";
 
 /**
  * Enum representing different buffer layout options.
@@ -63,7 +59,7 @@ export async function openAiderBuffer(
 	denops: Denops,
 	openBufferType: BufferLayout,
 ): Promise<undefined | boolean> {
-	const aiderBufnr = await getAiderBufferNr(denops);
+	const aiderBufnr = await aiderCommand.getAiderBufferNr(denops);
 	if (aiderBufnr && openBufferType === "floating") {
 		await openFloatingWindow(denops, aiderBufnr);
 		await emit(denops, "User", "AiderOpen");
@@ -92,7 +88,7 @@ export async function sendPromptWithInput(
 	denops: Denops,
 	input: string,
 ): Promise<void> {
-	const bufnr = await getAiderBufferNr(denops);
+	const bufnr = await aiderCommand.getAiderBufferNr(denops);
 	if (bufnr === undefined) {
 		await denops.cmd("echo 'Aider is not running'");
 		await denops.cmd("AiderRun");
@@ -142,7 +138,7 @@ export async function openFloatingWindowWithSelectedCode(
 		is.ArrayOf(is.String),
 	);
 	if (openBufferType !== "floating") {
-		const bufnr = await getAiderBufferNr(denops);
+		const bufnr = await aiderCommand.getAiderBufferNr(denops);
 		if (bufnr === undefined) {
 			await denops.cmd("echo 'Aider is not running'");
 			await denops.cmd("AiderRun");
@@ -189,21 +185,6 @@ export async function openFloatingWindowWithSelectedCode(
 		},
 	);
 }
-/**
- * バッファがAiderバッファかどうかを確認します。
- * @param {Denops} denops - Denopsインスタンス
- * @param {number} bufnr - バッファ番号
- * @returns {Promise<boolean>}
- */
-export async function checkIfAiderBuffer(
-	denops: Denops,
-	bufnr: number,
-): Promise<boolean> {
-	// aiderバッファの場合 `term://{path}//{pid}:aider --4o --no-auto-commits` のような名前になっている
-	const name = await getBufferName(denops, bufnr);
-	const splitted = name.split(" ");
-	return splitted[0].endsWith("aider");
-}
 
 /**
  * バッファがターミナルバッファかどうかを確認します。
@@ -240,7 +221,7 @@ export async function identifyAiderBuffer(
 	for (let i = 1; i <= win_count; i++) {
 		const bufnr = ensure(await fn.winbufnr(denops, i), is.Number);
 
-		if (await checkIfAiderBuffer(denops, bufnr)) {
+		if (await aiderCommand.checkIfAiderBuffer(denops, bufnr)) {
 			const job_id = ensure<number>(
 				await fn.getbufvar(denops, bufnr, "&channel"),
 				is.Number,
@@ -297,7 +278,7 @@ async function sendPromptFromFloatingWindow(
 	denops: Denops,
 	prompt: string,
 ): Promise<void> {
-	const bufnr = await getAiderBufferNr(denops);
+	const bufnr = await aiderCommand.getAiderBufferNr(denops);
 	if (bufnr === undefined) {
 		return;
 	}
