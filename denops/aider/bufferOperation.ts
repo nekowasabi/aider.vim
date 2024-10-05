@@ -333,10 +333,10 @@ export async function getAiderBuffer(
       );
 
       // testMode時はjobを走らせていないのでその場合は0でも許容
-      // if the process is not running, kill the buffer and continue finding
+      // プロセスが動いていない場合(session復元時など)はバッファを削除
       if (!aider().isTestMode() && jobId === 0) {
         await denops.cmd(`b ${bufnr}`);
-        await denops.cmd("bdelete!");
+        await denops.cmd("bp | sp | bn | bd!"); // delete buffer without changing window
         continue;
       }
 
