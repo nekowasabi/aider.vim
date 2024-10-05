@@ -1,10 +1,11 @@
 import { assert } from "https://deno.land/std@0.217.0/assert/assert.ts";
 import type { Denops } from "https://deno.land/x/denops_std@v6.4.0/mod.ts";
 import * as buffer from "../denops/aider/buffer.ts";
-import { getAiderBufferNr } from "../denops/aider/utils.ts";
+import * as aiderCommand from "../denops/aider/aiderCommand.ts";
 
 export const sleep = (msec: number) =>
   new Promise((resolve) => setTimeout(resolve, msec));
+
 /**
  * Aiderバッファが開かれており、ウィンドウに表示されているかをアサートします
  */
@@ -25,6 +26,6 @@ export async function assertAiderBufferHidden(denops: Denops): Promise<void> {
  * Aiderバッファが開かれていることをアサートします
  */
 export async function assertAiderBufferAlive(denops: Denops): Promise<void> {
-  const bufnr = await getAiderBufferNr(denops);
+  const bufnr = await aiderCommand.getAiderBufferNr(denops);
   assert(bufnr !== undefined);
 }
