@@ -85,11 +85,10 @@ export async function main(denops: Denops): Promise<void> {
   const openBufferType: BufferLayout = await buffer.getOpenBufferType(denops);
 
   const commands: Command[] = [
-    await command(
-      "sendPrompt",
-      "0",
-      () => buffer.sendPromptByBuffer(denops, openBufferType),
-    ),
+    await command("sendPrompt", "0", async () => {
+      await buffer.sendPromptByBuffer(denops, openBufferType);
+    }),
+
     await command("run", "0", async () => {
       if (await buffer.openAiderBuffer(denops, openBufferType)) {
         return;
@@ -104,16 +103,14 @@ export async function main(denops: Denops): Promise<void> {
 
       await denops.cmd(`buffer ${aiderBufnr}`);
     }),
+
     await command("silentRun", "0", () => aiderCommand.silentRun(denops)),
-    await command(
-      "addFile",
-      "1",
-      async (path: string) => {
-        const prompt = `/add ${path}`;
-        await buffer.sendPromptWithInput(denops, prompt);
-      },
-      { pattern: "[<f-args>]", complete: "file" },
-    ),
+
+    await command("addFile", "1", async (path: string) => {
+      const prompt = `/add ${path}`;
+      await buffer.sendPromptWithInput(denops, prompt);
+    }, { pattern: "[<f-args>]", complete: "file" }),
+
     await command("addCurrentFile", "0", async () => {
       const bufnr = await fn.bufnr(denops, "%");
       if (await getAiderBufferNr(denops) === undefined) {
@@ -134,29 +131,24 @@ export async function main(denops: Denops): Promise<void> {
       const prompt = `/add ${currentFile}`;
       await buffer.sendPromptWithInput(denops, prompt);
     }),
-    await command(
-      "addWeb",
-      "1",
-      async (url: string) => {
-        const prompt = `/web ${url}`;
-        await buffer.sendPromptWithInput(denops, prompt);
-      },
-      { pattern: "[<f-args>]" },
-    ),
+
+    await command("addWeb", "1", async (url: string) => {
+      const prompt = `/web ${url}`;
+      await buffer.sendPromptWithInput(denops, prompt);
+    }, { pattern: "[<f-args>]" }),
+
     await command("paste", "0", async () => {
       const prompt = "/paste";
       await buffer.sendPromptWithInput(denops, prompt);
     }),
-    await command(
-      "ask",
-      "1",
-      async (question: string) => {
-        const prompt = `/ask ${question}`;
-        await buffer.sendPromptWithInput(denops, prompt);
-      },
-      { pattern: "[<f-args>]" },
-    ),
+
+    await command("ask", "1", async (question: string) => {
+      const prompt = `/ask ${question}`;
+      await buffer.sendPromptWithInput(denops, prompt);
+    }, { pattern: "[<f-args>]" }),
+
     await command("exit", "0", () => buffer.exitAiderBuffer(denops)),
+
     await command(
       "visualTextWithPrompt",
       "*",
@@ -170,6 +162,7 @@ export async function main(denops: Denops): Promise<void> {
       },
       { pattern: "[<line1>, <line2>]", range: true },
     ),
+
     await command("openIgnore", "0", async () => {
       const gitRoot = (await fn.system(denops, "git rev-parse --show-toplevel"))
         .trim();
@@ -180,6 +173,7 @@ export async function main(denops: Denops): Promise<void> {
       }
       console.log(".aiderignore file not found.");
     }),
+
     await command("addIgnoreCurrentFile", "0", async () => {
       {
         const currentFile = await getCurrentFilePath(denops);
@@ -197,20 +191,18 @@ export async function main(denops: Denops): Promise<void> {
         console.log(`Added ${currentFile} to .aiderignore`);
       }
     }),
+
     await command("debug", "0", () => aiderCommand.debug(denops)),
+
     await command("hide", "0", async () => {
       await denops.cmd("close!");
       await denops.cmd("silent! e!");
     }),
-    await command(
-      "test",
-      "1",
-      async (cmd: string) => {
-        const prompt = `/test ${cmd}`;
-        await buffer.sendPromptWithInput(denops, prompt);
-      },
-      { pattern: "[<f-args>]", complete: "shellcmd" },
-    ),
+
+    await command("test", "1", async (cmd: string) => {
+      const prompt = `/test ${cmd}`;
+      await buffer.sendPromptWithInput(denops, prompt);
+    }, { pattern: "[<f-args>]", complete: "shellcmd" }),
   ];
 
   denops.dispatcher = Object.fromEntries(
