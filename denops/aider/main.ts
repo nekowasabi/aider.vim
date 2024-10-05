@@ -1,9 +1,12 @@
 import * as fn from "https://deno.land/x/denops_std@v6.4.0/function/mod.ts";
+import * as v from "https://deno.land/x/denops_std@v6.4.0/variable/mod.ts";
 import type { Denops } from "https://deno.land/x/denops_std@v6.4.0/mod.ts";
+import * as mockAiderCommand from "./mockAiderCommand.ts";
 import * as actualAiderCommand from "./aiderCommand.ts";
 import * as buffer from "./bufferOperation.ts";
 import type { BufferLayout } from "./bufferOperation.ts";
 import { getCurrentFilePath } from "./utils.ts";
+import { is, maybe } from "https://deno.land/x/unknownutil@v3.17.0/mod.ts";
 
 /**
  * The main function that sets up the Aider plugin functionality.
@@ -86,7 +89,10 @@ export async function main(denops: Denops): Promise<void> {
     };
   }
 
-  const aider = actualAiderCommand.commands;
+  const isTest = maybe(await v.g.get(denops, "aider_testing"), is.Boolean);
+  const aider = isTest
+    ? mockAiderCommand.commands
+    : actualAiderCommand.commands;
 
   const openBufferType: BufferLayout = await buffer.getOpenBufferType(denops);
 

@@ -37,7 +37,7 @@ async function checkIfAiderBuffer(
   return splitted[0].endsWith("aider");
 }
 
-async function run(denops: Denops): Promise<void> {
+async function run(denops: Denops): Promise<undefined> {
   const aiderCommand = ensure(
     await v.g.get(denops, "aider_command"),
     is.String,
@@ -51,9 +51,9 @@ async function run(denops: Denops): Promise<void> {
  * 新しいバッファを作成し、Aiderコマンドをターミナルで実行した後、
  * 前のバッファに戻ります。
  * @param {Denops} denops - Denopsインスタンス
- * @returns {Promise<void>}
+ * @returns {Promise<undefined>}
  */
-async function silentRun(denops: Denops): Promise<void> {
+async function silentRun(denops: Denops): Promise<undefined> {
   await denops.cmd("enew");
 
   const aiderCommand = ensure(
@@ -73,13 +73,13 @@ async function silentRun(denops: Denops): Promise<void> {
  * @param {Denops} denops - Denops instance
  * @param {number} jobId - The job id to send the message to
  * @param {string} prompt - The prompt to send
- * @returns {Promise<void>}
+ * @returns {Promise<undefined>}
  */
 async function sendPrompt(
   denops: Denops,
   jobId: number,
   prompt: string,
-): Promise<void> {
+): Promise<undefined> {
   await v.r.set(denops, "q", prompt);
   await fn.feedkeys(denops, "G");
   await fn.feedkeys(denops, '"qp');
@@ -90,7 +90,7 @@ async function exit(
   denops: Denops,
   jobId: number,
   bufnr: number,
-): Promise<void> {
+): Promise<undefined> {
   await denops.call("chansend", jobId, "/exit\n");
   await denops.cmd(`bdelete! ${bufnr}`);
 }
