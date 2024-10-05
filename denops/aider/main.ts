@@ -1,12 +1,9 @@
 import * as fn from "https://deno.land/x/denops_std@v6.4.0/function/mod.ts";
-import * as v from "https://deno.land/x/denops_std@v6.4.0/variable/mod.ts";
 import type { Denops } from "https://deno.land/x/denops_std@v6.4.0/mod.ts";
-import * as mockAiderCommand from "./mockAiderCommand.ts";
-import * as actualAiderCommand from "./aiderCommand.ts";
+import { aider, setupAiderCommands } from "./aiderCommand.ts";
 import * as buffer from "./bufferOperation.ts";
 import type { BufferLayout } from "./bufferOperation.ts";
 import { getCurrentFilePath } from "./utils.ts";
-import { is, maybe } from "https://deno.land/x/unknownutil@v3.17.0/mod.ts";
 
 /**
  * The main function that sets up the Aider plugin functionality.
@@ -89,42 +86,27 @@ export async function main(denops: Denops): Promise<void> {
     };
   }
 
-  const testMode =
-    maybe(await v.g.get(denops, "aider_test"), is.Boolean) ?? false;
-  const aider = testMode
-    ? mockAiderCommand.commands
-    : actualAiderCommand.commands;
+  await setupAiderCommands(denops);
 
   const openBufferType: BufferLayout = await buffer.getOpenBufferType(denops);
 
   const commands: Command[] = [
     await command("sendPrompt", "0", async () => {
-      const aiderBuf = await buffer.getAiderBuffer(
-        denops,
-        aider.checkIfAiderBuffer,
-      );
-      await buffer.sendPromptByBuffer(
-        denops,
-        aiderBuf,
-        aider.sendPrompt,
-        openBufferType,
-      );
+      const aiderBuf = await buffer.getAiderBuffer(denops);
+      await buffer.sendPromptByBuffer(denops, aiderBuf, openBufferType);
     }),
 
     await command("run", "0", async () => {
-      const aiderBuf = await buffer.getAiderBuffer(
-        denops,
-        aider.checkIfAiderBuffer,
-      );
+      const aiderBuf = await buffer.getAiderBuffer(denops);
       await buffer.openAiderBuffer(denops, aiderBuf, openBufferType);
 
       if (aiderBuf === undefined) {
-        await aider.run(denops);
+        aider().run;
         return;
       }
     }),
 
-    await command("silentRun", "0", () => aider.silentRun(denops)),
+    await command("silentRun", "0", () => aider().silentRun(denops)),
 
     await command(
       "addFile",
@@ -132,30 +114,21 @@ export async function main(denops: Denops): Promise<void> {
       async (path: string) => {
         const prompt = `/add ${path}`;
 
-        const buf = await buffer.getAiderBuffer(
-          denops,
-          aider.checkIfAiderBuffer,
-        );
-        await buffer.sendPromptWithInput(denops, buf, aider.sendPrompt, prompt);
+        const buf = await buffer.getAiderBuffer(denops);
+        await buffer.sendPromptWithInput(denops, buf, prompt);
       },
       { pattern: "[<f-args>]", complete: "file" },
     ),
 
     await command("addCurrentFile", "0", async () => {
       const currentBufnr = await fn.bufnr(denops, "%");
-      if (
-        (await buffer.getAiderBuffer(denops, aider.checkIfAiderBuffer)) ===
-        undefined
-      ) {
+      if ((await buffer.getAiderBuffer(denops)) === undefined) {
         if (openBufferType === "floating") {
-          await aider.silentRun(denops);
+          await aider().silentRun(denops);
         } else {
-          const aiderBuf = await buffer.getAiderBuffer(
-            denops,
-            aider.checkIfAiderBuffer,
-          );
+          const aiderBuf = await buffer.getAiderBuffer(denops);
           await buffer.openAiderBuffer(denops, aiderBuf, openBufferType);
-          await aider.run(denops);
+          await aider().run(denops);
           await denops.cmd("wincmd p");
           console.log("Run AiderAddCurrentFile again.");
           return;
@@ -166,16 +139,8 @@ export async function main(denops: Denops): Promise<void> {
       }
       const currentFile = await getCurrentFilePath(denops);
       const prompt = `/add ${currentFile}`;
-      const aiderBuf = await buffer.getAiderBuffer(
-        denops,
-        aider.checkIfAiderBuffer,
-      );
-      await buffer.sendPromptWithInput(
-        denops,
-        aiderBuf,
-        aider.sendPrompt,
-        prompt,
-      );
+      const aiderBuf = await buffer.getAiderBuffer(denops);
+      await buffer.sendPromptWithInput(denops, aiderBuf, prompt);
     }),
 
     await command(
@@ -183,19 +148,16 @@ export async function main(denops: Denops): Promise<void> {
       "1",
       async (url: string) => {
         const prompt = `/web ${url}`;
-        const buf = await buffer.getAiderBuffer(
-          denops,
-          aider.checkIfAiderBuffer,
-        );
-        await buffer.sendPromptWithInput(denops, buf, aider.sendPrompt, prompt);
+        const buf = await buffer.getAiderBuffer(denops);
+        await buffer.sendPromptWithInput(denops, buf, prompt);
       },
       { pattern: "[<f-args>]" },
     ),
 
     await command("paste", "0", async () => {
       const prompt = "/paste";
-      const buf = await buffer.getAiderBuffer(denops, aider.checkIfAiderBuffer);
-      await buffer.sendPromptWithInput(denops, buf, aider.sendPrompt, prompt);
+      const buf = await buffer.getAiderBuffer(denops);
+      await buffer.sendPromptWithInput(denops, buf, prompt);
     }),
 
     await command(
@@ -203,32 +165,19 @@ export async function main(denops: Denops): Promise<void> {
       "1",
       async (question: string) => {
         const prompt = `/ask ${question}`;
-        const aiderBuf = await buffer.getAiderBuffer(
-          denops,
-          aider.checkIfAiderBuffer,
-        );
-        await buffer.sendPromptWithInput(
-          denops,
-          aiderBuf,
-          aider.sendPrompt,
-          prompt,
-        );
+        const aiderBuf = await buffer.getAiderBuffer(denops);
+        await buffer.sendPromptWithInput(denops, aiderBuf, prompt);
       },
       { pattern: "[<f-args>]" },
     ),
 
-    await command("exit", "0", () =>
-      buffer.exitAiderBuffer(denops, aider.checkIfAiderBuffer, aider.exit),
-    ),
+    await command("exit", "0", () => buffer.exitAiderBuffer(denops)),
 
     await command(
       "visualTextWithPrompt",
       "*",
       async (start: string, end: string) => {
-        const aiderBuf = await buffer.getAiderBuffer(
-          denops,
-          aider.checkIfAiderBuffer,
-        );
+        const aiderBuf = await buffer.getAiderBuffer(denops);
         await buffer.openFloatingWindowWithSelectedCode(
           denops,
           aiderBuf,
@@ -280,16 +229,8 @@ export async function main(denops: Denops): Promise<void> {
       "1",
       async (cmd: string) => {
         const prompt = `/test ${cmd}`;
-        const aiderBuf = await buffer.getAiderBuffer(
-          denops,
-          aider.checkIfAiderBuffer,
-        );
-        await buffer.sendPromptWithInput(
-          denops,
-          aiderBuf,
-          aider.sendPrompt,
-          prompt,
-        );
+        const aiderBuf = await buffer.getAiderBuffer(denops);
+        await buffer.sendPromptWithInput(denops, aiderBuf, prompt);
       },
       { pattern: "[<f-args>]", complete: "shellcmd" },
     ),

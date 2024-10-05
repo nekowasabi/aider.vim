@@ -2,7 +2,11 @@ import { emit } from "https://deno.land/x/denops_std@v6.4.0/autocmd/mod.ts";
 import * as fn from "https://deno.land/x/denops_std@v6.4.0/function/mod.ts";
 import type { Denops } from "https://deno.land/x/denops_std@v6.4.0/mod.ts";
 import * as v from "https://deno.land/x/denops_std@v6.4.0/variable/mod.ts";
-import { ensure, is } from "https://deno.land/x/unknownutil@v3.17.0/mod.ts";
+import {
+  ensure,
+  is,
+  maybe,
+} from "https://deno.land/x/unknownutil@v3.17.0/mod.ts";
 import * as util from "./utils.ts";
 
 export interface AiderCommands {
@@ -13,7 +17,18 @@ export interface AiderCommands {
   checkIfAiderBuffer: typeof checkIfAiderBuffer;
 }
 
-export const commands: AiderCommands = {
+let testMode = false;
+
+// main.tsで最初に呼び出しておく
+export const setupAiderCommands = async (denops: Denops) => {
+  testMode = maybe(await v.g.get(denops, "aider_test"), is.Boolean) ?? false;
+};
+
+export const aider = () => {
+  return testMode ? mockCommands : actualCommands;
+};
+
+const actualCommands: AiderCommands = {
   run,
   silentRun,
   sendPrompt,
@@ -94,3 +109,42 @@ async function exit(
   await denops.call("chansend", jobId, "/exit\n");
   await denops.cmd(`bdelete! ${bufnr}`);
 }
+
+// mock版
+
+let mockAiderBufnr: number | undefined = undefined;
+
+const mockCommands: AiderCommands = {
+  run: async (denops: Denops): Promise<undefined> => {
+    const newBuf = await fn.bufnr(denops, "dummyaider", true);
+    await emit(denops, "User", "AiderOpen");
+    mockAiderBufnr = newBuf;
+  },
+
+  silentRun: async function (denops: Denops): Promise<undefined> {
+    await this.run(denops);
+    await denops.cmd("b#"); // hide buffer
+  },
+
+  sendPrompt: async (
+    denops: Denops,
+    _jobId: number,
+    prompt: string,
+  ): Promise<undefined> => {
+    await fn.feedkeys(denops, `input: ${prompt}\n`);
+  },
+
+  exit: async (denops: Denops): Promise<undefined> => {
+    if (mockAiderBufnr === undefined) {
+      return;
+    }
+
+    await fn.bufnr(denops, mockAiderBufnr.toString(), true);
+    await denops.cmd("bd!");
+  },
+
+  // deno-lint-ignore require-await
+  checkIfAiderBuffer: async (_: Denops, bufnr: number): Promise<boolean> => {
+    return bufnr === mockAiderBufnr;
+  },
+};
