@@ -95,18 +95,17 @@ export async function sendPromptWithInput(
 
   if (openBufferType === "floating") {
     await openAiderBuffer(denops, aiderBuf, openBufferType);
-    await sendPromptFromFloatingWindow(denops, aiderBuf, input);
+    await sendPromptFromFloatingWindow(denops, input);
     return;
   }
 
-  await sendPromptFromSplitWindow(denops, aiderBuf, input);
+  await sendPromptFromSplitWindow(denops, input);
 }
 
 /** バッファ内の内容をプロンプトとして送信する
  */
 export async function sendPromptByBuffer(
   denops: Denops,
-  aiderBuf: AiderBuffer | undefined,
   openBufferType: BufferLayout,
 ): Promise<void> {
   const bufferContent = ensure(
@@ -117,9 +116,9 @@ export async function sendPromptByBuffer(
   await denops.cmd("bdelete!");
 
   if (openBufferType === "floating") {
-    await sendPromptFromFloatingWindow(denops, aiderBuf, bufferContent);
+    await sendPromptFromFloatingWindow(denops, bufferContent);
   } else {
-    await sendPromptFromSplitWindow(denops, aiderBuf, bufferContent);
+    await sendPromptFromSplitWindow(denops, bufferContent);
   }
 
   return;
@@ -250,9 +249,9 @@ async function openFloatingWindow(
 }
 async function sendPromptFromFloatingWindow(
   denops: Denops,
-  aiderBuf: AiderBuffer | undefined,
   prompt: string,
 ): Promise<void> {
+  const aiderBuf = await getAiderBuffer(denops);
   if (aiderBuf === undefined) {
     return;
   }
@@ -276,9 +275,9 @@ async function sendPromptFromFloatingWindow(
  */
 async function sendPromptFromSplitWindow(
   denops: Denops,
-  aiderBuf: AiderBuffer | undefined,
   prompt: string,
 ): Promise<void> {
+  const aiderBuf = await getAiderBuffer(denops);
   if (aiderBuf === undefined) {
     return;
   }
