@@ -272,6 +272,7 @@ async function sendPromptFromFloatingWindow(
  * 7. 元のウィンドウに戻る
  *
  * @param {Denops} denops - Denopsインスタンス
+ * @param {string} prompt - 送信するプロンプト
  */
 async function sendPromptFromSplitWindow(
   denops: Denops,
@@ -351,7 +352,11 @@ export async function getAiderBuffer(
   return undefined;
 }
 /**
- * バッファがウィンドウ上で開いているかどうかを確認します。
+ * 指定されたバッファ番号が現在のウィンドウで開かれているかを確認します。
+ *
+ * @param {Denops} denops - Denopsインスタンス
+ * @param {number} bufnrToCheck - 確認したいバッファ番号
+ * @returns {Promise<boolean>} バッファが開かれている場合はtrue、そうでない場合はfalse
  */
 async function checkBufferOpen(
   denops: Denops,
