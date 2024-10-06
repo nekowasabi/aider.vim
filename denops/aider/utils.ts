@@ -6,7 +6,6 @@ import {
   is,
   maybe,
 } from "https://deno.land/x/unknownutil@v3.17.0/mod.ts";
-import * as buffer from "./buffer.ts";
 
 /**
  * Gets the additional prompt from vim global variable "aider_additional_prompt".
@@ -47,28 +46,4 @@ export async function getBufferName(
 ): Promise<string> {
   const bufname = await fn.bufname(denops, bufnr);
   return ensure(bufname, is.String);
-}
-
-/**
- * Gets the buffer number of the first buffer that matches the condition of checkIfAiderBuffer.
- * If no matching buffer is found, the function returns undefined.
- *
- * @param {Denops} denops - The Denops instance.
- * @returns {Promise<number | undefined>} The buffer number or undefined.
- */
-export async function getAiderBufferNr(
-  denops: Denops,
-): Promise<number | undefined> {
-  // Get all open buffer numbers
-  const buf_count = ensure(await fn.bufnr(denops, "$"), is.Number);
-
-  for (let i = 1; i <= buf_count; i++) {
-    const bufnr = ensure(await fn.bufnr(denops, i), is.Number);
-
-    if (await buffer.checkIfAiderBuffer(denops, bufnr)) {
-      return bufnr;
-    }
-  }
-
-  return undefined;
 }

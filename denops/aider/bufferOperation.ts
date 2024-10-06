@@ -1,4 +1,3 @@
-import { emit } from "https://deno.land/x/denops_std@v6.4.0/autocmd/mod.ts";
 import * as fn from "https://deno.land/x/denops_std@v6.4.0/function/mod.ts";
 import { feedkeys } from "https://deno.land/x/denops_std@v6.4.0/function/mod.ts";
 import * as n from "https://deno.land/x/denops_std@v6.4.0/function/nvim/mod.ts";
@@ -9,12 +8,8 @@ import {
   is,
   maybe,
 } from "https://deno.land/x/unknownutil@v3.17.0/mod.ts";
-import * as aiderCommand from "./aiderCommand.ts";
-import {
-  getAdditionalPrompt,
-  getAiderBufferNr,
-  getBufferName,
-} from "./utils.ts";
+import { aider } from "./aiderCommand.ts";
+import { getAdditionalPrompt } from "./utils.ts";
 
 /**
  * Enum representing different buffer layout options.
@@ -38,12 +33,11 @@ export async function getOpenBufferType(denops: Denops): Promise<BufferLayout> {
 }
 
 export async function exitAiderBuffer(denops: Denops): Promise<void> {
-  const buffer = await identifyAiderBuffer(denops);
+  const buffer = await getAiderBuffer(denops);
   if (buffer === undefined) {
     return;
   }
-  const { job_id, bufnr } = buffer;
-  aiderCommand.exit(denops, job_id, bufnr);
+  aider().exit(denops, buffer.jobId, buffer.bufnr);
 }
 
 /**
@@ -56,24 +50,23 @@ export async function exitAiderBuffer(denops: Denops): Promise<void> {
  *
  * @param {Denops} denops - The Denops instance.
  * @param {BufferLayout} openBufferType - The type of buffer to open.
- * @returns {Promise<void | undefined | boolean>}
- * @throws {Error} If openBufferType is an invalid value.
+ * @returns {Promise<undefined | boolean>}
  */
 export async function openAiderBuffer(
   denops: Denops,
+  aiderBuf: AiderBuffer | undefined,
   openBufferType: BufferLayout,
 ): Promise<undefined | boolean> {
-  const aiderBufnr = await getAiderBufferNr(denops);
-  if (aiderBufnr && openBufferType === "floating") {
-    await openFloatingWindow(denops, aiderBufnr);
-    await emit(denops, "User", "AiderOpen");
+  // TODO openBufferTypeで大きく分岐するようリファクタすべき
+  // return typeもbooleanにできる
+  if (aiderBuf && openBufferType === "floating") {
+    await openFloatingWindow(denops, aiderBuf.bufnr);
     return true;
   }
 
   if (openBufferType === "split" || openBufferType === "vsplit") {
-    if (aiderBufnr === undefined) {
+    if (aiderBuf === undefined) {
       await denops.cmd(openBufferType);
-      await emit(denops, "User", "AiderOpen");
     } else {
       await openSplitWindow(denops);
     }
@@ -84,7 +77,6 @@ export async function openAiderBuffer(
 
   await openFloatingWindow(denops, bufnr);
 
-  await emit(denops, "User", "AiderOpen");
   return;
 }
 
@@ -92,8 +84,8 @@ export async function sendPromptWithInput(
   denops: Denops,
   input: string,
 ): Promise<void> {
-  const bufnr = await getAiderBufferNr(denops);
-  if (bufnr === undefined) {
+  const aiderBuf = await getAiderBuffer(denops);
+  if (aiderBuf === undefined) {
     await denops.cmd("echo 'Aider is not running'");
     await denops.cmd("AiderRun");
     return;
@@ -102,7 +94,7 @@ export async function sendPromptWithInput(
   const openBufferType = await getOpenBufferType(denops);
 
   if (openBufferType === "floating") {
-    await openAiderBuffer(denops, openBufferType);
+    await openAiderBuffer(denops, aiderBuf, openBufferType);
     await sendPromptFromFloatingWindow(denops, input);
     return;
   }
@@ -110,6 +102,8 @@ export async function sendPromptWithInput(
   await sendPromptFromSplitWindow(denops, input);
 }
 
+/** バッファ内の内容をプロンプトとして送信する
+ */
 export async function sendPromptByBuffer(
   denops: Denops,
   openBufferType: BufferLayout,
@@ -127,7 +121,6 @@ export async function sendPromptByBuffer(
     await sendPromptFromSplitWindow(denops, bufferContent);
   }
 
-  await emit(denops, "User", "AiderOpen");
   return;
 }
 
@@ -141,9 +134,9 @@ export async function openFloatingWindowWithSelectedCode(
     await denops.call("getline", start, end),
     is.ArrayOf(is.String),
   );
+  const aiderBuf = await getAiderBuffer(denops);
   if (openBufferType !== "floating") {
-    const bufnr = await getAiderBufferNr(denops);
-    if (bufnr === undefined) {
+    if (aiderBuf === undefined) {
       await denops.cmd("echo 'Aider is not running'");
       await denops.cmd("AiderRun");
       return;
@@ -189,21 +182,6 @@ export async function openFloatingWindowWithSelectedCode(
     },
   );
 }
-/**
- * バッファがAiderバッファかどうかを確認します。
- * @param {Denops} denops - Denopsインスタンス
- * @param {number} bufnr - バッファ番号
- * @returns {Promise<boolean>}
- */
-export async function checkIfAiderBuffer(
-  denops: Denops,
-  bufnr: number,
-): Promise<boolean> {
-  // aiderバッファの場合 `term://{path}//{pid}:aider --4o --no-auto-commits` のような名前になっている
-  const name = await getBufferName(denops, bufnr);
-  const splitted = name.split(" ");
-  return splitted[0].endsWith("aider");
-}
 
 /**
  * バッファがターミナルバッファかどうかを確認します。
@@ -226,30 +204,6 @@ export async function checkIfTerminalBuffer(
  */
 export async function openSplitWindow(denops: Denops): Promise<void> {
   await denops.cmd(await getOpenBufferType(denops));
-}
-
-/**
- * 開いているウィンドウの中からAiderバッファを識別し、そのジョブID、ウィンドウ番号、バッファ番号を返します。
- *
- * @returns {Promise<{ job_id: number, winnr: number, bufnr: number }>}
- */
-async function identifyAiderBuffer(
-  denops: Denops,
-): Promise<{ job_id: number; winnr: number; bufnr: number } | undefined> {
-  const win_count = ensure(await fn.winnr(denops, "$"), is.Number);
-  for (let i = 1; i <= win_count; i++) {
-    const bufnr = ensure(await fn.winbufnr(denops, i), is.Number);
-
-    if (await checkIfAiderBuffer(denops, bufnr)) {
-      const job_id = ensure<number>(
-        await fn.getbufvar(denops, bufnr, "&channel"),
-        is.Number,
-      );
-      if (job_id !== 0) {
-        return { job_id, winnr: i, bufnr };
-      }
-    }
-  }
 }
 
 /**
@@ -297,17 +251,13 @@ async function sendPromptFromFloatingWindow(
   denops: Denops,
   prompt: string,
 ): Promise<void> {
-  const bufnr = await getAiderBufferNr(denops);
-  if (bufnr === undefined) {
+  const aiderBuf = await getAiderBuffer(denops);
+  if (aiderBuf === undefined) {
     return;
   }
-  await openFloatingWindow(denops, bufnr);
+  await openFloatingWindow(denops, aiderBuf.bufnr);
 
-  const jobId = ensure(
-    await fn.getbufvar(denops, bufnr, "&channel"),
-    is.Number,
-  );
-  await aiderCommand.sendPrompt(denops, jobId, prompt);
+  await aider().sendPrompt(denops, aiderBuf.jobId, prompt);
 }
 /**
  * スプリットウィンドウからプロンプトを送信する非同期関数
@@ -327,14 +277,13 @@ async function sendPromptFromSplitWindow(
   denops: Denops,
   prompt: string,
 ): Promise<void> {
-  const aiderBuffer = await identifyAiderBuffer(denops);
-  if (aiderBuffer === undefined) {
+  const aiderBuf = await getAiderBuffer(denops);
+  if (aiderBuf === undefined) {
     return;
   }
-  const { job_id, winnr } = aiderBuffer;
 
   if ((await v.g.get(denops, "aider_buffer_open_type")) !== "floating") {
-    await denops.cmd(`${winnr}wincmd w`);
+    await denops.cmd(`${aiderBuf.winnr}wincmd w`);
   } else {
     const totalWindows = ensure<number>(
       await denops.call("winnr", "$"),
@@ -352,5 +301,68 @@ async function sendPromptFromSplitWindow(
       }
     }
   }
-  await aiderCommand.sendPrompt(denops, job_id, prompt);
+  await aider().sendPrompt(denops, aiderBuf.jobId, prompt);
+}
+
+type AiderBuffer = {
+  jobId: number;
+  winnr: number | undefined;
+  bufnr: number;
+};
+
+/**
+ * Gets the buffer number of the first buffer that matches the condition of checkIfAiderBuffer.
+ * If no matching buffer is found, the function returns undefined.
+ *
+ * @param {Denops} denops - The Denops instance.
+ * @returns {Promise<number | undefined>} The buffer number or undefined.
+ */
+export async function getAiderBuffer(
+  denops: Denops,
+): Promise<AiderBuffer | undefined> {
+  // Get all open buffer numbers
+  const buf_count = ensure(await fn.bufnr(denops, "$"), is.Number);
+
+  for (let i = 1; i <= buf_count; i++) {
+    const bufnr = ensure(await fn.bufnr(denops, i), is.Number);
+
+    if (await aider().checkIfAiderBuffer(denops, bufnr)) {
+      const jobId = ensure(
+        await fn.getbufvar(denops, bufnr, "&channel"),
+        is.Number,
+      );
+
+      // testMode時はjobを走らせていないのでその場合は0でも許容
+      // プロセスが動いていない場合(session復元時など)はバッファを削除
+      if (!aider().isTestMode() && jobId === 0) {
+        await denops.cmd(`b ${bufnr}`);
+        await denops.cmd("bp | sp | bn | bd!"); // delete buffer without changing window
+        continue;
+      }
+
+      if (await checkBufferOpen(denops, bufnr)) {
+        const winnr = ensure(await fn.bufwinnr(denops, bufnr), is.Number);
+        return { jobId, winnr, bufnr };
+      }
+      return { jobId, winnr: undefined, bufnr };
+    }
+  }
+
+  return undefined;
+}
+/**
+ * バッファがウィンドウ上で開いているかどうかを確認します。
+ */
+async function checkBufferOpen(
+  denops: Denops,
+  bufnrToCheck: number,
+): Promise<boolean> {
+  const win_count = ensure(await fn.winnr(denops, "$"), is.Number);
+  for (let i = 1; i <= win_count; i++) {
+    const bufnr = ensure(await fn.winbufnr(denops, i), is.Number);
+    if (bufnr === bufnrToCheck) {
+      return true;
+    }
+  }
+  return false;
 }

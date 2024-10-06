@@ -1,9 +1,9 @@
 import * as fn from "https://deno.land/x/denops_std@v6.4.0/function/mod.ts";
 import type { Denops } from "https://deno.land/x/denops_std@v6.4.0/mod.ts";
-import * as aiderCommand from "./aiderCommand.ts";
-import * as buffer from "./buffer.ts";
-import type { BufferLayout } from "./buffer.ts";
-import { getAiderBufferNr, getCurrentFilePath } from "./utils.ts";
+import { aider } from "./aiderCommand.ts";
+import * as buffer from "./bufferOperation.ts";
+import type { BufferLayout } from "./bufferOperation.ts";
+import { getCurrentFilePath } from "./utils.ts";
 
 /**
  * The main function that sets up the Aider plugin functionality.
@@ -94,46 +94,43 @@ export async function main(denops: Denops): Promise<void> {
     }),
 
     await command("run", "0", async () => {
-      if (await buffer.openAiderBuffer(denops, openBufferType)) {
+      const aiderBuf = await buffer.getAiderBuffer(denops);
+      await buffer.openAiderBuffer(denops, aiderBuf, openBufferType);
+
+      if (aiderBuf === undefined) {
+        await aider().run(denops);
         return;
       }
-
-      const aiderBufnr = await getAiderBufferNr(denops);
-      if (aiderBufnr === undefined) {
-        // aiderを実行する
-        await aiderCommand.run(denops);
-        return;
-      }
-
-      await denops.cmd(`buffer ${aiderBufnr}`);
     }),
 
-    await command("silentRun", "0", () => aiderCommand.silentRun(denops)),
+    await command("silentRun", "0", () => aider().silentRun(denops)),
 
     await command(
       "addFile",
       "1",
       async (path: string) => {
         const prompt = `/add ${path}`;
+
         await buffer.sendPromptWithInput(denops, prompt);
       },
       { pattern: "[<f-args>]", complete: "file" },
     ),
 
     await command("addCurrentFile", "0", async () => {
-      const bufnr = await fn.bufnr(denops, "%");
-      if ((await getAiderBufferNr(denops)) === undefined) {
+      const currentBufnr = await fn.bufnr(denops, "%");
+      if ((await buffer.getAiderBuffer(denops)) === undefined) {
         if (openBufferType === "floating") {
-          await aiderCommand.silentRun(denops);
+          await aider().silentRun(denops);
         } else {
-          await buffer.openAiderBuffer(denops, openBufferType);
-          await aiderCommand.run(denops);
+          const aiderBuf = await buffer.getAiderBuffer(denops);
+          await buffer.openAiderBuffer(denops, aiderBuf, openBufferType);
+          await aider().run(denops);
           await denops.cmd("wincmd p");
           console.log("Run AiderAddCurrentFile again.");
           return;
         }
       }
-      if (await buffer.checkIfTerminalBuffer(denops, bufnr)) {
+      if (await buffer.checkIfTerminalBuffer(denops, currentBufnr)) {
         return;
       }
       const currentFile = await getCurrentFilePath(denops);
@@ -211,8 +208,6 @@ export async function main(denops: Denops): Promise<void> {
         console.log(`Added ${currentFile} to .aiderignore`);
       }
     }),
-
-    await command("debug", "0", () => aiderCommand.debug(denops)),
 
     await command("hide", "0", async () => {
       await denops.cmd("close!");
