@@ -38,7 +38,7 @@ let g:aider_additional_prompt = [
 ]
 
 " Key mappings
-nnoremap <silent> <leader>ar :AiderRun<CR>
+nnoremap <silent> <leader>at :AiderRun<CR>
 " Add current file to Aider
 nnoremap <silent> <leader>aa :AiderAddCurrentFile<CR>
 " Add current file as read-only to Aider
@@ -94,8 +94,9 @@ Please add the following settings to your lazy settings.
               vim.keymap.set('n', '<Esc>', '<cmd>AiderHide<CR>', { buffer = args.buf })
             end
       })
-    vim.api.nvim_set_keymap('n', '<leader>ar', ':AiderRun<CR>', { noremap = true, silent = true })
+    vim.api.nvim_set_keymap('n', '<leader>at', ':AiderRun<CR>', { noremap = true, silent = true })
     vim.api.nvim_set_keymap('n', '<leader>aa', ':AiderAddCurrentFile<CR>', { noremap = true, silent = true })
+    vim.api.nvim_set_keymap('n', '<leader>ar', ':AiderAddCurrentFileReadOnly<CR>', { noremap = true, silent = true })
     vim.api.nvim_set_keymap('n', '<leader>aw', ':AiderAddWeb<CR>', { noremap = true, silent = true })
     vim.api.nvim_set_keymap('n', '<leader>ax', ':AiderExit<CR>', { noremap = true, silent = true })
     vim.api.nvim_set_keymap('n', '<leader>ai', ':AiderAddIgnoreCurrentFile<CR>', { noremap = true, silent = true })
@@ -113,7 +114,8 @@ To use aider.vim, you can run the following commands within Vim or Neovim:
 
 - `:AiderRun` - Runs aider or display aider window.
 - `:AiderAddCurrentFile` Adds the current file to aider's context.
-- `:AiderAddCurrentFileReadOnly` - Adds the current file as read-only to aider's context.
+- `:AiderAddCurrentFileReadOnly` - Adds the current file as read-only to aider's
+  context.
 - `:AiderExit` - Exits aider and cleans up the session.
 - `:AiderVisualTextWithPrompt`
   - Edit the selected text in visual mode in a floating window and send it to
@@ -147,7 +149,8 @@ let g:aider_additional_prompt = [
 ]
 ```
 
-This prompt will be displayed in the floating window when using visual mode selections, allowing you to see and edit it before sending to aider.
+This prompt will be displayed in the floating window when using visual mode
+selections, allowing you to see and edit it before sending to aider.
 
 ## ddu Source
 
