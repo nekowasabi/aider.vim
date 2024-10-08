@@ -41,6 +41,8 @@ let g:aider_additional_prompt = [
 nnoremap <silent> <leader>ar :AiderRun<CR>
 " Add current file to Aider
 nnoremap <silent> <leader>aa :AiderAddCurrentFile<CR>
+" Add current file as read-only to Aider
+nnoremap <silent> <leader>ar :AiderAddCurrentFileReadOnly<CR>
 " Add Aider web interface
 nnoremap <silent> <leader>aw :AiderAddWeb<CR>
 " Exit Aider
@@ -111,6 +113,7 @@ To use aider.vim, you can run the following commands within Vim or Neovim:
 
 - `:AiderRun` - Runs aider or display aider window.
 - `:AiderAddCurrentFile` Adds the current file to aider's context.
+- `:AiderAddCurrentFileReadOnly` - Adds the current file as read-only to aider's context.
 - `:AiderExit` - Exits aider and cleans up the session.
 - `:AiderVisualTextWithPrompt`
   - Edit the selected text in visual mode in a floating window and send it to
