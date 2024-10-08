@@ -137,6 +137,39 @@ export async function main(denops: Denops): Promise<void> {
     }),
 
     await command(
+      "addFileReadOnly",
+      "1",
+      async (path: string) => {
+        const prompt = `/read-only ${path}`;
+
+        await buffer.sendPromptWithInput(denops, prompt);
+      },
+      { pattern: "[<f-args>]", complete: "file" },
+    ),
+
+    await command("addCurrentFileReadOnly", "0", async () => {
+      const currentBufnr = await fn.bufnr(denops, "%");
+      if ((await buffer.getAiderBuffer(denops)) === undefined) {
+        if (openBufferType === "floating") {
+          await aider().silentRun(denops);
+        } else {
+          const aiderBuf = await buffer.getAiderBuffer(denops);
+          await buffer.openAiderBuffer(denops, aiderBuf, openBufferType);
+          await aider().run(denops);
+          await denops.cmd("wincmd p");
+          console.log("Run AiderAddReadCurrentFile again.");
+          return;
+        }
+      }
+      if (await buffer.checkIfTerminalBuffer(denops, currentBufnr)) {
+        return;
+      }
+      const currentFile = await getCurrentFilePath(denops);
+      const prompt = `/read-only ${currentFile}`;
+      await buffer.sendPromptWithInput(denops, prompt);
+    }),
+
+    await command(
       "addWeb",
       "1",
       async (url: string) => {
