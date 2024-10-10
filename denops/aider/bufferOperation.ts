@@ -54,14 +54,23 @@ export async function exitAiderBuffer(denops: Denops): Promise<void> {
  */
 export async function openAiderBuffer(
   denops: Denops,
-  aiderBuf: AiderBuffer | undefined,
   openBufferType: BufferLayout,
-): Promise<undefined | boolean> {
-  // TODO openBufferTypeで大きく分岐するようリファクタすべき
-  // return typeもbooleanにできる
-  if (aiderBuf && openBufferType === "floating") {
-    await openFloatingWindow(denops, aiderBuf.bufnr);
-    return true;
+): Promise<void> {
+  const aiderBuf = await getAiderBuffer(denops);
+  if (openBufferType === "floating") {
+    if (aiderBuf === undefined) {
+      const bufnr = ensure(
+        await n.nvim_create_buf(denops, false, true),
+        is.Number,
+      );
+      await openFloatingWindow(denops, bufnr);
+      await aider().run(denops);
+      return;
+    }
+    if (aiderBuf !== undefined) {
+      await openFloatingWindow(denops, aiderBuf.bufnr);
+      return;
+    }
   }
 
   if (openBufferType === "split" || openBufferType === "vsplit") {
@@ -70,14 +79,9 @@ export async function openAiderBuffer(
     } else {
       await openSplitWindow(denops);
     }
+    await aider().run(denops);
     return;
   }
-
-  const bufnr = ensure(await n.nvim_create_buf(denops, false, true), is.Number);
-
-  await openFloatingWindow(denops, bufnr);
-
-  return;
 }
 
 export async function sendPromptWithInput(
@@ -94,7 +98,7 @@ export async function sendPromptWithInput(
   const openBufferType = await getOpenBufferType(denops);
 
   if (openBufferType === "floating") {
-    await openAiderBuffer(denops, aiderBuf, openBufferType);
+    await openAiderBuffer(denops, openBufferType);
     await sendPromptFromFloatingWindow(denops, input);
     return;
   }
@@ -142,7 +146,10 @@ export async function openFloatingWindowWithSelectedCode(
       return;
     }
   }
-  const backupPrompt = await getPromptFromVimVariable(denops, "aider_visual_select_buffer_prompt");
+  const backupPrompt = await getPromptFromVimVariable(
+    denops,
+    "aider_visual_select_buffer_prompt",
+  );
   const bufnr = ensure(await n.nvim_create_buf(denops, false, true), is.Number);
   await openFloatingWindow(denops, bufnr);
 
@@ -157,9 +164,16 @@ export async function openFloatingWindowWithSelectedCode(
   await n.nvim_buf_set_keymap(denops, bufnr, "n", "q", "<cmd>close!<CR>", {
     silent: true,
   });
-  await n.nvim_buf_set_keymap(denops, bufnr, "n", "Q", "<cmd>AiderHideVisualSelectFloatingWindow<CR>", {
-    silent: true,
-  });
+  await n.nvim_buf_set_keymap(
+    denops,
+    bufnr,
+    "n",
+    "Q",
+    "<cmd>AiderHideVisualSelectFloatingWindow<CR>",
+    {
+      silent: true,
+    },
+  );
   await n.nvim_buf_set_keymap(
     denops,
     bufnr,
@@ -182,7 +196,11 @@ export async function openFloatingWindowWithSelectedCode(
  * @param {number} bufnr - バッファ番号。
  * @param {string[]} backupPrompt - バックアッププロンプトの内容。
  */
-async function handleBackupPrompt(denops: Denops, bufnr: number, backupPrompt: string[]) {
+async function handleBackupPrompt(
+  denops: Denops,
+  bufnr: number,
+  backupPrompt: string[],
+) {
   await v.g.set(denops, "aider_visual_select_buffer_prompt", undefined);
   await n.nvim_buf_set_lines(denops, bufnr, 0, -1, true, backupPrompt);
   await feedkeys(denops, "Gi");
@@ -198,7 +216,11 @@ async function handleBackupPrompt(denops: Denops, bufnr: number, backupPrompt: s
  * @param {number} bufnr - バッファ番号。
  * @param {string[]} words - バッファに設定するコード行。
  */
-async function handleNoBackupPrompt(denops: Denops, bufnr: number, words: string[]) {
+async function handleNoBackupPrompt(
+  denops: Denops,
+  bufnr: number,
+  words: string[],
+) {
   const filetype = ensure(
     await fn.getbufvar(denops, "%", "&filetype"),
     is.String,
@@ -211,7 +233,10 @@ async function handleNoBackupPrompt(denops: Denops, bufnr: number, words: string
   await n.nvim_buf_set_lines(denops, bufnr, 0, 1, true, []);
   await n.nvim_buf_set_lines(denops, bufnr, -1, -1, true, [""]);
 
-  const additionalPrompt = await getPromptFromVimVariable(denops, "aider_additional_prompt");
+  const additionalPrompt = await getPromptFromVimVariable(
+    denops,
+    "aider_additional_prompt",
+  );
   if (additionalPrompt) {
     await n.nvim_buf_set_lines(denops, bufnr, -1, -1, true, ["# rule"]);
     await n.nvim_buf_set_lines(denops, bufnr, -1, -1, true, additionalPrompt);
@@ -222,7 +247,9 @@ async function handleNoBackupPrompt(denops: Denops, bufnr: number, words: string
   await feedkeys(denops, "Gi");
 }
 
-export async function hideVisualSelectFloatingWindow(denops: Denops): Promise<void> {
+export async function hideVisualSelectFloatingWindow(
+  denops: Denops,
+): Promise<void> {
   const bufferContent = ensure(
     await denops.call("getbufline", "%", 1, "$"),
     is.ArrayOf(is.String),
@@ -386,7 +413,8 @@ export async function getAiderBuffer(
       // プロセスが動いていない場合(session復元時など)はバッファを削除
       if (!aider().isTestMode() && jobId === 0) {
         await denops.cmd(`b ${bufnr}`);
-        await denops.cmd("bp | sp | bn | bd!"); // delete buffer without changing window
+        await denops.cmd("b#");
+        await denops.cmd("bd! #");
         continue;
       }
 

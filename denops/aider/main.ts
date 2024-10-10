@@ -92,13 +92,7 @@ export async function main(denops: Denops): Promise<void> {
     }),
 
     await command("run", "0", async () => {
-      const aiderBuf = await buffer.getAiderBuffer(denops);
-      await buffer.openAiderBuffer(denops, aiderBuf, openBufferType);
-
-      if (aiderBuf === undefined) {
-        await aider().run(denops);
-        return;
-      }
+      await buffer.openAiderBuffer(denops, openBufferType);
     }),
 
     await command("silentRun", "0", () => aider().silentRun(denops)),
@@ -129,9 +123,7 @@ export async function main(denops: Denops): Promise<void> {
         if (openBufferType === "floating") {
           await aider().silentRun(denops);
         } else {
-          const aiderBuf = await buffer.getAiderBuffer(denops);
-          await buffer.openAiderBuffer(denops, aiderBuf, openBufferType);
-          await aider().run(denops);
+          await buffer.openAiderBuffer(denops, openBufferType);
           await denops.cmd("wincmd p");
           console.log("Run AiderAddCurrentFile again.");
           return;
@@ -162,9 +154,7 @@ export async function main(denops: Denops): Promise<void> {
         if (openBufferType === "floating") {
           await aider().silentRun(denops);
         } else {
-          const aiderBuf = await buffer.getAiderBuffer(denops);
-          await buffer.openAiderBuffer(denops, aiderBuf, openBufferType);
-          await aider().run(denops);
+          await buffer.openAiderBuffer(denops, openBufferType);
           await denops.cmd("wincmd p");
           console.log("Run AiderAddReadCurrentFile again.");
           return;
