@@ -145,37 +145,12 @@ export async function openFloatingWindowWithSelectedCode(
   const backupPrompt = await getPromptFromVimVariable(denops, "aider_visual_select_buffer_prompt");
   const bufnr = ensure(await n.nvim_create_buf(denops, false, true), is.Number);
 
+  await openFloatingWindow(denops, bufnr);
+
   if (backupPrompt) {
-    await v.g.set(denops, "aider_visual_select_buffer_prompt", undefined);
-
-    // バッファにプロンプトを送信
-    await openFloatingWindow(denops, bufnr);
-    await n.nvim_buf_set_lines(denops, bufnr, 0, -1, true, backupPrompt);
+    await handleBackupPrompt(denops, bufnr, backupPrompt);
   } else {
-    const filetype = ensure(
-      await fn.getbufvar(denops, "%", "&filetype"),
-      is.String,
-    );
-    // biome-ignore lint: ignore useTemplate to avoid \`\`\`
-    words.unshift("```" + filetype);
-    words.push("```");
-
-    await openFloatingWindow(denops, bufnr);
-
-    await n.nvim_buf_set_lines(denops, bufnr, -1, -1, true, words);
-    await n.nvim_buf_set_lines(denops, bufnr, 0, 1, true, []);
-    await n.nvim_buf_set_lines(denops, bufnr, -1, -1, true, [""]);
-
-    const additionalPrompt = await getPromptFromVimVariable(denops, "aider_additional_prompt");
-    if (additionalPrompt) {
-      await n.nvim_buf_set_lines(denops, bufnr, -1, -1, true, ["# rule"]);
-      await n.nvim_buf_set_lines(denops, bufnr, -1, -1, true, additionalPrompt);
-      await n.nvim_buf_set_lines(denops, bufnr, -1, -1, true, [""]);
-    }
-    await n.nvim_buf_set_lines(denops, bufnr, -1, -1, true, ["# prompt"]);
-    await n.nvim_buf_set_lines(denops, bufnr, -1, -1, true, [""]);
-    await feedkeys(denops, "Gi");
-
+    await handleNoBackupPrompt(denops, bufnr, words);
   }
 
   await n.nvim_buf_set_keymap(denops, bufnr, "n", "q", "<cmd>close!<CR>", {
@@ -194,6 +169,35 @@ export async function openFloatingWindowWithSelectedCode(
       silent: true,
     },
   );
+}
+
+async function handleBackupPrompt(denops: Denops, bufnr: number, backupPrompt: string[]) {
+  await v.g.set(denops, "aider_visual_select_buffer_prompt", undefined);
+  await n.nvim_buf_set_lines(denops, bufnr, 0, -1, true, backupPrompt);
+}
+
+async function handleNoBackupPrompt(denops: Denops, bufnr: number, words: string[]) {
+  const filetype = ensure(
+    await fn.getbufvar(denops, "%", "&filetype"),
+    is.String,
+  );
+  // biome-ignore lint: ignore useTemplate to avoid \`\`\`
+  words.unshift("```" + filetype);
+  words.push("```");
+
+  await n.nvim_buf_set_lines(denops, bufnr, -1, -1, true, words);
+  await n.nvim_buf_set_lines(denops, bufnr, 0, 1, true, []);
+  await n.nvim_buf_set_lines(denops, bufnr, -1, -1, true, [""]);
+
+  const additionalPrompt = await getPromptFromVimVariable(denops, "aider_additional_prompt");
+  if (additionalPrompt) {
+    await n.nvim_buf_set_lines(denops, bufnr, -1, -1, true, ["# rule"]);
+    await n.nvim_buf_set_lines(denops, bufnr, -1, -1, true, additionalPrompt);
+    await n.nvim_buf_set_lines(denops, bufnr, -1, -1, true, [""]);
+  }
+  await n.nvim_buf_set_lines(denops, bufnr, -1, -1, true, ["# prompt"]);
+  await n.nvim_buf_set_lines(denops, bufnr, -1, -1, true, [""]);
+  await feedkeys(denops, "Gi");
 }
 
 export async function hideVisualSelectFloatingWindow(denops: Denops): Promise<void> {
