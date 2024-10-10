@@ -152,6 +152,8 @@ export async function openFloatingWindowWithSelectedCode(
     await handleNoBackupPrompt(denops, bufnr, words);
   }
 
+  await denops.cmd("setlocal filetype=markdown");
+
   await n.nvim_buf_set_keymap(denops, bufnr, "n", "q", "<cmd>close!<CR>", {
     silent: true,
   });

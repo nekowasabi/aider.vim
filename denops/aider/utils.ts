@@ -13,11 +13,12 @@ import {
  * @param {Denops} denops - The Denops instance.
  * @returns {Promise<string[] | undefined>} A promise that resolves to an array of additional prompts, or undefined if no prompts are found.
  */
-export async function getAdditionalPrompt(
+export async function getPromptFromVimVariable(
   denops: Denops,
+  variableName: string,
 ): Promise<string[] | undefined> {
   const prompts = maybe(
-    await v.g.get(denops, "aider_additional_prompt"),
+    await v.g.get(denops, variableName),
     is.ArrayOf(is.String),
   );
   return prompts || undefined;
