@@ -170,6 +170,16 @@ export async function openFloatingWindowWithSelectedCode(
   );
 }
 
+/**
+ * バックアッププロンプトを処理します。
+ *
+ * この関数は、指定されたバッファにバックアッププロンプトの内容を設定し、
+ * ビジュアルモードでの入力を開始します。
+ *
+ * @param {Denops} denops - Denopsインスタンス。
+ * @param {number} bufnr - バッファ番号。
+ * @param {string[]} backupPrompt - バックアッププロンプトの内容。
+ */
 async function handleBackupPrompt(denops: Denops, bufnr: number, backupPrompt: string[]) {
   await v.g.set(denops, "aider_visual_select_buffer_prompt", undefined);
   await n.nvim_buf_set_lines(denops, bufnr, 0, -1, true, backupPrompt);
