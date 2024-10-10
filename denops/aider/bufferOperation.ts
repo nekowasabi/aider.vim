@@ -186,6 +186,16 @@ async function handleBackupPrompt(denops: Denops, bufnr: number, backupPrompt: s
   await feedkeys(denops, "Gi");
 }
 
+/**
+ * バックアッププロンプトがない場合の処理を行います。
+ *
+ * この関数は、指定されたバッファにファイルタイプを含むコードブロックを設定し、
+ * 必要に応じて追加のプロンプトを挿入します。
+ *
+ * @param {Denops} denops - Denopsインスタンス。
+ * @param {number} bufnr - バッファ番号。
+ * @param {string[]} words - バッファに設定するコード行。
+ */
 async function handleNoBackupPrompt(denops: Denops, bufnr: number, words: string[]) {
   const filetype = ensure(
     await fn.getbufvar(denops, "%", "&filetype"),
