@@ -57,11 +57,20 @@ export async function openAiderBuffer(
   openBufferType: BufferLayout,
 ): Promise<void> {
   const aiderBuf = await getAiderBuffer(denops);
-  // TODO openBufferTypeで大きく分岐するようリファクタすべき
-  // return typeもbooleanにできる
-  if (aiderBuf && openBufferType === "floating") {
-    await openFloatingWindow(denops, aiderBuf.bufnr);
-    return;
+  if (openBufferType === "floating") {
+    if (aiderBuf === undefined) {
+      const bufnr = ensure(
+        await n.nvim_create_buf(denops, false, true),
+        is.Number,
+      );
+      await openFloatingWindow(denops, bufnr);
+      await aider().run(denops);
+      return;
+    }
+    if (aiderBuf !== undefined) {
+      await openFloatingWindow(denops, aiderBuf.bufnr);
+      return;
+    }
   }
 
   if (openBufferType === "split" || openBufferType === "vsplit") {
@@ -73,12 +82,6 @@ export async function openAiderBuffer(
     await aider().run(denops);
     return;
   }
-
-  const bufnr = ensure(await n.nvim_create_buf(denops, false, true), is.Number);
-
-  await openFloatingWindow(denops, bufnr);
-  await aider().run(denops);
-  return;
 }
 
 export async function sendPromptWithInput(
