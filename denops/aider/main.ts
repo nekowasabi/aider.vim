@@ -103,6 +103,10 @@ export async function main(denops: Denops): Promise<void> {
 
     await command("silentRun", "0", () => aider().silentRun(denops)),
 
+    await command("hideVisualSelectFloatingWindow", "0", async () => {
+      await buffer.hideVisualSelectFloatingWindow(denops);
+    }),
+
     await command(
       "addFile",
       "1",
@@ -238,11 +242,6 @@ export async function main(denops: Denops): Promise<void> {
         await fn.writefile(denops, file, filePathToOpen);
         console.log(`Added ${currentFile} to .aiderignore`);
       }
-    }),
-
-    await command("hide", "0", async () => {
-      await denops.cmd("close!");
-      await denops.cmd("silent! e!");
     }),
 
     await command(

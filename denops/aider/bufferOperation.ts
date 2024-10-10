@@ -168,7 +168,7 @@ export async function openFloatingWindowWithSelectedCode(
   await n.nvim_buf_set_lines(denops, bufnr, -1, -1, true, [""]);
   await feedkeys(denops, "Gi");
 
-  await n.nvim_buf_set_keymap(denops, bufnr, "n", "q", "<cmd>close!<cr>", {
+  await n.nvim_buf_set_keymap(denops, bufnr, "n", "q", "<cmd>AiderHideVisualSelectFloatingWindow<CR>", {
     silent: true,
   });
   await n.nvim_buf_set_keymap(
@@ -181,6 +181,16 @@ export async function openFloatingWindowWithSelectedCode(
       silent: true,
     },
   );
+}
+
+export async function hideVisualSelectFloatingWindow(denops: Denops): Promise<void> {
+  const bufferContent = ensure(
+    await denops.call("getbufline", "%", 1, "$"),
+    is.ArrayOf(is.String),
+  ).join("\n");
+
+  await v.g.set(denops, "aider_visual_select_buffer_prompt", bufferContent);
+  await denops.cmd("close!");
 }
 
 /**
