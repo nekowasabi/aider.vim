@@ -171,7 +171,7 @@ export async function openFloatingWindowWithSelectedCode(
 }
 
 /**
- * バックアッププロンプトを処理します。
+ * バックアッププロンプトを処理する
  *
  * この関数は、指定されたバッファにバックアッププロンプトの内容を設定し、
  * ビジュアルモードでの入力を開始します。
