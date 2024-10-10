@@ -113,24 +113,17 @@ Please add the following settings to your lazy settings.
 To use aider.vim, you can run the following commands within Vim or Neovim:
 
 - `:AiderRun` - Runs aider or display aider window.
-- `:AiderAddCurrentFile` Adds the current file to aider's context.
-- `:AiderAddCurrentFileReadOnly` - Adds the current file as read-only to aider's
-  context.
+- `:AiderAddCurrentFile` - Adds the current file to aider's context.
+- `:AiderAddCurrentFileReadOnly` - Adds the current file as read-only to aider's context.
 - `:AiderExit` - Exits aider and cleans up the session.
-- `:AiderVisualTextWithPrompt`
-  - Edit the selected text in visual mode in a floating window and send it to
-    aider.
-  - In the floating window, send to aider with `<CR>` in normal mode, and close
-    the floating window with `q`.
-- `:AiderAddWeb` - Displays a prompt for the specified URL and adds it to the
-  aider context.
-- `:AiderOpenIgnore` - Opens the `.aiderignore` file in the git root directory
-  if it exists.
-- `:AiderAddIgnoreCurrentFile` - Adds the current file to the `.aiderignore`
-- `:AiderAsk <question>` - Sends a question to aider without adding any files to
-  the context
+- `:AiderVisualTextWithPrompt` - Edit the selected text in visual mode in a floating window and send it to aider. In the floating window, send to aider with `<CR>` in normal mode, and close the floating window with `q`.
+- `:AiderAddWeb` - Displays a prompt for the specified URL and adds it to the aider context.
+- `:AiderOpenIgnore` - Opens the `.aiderignore` file in the git root directory if it exists.
+- `:AiderAddIgnoreCurrentFile` - Adds the current file to the `.aiderignore`.
+- `:AiderAsk <question>` - Sends a question to aider without adding any files to the context.
 - `:AiderHide` - Hides the floating window and reloads the buffer.
 - `:AiderPaste` - Pastes the content from the clipboard into the aider context.
+- `:AiderHideVisualSelectFloatingWindow` - Hides the visual selection floating window used for displaying selected text.
 
 ## Additional Prompt
 
