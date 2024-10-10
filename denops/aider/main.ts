@@ -107,6 +107,11 @@ export async function main(denops: Denops): Promise<void> {
       await buffer.hideVisualSelectFloatingWindow(denops);
     }),
 
+    await command("hide", "0", async () => {
+      await denops.cmd("close!");
+      await denops.cmd("silent! e!");
+    }),
+
     await command(
       "addFile",
       "1",
