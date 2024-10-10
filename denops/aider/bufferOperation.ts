@@ -144,7 +144,6 @@ export async function openFloatingWindowWithSelectedCode(
   }
   const backupPrompt = await getPromptFromVimVariable(denops, "aider_visual_select_buffer_prompt");
   const bufnr = ensure(await n.nvim_create_buf(denops, false, true), is.Number);
-
   await openFloatingWindow(denops, bufnr);
 
   if (backupPrompt) {
@@ -174,6 +173,7 @@ export async function openFloatingWindowWithSelectedCode(
 async function handleBackupPrompt(denops: Denops, bufnr: number, backupPrompt: string[]) {
   await v.g.set(denops, "aider_visual_select_buffer_prompt", undefined);
   await n.nvim_buf_set_lines(denops, bufnr, 0, -1, true, backupPrompt);
+  await feedkeys(denops, "Gi");
 }
 
 async function handleNoBackupPrompt(denops: Denops, bufnr: number, words: string[]) {
