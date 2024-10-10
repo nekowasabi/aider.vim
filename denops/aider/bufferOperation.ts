@@ -9,7 +9,7 @@ import {
   maybe,
 } from "https://deno.land/x/unknownutil@v3.17.0/mod.ts";
 import { aider } from "./aiderCommand.ts";
-import { getAdditionalPrompt } from "./utils.ts";
+import { getPromptFromVimVariable } from "./utils.ts";
 
 /**
  * Enum representing different buffer layout options.
@@ -142,33 +142,46 @@ export async function openFloatingWindowWithSelectedCode(
       return;
     }
   }
-
-  const filetype = ensure(
-    await fn.getbufvar(denops, "%", "&filetype"),
-    is.String,
-  );
-  // biome-ignore lint: ignore useTemplate to avoid \`\`\`
-  words.unshift("```" + filetype);
-  words.push("```");
-
+  const backupPrompt = await getPromptFromVimVariable(denops, "aider_visual_select_buffer_prompt");
   const bufnr = ensure(await n.nvim_create_buf(denops, false, true), is.Number);
-  await openFloatingWindow(denops, bufnr);
 
-  await n.nvim_buf_set_lines(denops, bufnr, -1, -1, true, words);
-  await n.nvim_buf_set_lines(denops, bufnr, 0, 1, true, []);
-  await n.nvim_buf_set_lines(denops, bufnr, -1, -1, true, [""]);
+  if (backupPrompt) {
+    await v.g.set(denops, "aider_visual_select_buffer_prompt", undefined);
 
-  const additionalPrompt = await getAdditionalPrompt(denops);
-  if (additionalPrompt) {
-    await n.nvim_buf_set_lines(denops, bufnr, -1, -1, true, ["# rule"]);
-    await n.nvim_buf_set_lines(denops, bufnr, -1, -1, true, additionalPrompt);
+    // バッファにプロンプトを送信
+    await openFloatingWindow(denops, bufnr);
+    await n.nvim_buf_set_lines(denops, bufnr, 0, -1, true, backupPrompt);
+  } else {
+    const filetype = ensure(
+      await fn.getbufvar(denops, "%", "&filetype"),
+      is.String,
+    );
+    // biome-ignore lint: ignore useTemplate to avoid \`\`\`
+    words.unshift("```" + filetype);
+    words.push("```");
+
+    await openFloatingWindow(denops, bufnr);
+
+    await n.nvim_buf_set_lines(denops, bufnr, -1, -1, true, words);
+    await n.nvim_buf_set_lines(denops, bufnr, 0, 1, true, []);
     await n.nvim_buf_set_lines(denops, bufnr, -1, -1, true, [""]);
-  }
-  await n.nvim_buf_set_lines(denops, bufnr, -1, -1, true, ["# prompt"]);
-  await n.nvim_buf_set_lines(denops, bufnr, -1, -1, true, [""]);
-  await feedkeys(denops, "Gi");
 
-  await n.nvim_buf_set_keymap(denops, bufnr, "n", "q", "<cmd>AiderHideVisualSelectFloatingWindow<CR>", {
+    const additionalPrompt = await getPromptFromVimVariable(denops, "aider_additional_prompt");
+    if (additionalPrompt) {
+      await n.nvim_buf_set_lines(denops, bufnr, -1, -1, true, ["# rule"]);
+      await n.nvim_buf_set_lines(denops, bufnr, -1, -1, true, additionalPrompt);
+      await n.nvim_buf_set_lines(denops, bufnr, -1, -1, true, [""]);
+    }
+    await n.nvim_buf_set_lines(denops, bufnr, -1, -1, true, ["# prompt"]);
+    await n.nvim_buf_set_lines(denops, bufnr, -1, -1, true, [""]);
+    await feedkeys(denops, "Gi");
+
+  }
+
+  await n.nvim_buf_set_keymap(denops, bufnr, "n", "q", "<cmd>close!<CR>", {
+    silent: true,
+  });
+  await n.nvim_buf_set_keymap(denops, bufnr, "n", "Q", "<cmd>AiderHideVisualSelectFloatingWindow<CR>", {
     silent: true,
   });
   await n.nvim_buf_set_keymap(
@@ -187,7 +200,7 @@ export async function hideVisualSelectFloatingWindow(denops: Denops): Promise<vo
   const bufferContent = ensure(
     await denops.call("getbufline", "%", 1, "$"),
     is.ArrayOf(is.String),
-  ).join("\n");
+  );
 
   await v.g.set(denops, "aider_visual_select_buffer_prompt", bufferContent);
   await denops.cmd("close!");
