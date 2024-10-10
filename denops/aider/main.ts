@@ -94,13 +94,7 @@ export async function main(denops: Denops): Promise<void> {
     }),
 
     await command("run", "0", async () => {
-      const aiderBuf = await buffer.getAiderBuffer(denops);
       await buffer.openAiderBuffer(denops, openBufferType);
-
-      if (aiderBuf === undefined) {
-        await aider().run(denops);
-        return;
-      }
     }),
 
     await command("silentRun", "0", () => aider().silentRun(denops)),
@@ -132,7 +126,6 @@ export async function main(denops: Denops): Promise<void> {
           await aider().silentRun(denops);
         } else {
           await buffer.openAiderBuffer(denops, openBufferType);
-          await aider().run(denops);
           await denops.cmd("wincmd p");
           console.log("Run AiderAddCurrentFile again.");
           return;
@@ -164,7 +157,6 @@ export async function main(denops: Denops): Promise<void> {
           await aider().silentRun(denops);
         } else {
           await buffer.openAiderBuffer(denops, openBufferType);
-          await aider().run(denops);
           await denops.cmd("wincmd p");
           console.log("Run AiderAddReadCurrentFile again.");
           return;
