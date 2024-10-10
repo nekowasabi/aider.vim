@@ -410,7 +410,8 @@ export async function getAiderBuffer(
       // プロセスが動いていない場合(session復元時など)はバッファを削除
       if (!aider().isTestMode() && jobId === 0) {
         await denops.cmd(`b ${bufnr}`);
-        await denops.cmd("bp | sp | bn | bd!"); // delete buffer without changing window
+        await denops.cmd("b#");
+        await denops.cmd("bd! #");
         continue;
       }
 
