@@ -86,6 +86,34 @@ export async function main(denops: Denops): Promise<void> {
 
   const openBufferType: BufferLayout = await buffer.getOpenBufferType(denops);
 
+  async function addFileToAider(
+    denops: Denops,
+    openBufferType: BufferLayout,
+    prefix: string,
+  ): Promise<void> {
+    const currentBufnr = await fn.bufnr(denops, "%");
+    const aiderBuffer = await buffer.getAiderBuffer(denops);
+
+    if (!aiderBuffer) {
+      if (openBufferType === "floating") {
+        await aider().silentRun(denops);
+      } else {
+        await buffer.openAiderBuffer(denops, openBufferType);
+        await denops.cmd("wincmd p");
+        console.log(`Run AiderAdd${prefix}CurrentFile again.`);
+        return;
+      }
+    }
+
+    if (await buffer.checkIfTerminalBuffer(denops, currentBufnr)) {
+      return;
+    }
+
+    const currentFile = await getCurrentFilePath(denops);
+    const prompt = `/${prefix} ${currentFile}`;
+    await buffer.sendPromptWithInput(denops, prompt);
+  }
+
   const commands: Command[] = [
     await command("sendPrompt", "0", async () => {
       await buffer.sendPromptByBuffer(denops, openBufferType);
@@ -118,23 +146,7 @@ export async function main(denops: Denops): Promise<void> {
     ),
 
     await command("addCurrentFile", "0", async () => {
-      const currentBufnr = await fn.bufnr(denops, "%");
-      if ((await buffer.getAiderBuffer(denops)) === undefined) {
-        if (openBufferType === "floating") {
-          await aider().silentRun(denops);
-        } else {
-          await buffer.openAiderBuffer(denops, openBufferType);
-          await denops.cmd("wincmd p");
-          console.log("Run AiderAddCurrentFile again.");
-          return;
-        }
-      }
-      if (await buffer.checkIfTerminalBuffer(denops, currentBufnr)) {
-        return;
-      }
-      const currentFile = await getCurrentFilePath(denops);
-      const prompt = `/add ${currentFile}`;
-      await buffer.sendPromptWithInput(denops, prompt);
+      await addFileToAider(denops, openBufferType, "add");
     }),
 
     await command(
@@ -149,23 +161,7 @@ export async function main(denops: Denops): Promise<void> {
     ),
 
     await command("addCurrentFileReadOnly", "0", async () => {
-      const currentBufnr = await fn.bufnr(denops, "%");
-      if ((await buffer.getAiderBuffer(denops)) === undefined) {
-        if (openBufferType === "floating") {
-          await aider().silentRun(denops);
-        } else {
-          await buffer.openAiderBuffer(denops, openBufferType);
-          await denops.cmd("wincmd p");
-          console.log("Run AiderAddReadCurrentFile again.");
-          return;
-        }
-      }
-      if (await buffer.checkIfTerminalBuffer(denops, currentBufnr)) {
-        return;
-      }
-      const currentFile = await getCurrentFilePath(denops);
-      const prompt = `/read-only ${currentFile}`;
-      await buffer.sendPromptWithInput(denops, prompt);
+      await addFileToAider(denops, openBufferType, "read-only");
     }),
 
     await command(
