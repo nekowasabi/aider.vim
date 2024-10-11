@@ -222,20 +222,20 @@ export async function main(denops: Denops): Promise<void> {
     }),
 
     await command("addIgnoreCurrentFile", "0", async () => {
-      {
-        const currentFile = await getCurrentFilePath(denops);
+      const currentFile = await getCurrentFilePath(denops);
+      const gitRoot = (
+        await fn.system(denops, "git rev-parse --show-toplevel")
+      ).trim();
+      const filePathToOpen = `${gitRoot}/.aiderignore`;
+      const relativePath = currentFile.replace(gitRoot, "");
 
-        const gitRoot = (
-          await fn.system(denops, "git rev-parse --show-toplevel")
-        ).trim();
-        const filePathToOpen = `${gitRoot}/.aiderignore`;
-        const forAiderIgnorePath = currentFile.replace(gitRoot, "");
-
-        const file = await fn.readfile(denops, filePathToOpen);
-        file.push(`!${forAiderIgnorePath}`);
-
-        await fn.writefile(denops, file, filePathToOpen);
+      try {
+        const fileContent = await fn.readfile(denops, filePathToOpen);
+        fileContent.push(`!${relativePath}`);
+        await fn.writefile(denops, fileContent, filePathToOpen);
         console.log(`Added ${currentFile} to .aiderignore`);
+      } catch (error) {
+        console.error(`Failed to update .aiderignore: ${error.message}`);
       }
     }),
 
