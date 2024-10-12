@@ -208,14 +208,10 @@ export async function main(denops: Denops): Promise<void> {
       const filePathToOpen = `${gitRoot}/.aiderignore`;
       const relativePath = currentFile.replace(gitRoot, "");
 
-      try {
-        const fileContent = await fn.readfile(denops, filePathToOpen);
-        fileContent.push(`!${relativePath}`);
-        await fn.writefile(denops, fileContent, filePathToOpen);
-        console.log(`Added ${currentFile} to .aiderignore`);
-      } catch (error) {
-        console.error(`Failed to update .aiderignore: ${error.message}`);
-      }
+      const fileContent = await fn.readfile(denops, filePathToOpen);
+      fileContent.push(`!${relativePath}`);
+      await fn.writefile(denops, fileContent, filePathToOpen);
+      console.log(`Added ${currentFile} to .aiderignore`);
     }),
 
     await command("voice", "0", async () => {
