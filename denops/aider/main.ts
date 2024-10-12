@@ -221,6 +221,7 @@ export async function main(denops: Denops): Promise<void> {
     await command("voice", "0", async () => {
       const prompt = "/voice";
       await buffer.sendPromptWithInput(denops, prompt);
+      await fn.feedkeys(denops, "a"); // Start insert mode to accepet Enter key
     }),
 
     await command(
