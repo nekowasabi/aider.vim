@@ -37,5 +37,6 @@ export async function assertAiderBufferString(denops: Denops, expected: string):
   const buf = await buffer.getAiderBuffer(denops);
   assert(buf !== undefined);
   const lines = ensure(await denops.call("getbufline", buf.bufnr, 1, "$"), is.ArrayOf(is.String));
-  assert(lines.join("\n") === expected);
+  const actual = lines.join("\n");
+  assert(actual === expected, `Buffer content mismatch.\nExpected:\n${expected}\nActual:\n${actual}`);
 }
