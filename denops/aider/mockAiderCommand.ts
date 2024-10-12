@@ -7,13 +7,16 @@ let mockAiderBufnr: number | undefined = undefined;
 
 export const commands: AiderCommand = {
   run: async (denops: Denops): Promise<undefined> => {
-    const newBuf = await fn.bufnr(denops, "dummyaider", true);
+    const bufnr = await fn.bufnr(denops, "%");
+    await denops.cmd("file dummyaider"); // set buffer name
+
     await emit(denops, "User", "AiderOpen");
-    mockAiderBufnr = newBuf;
+    mockAiderBufnr = bufnr;
   },
 
-  silentRun: async function (denops: Denops): Promise<undefined> {
-    await this.run(denops);
+  silentRun: async (denops: Denops): Promise<undefined> => {
+    await denops.cmd("enew");
+    await commands.run(denops);
     await denops.cmd("b#"); // hide buffer
   },
 
