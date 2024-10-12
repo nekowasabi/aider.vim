@@ -17,16 +17,10 @@ async function setup(denops: Denops, bufferLayout: BufferLayout) {
   await sleep(10); // sleepを入れないとAiderAddCurrentFileが落ちた。mainのロードが間に合っていない？
 }
 
-export function test(
-  mode: "floating" | "vsplit",
-  testName: string,
-  fn: (denops: Denops) => Promise<void>,
-) {
+export function test(mode: "floating" | "vsplit", testName: string, fn: (denops: Denops) => Promise<void>) {
   denopsTest("nvim", `(${mode}): ${testName}`, async (denops) => {
     await setup(denops, mode);
-    await sleep(10);
     await fn(denops);
   });
 }
-const sleep = (msec: number) =>
-  new Promise((resolve) => setTimeout(resolve, msec));
+const sleep = (msec: number) => new Promise((resolve) => setTimeout(resolve, msec));
