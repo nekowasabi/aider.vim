@@ -130,6 +130,13 @@ export async function main(denops: Denops): Promise<void> {
       { pattern: "[<f-args>]", complete: "file" },
     ),
 
+    await command("addBuffers", "0", async () => {
+      const buffersPath = await buffer.getFileBuffers(denops);
+      const prompt = `/add ${buffersPath}`;
+
+      await buffer.sendPrompt(denops, prompt);
+    }),
+
     await command("addCurrentFile", "0", async () => {
       await addFileToAider(denops, openBufferType, "add");
     }),

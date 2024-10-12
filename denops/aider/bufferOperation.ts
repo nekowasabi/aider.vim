@@ -363,3 +363,42 @@ async function checkBufferOpen(denops: Denops, bufnrToCheck: number): Promise<bo
   }
   return false;
 }
+
+async function getGitRoot(denops: Denops): Promise<string> {
+  const gitRoot = ensure(await denops.call("system", "git rev-parse --show-toplevel"), is.String).trim();
+  return gitRoot;
+}
+
+async function convertToGitRelativePath(denops: Denops, fullPath: string): Promise<string> {
+  const gitRoot = await getGitRoot(denops);
+  return fullPath.replace(gitRoot, "").slice(1);
+}
+
+/**
+ * 現在開いているバッファの中で、Git管理下にあるファイルのパスを取得します。
+ *
+ * @param {Denops} denops - Denopsインスタンス
+ * @returns {Promise<undefined | string>} Git管理下にあるファイルの相対パスをスペースで区切った文字列、またはundefined
+ */
+export async function getFileBuffers(denops: Denops): Promise<undefined | string> {
+  const buf_count = ensure(await fn.bufnr(denops, "$"), is.Number);
+
+  const gitFiles = ensure(await denops.call("system", "git ls-files"), is.String).split("\n");
+
+  const buffers = [];
+  for (let i = 1; i <= buf_count; i++) {
+    const bufnr = ensure(await fn.bufnr(denops, i), is.Number);
+
+    if (!(await aider().checkIfAiderBuffer(denops, bufnr))) {
+      const bufferName = ensure(await fn.bufname(denops, bufnr), is.String);
+      const fullPath = ensure(await fn.fnamemodify(denops, bufferName, ":p"), is.String);
+      const gitRelativePath = await convertToGitRelativePath(denops, fullPath);
+
+      if (gitFiles.includes(gitRelativePath)) {
+        buffers.push(gitRelativePath);
+      }
+    }
+  }
+
+  return buffers.join(" ") ?? undefined;
+}
