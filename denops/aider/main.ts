@@ -115,7 +115,7 @@ export async function main(denops: Denops): Promise<void> {
     }),
 
     await command("hide", "0", async () => {
-      await denops.cmd("close!");
+      await denops.cmd("fclose!");
       await denops.cmd("silent! e!");
     }),
 

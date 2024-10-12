@@ -142,7 +142,7 @@ export async function openFloatingWindowWithSelectedCode(
 
   await denops.cmd("setlocal filetype=markdown");
 
-  await n.nvim_buf_set_keymap(denops, bufnr, "n", "q", "<cmd>close!<CR>", {
+  await n.nvim_buf_set_keymap(denops, bufnr, "n", "q", "<cmd>fclose!<CR>", {
     silent: true,
   });
   await n.nvim_buf_set_keymap(denops, bufnr, "n", "Q", "<cmd>AiderHideVisualSelectFloatingWindow<CR>", {
@@ -204,7 +204,7 @@ export async function hideVisualSelectFloatingWindow(denops: Denops): Promise<vo
   const bufferContent = ensure(await denops.call("getbufline", "%", 1, "$"), is.ArrayOf(is.String));
 
   await v.g.set(denops, "aider_visual_select_buffer_prompt", bufferContent);
-  await denops.cmd("close!");
+  await denops.cmd("fclose!");
 }
 
 /**
