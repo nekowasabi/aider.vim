@@ -69,6 +69,17 @@ export async function openAiderBuffer(denops: Denops, openBufferType: BufferLayo
   }
 }
 
+export async function prepareAiderBuffer(denops: Denops, openBufferType: BufferLayout): Promise<void> {
+  if (openBufferType === "floating") {
+    await aider().silentRun(denops);
+  } else {
+    await openAiderBuffer(denops, openBufferType);
+    await denops.cmd("wincmd p");
+    console.log("Run Command again.");
+    return;
+  }
+}
+
 export async function sendPrompt(denops: Denops, input: string): Promise<void> {
   const aiderBuf = await getAiderBuffer(denops);
   if (aiderBuf === undefined) {

@@ -1,4 +1,5 @@
 import * as fn from "https://deno.land/x/denops_std@v6.4.0/function/mod.ts";
+import { prepareAiderBuffer } from "./bufferOperation.ts";
 import type { Denops } from "https://deno.land/x/denops_std@v6.4.0/mod.ts";
 import { aider } from "./aiderCommand.ts";
 import * as buffer from "./bufferOperation.ts";
@@ -87,14 +88,7 @@ export async function main(denops: Denops): Promise<void> {
     const aiderBuffer = await buffer.getAiderBuffer(denops);
 
     if (!aiderBuffer) {
-      if (openBufferType === "floating") {
-        await aider().silentRun(denops);
-      } else {
-        await buffer.openAiderBuffer(denops, openBufferType);
-        await denops.cmd("wincmd p");
-        console.log(`Run AiderAdd${prefix}CurrentFile again.`);
-        return;
-      }
+      buffer.prepareAiderBuffer(denops, openBufferType);
     }
 
     if (await buffer.checkIfTerminalBuffer(denops, currentBufnr)) {
