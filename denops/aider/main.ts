@@ -88,7 +88,7 @@ export async function main(denops: Denops): Promise<void> {
     const aiderBuffer = await buffer.getAiderBuffer(denops);
 
     if (!aiderBuffer) {
-      buffer.prepareAiderBuffer(denops, openBufferType);
+      await buffer.prepareAiderBuffer(denops, openBufferType);
     }
 
     if (await buffer.checkIfTerminalBuffer(denops, currentBufnr)) {
