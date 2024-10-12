@@ -103,7 +103,7 @@ export async function main(denops: Denops): Promise<void> {
 
     const currentFile = await getCurrentFilePath(denops);
     const prompt = `/${prefix} ${currentFile}`;
-    await buffer.sendPromptWithInput(denops, prompt);
+    await buffer.sendPrompt(denops, prompt);
   }
 
   const commands: Command[] = [
@@ -132,7 +132,7 @@ export async function main(denops: Denops): Promise<void> {
       async (path: string) => {
         const prompt = `/add ${path}`;
 
-        await buffer.sendPromptWithInput(denops, prompt);
+        await buffer.sendPrompt(denops, prompt);
       },
       { pattern: "[<f-args>]", complete: "file" },
     ),
@@ -147,7 +147,7 @@ export async function main(denops: Denops): Promise<void> {
       async (path: string) => {
         const prompt = `/read-only ${path}`;
 
-        await buffer.sendPromptWithInput(denops, prompt);
+        await buffer.sendPrompt(denops, prompt);
       },
       { pattern: "[<f-args>]", complete: "file" },
     ),
@@ -161,14 +161,14 @@ export async function main(denops: Denops): Promise<void> {
       "1",
       async (url: string) => {
         const prompt = `/web ${url}`;
-        await buffer.sendPromptWithInput(denops, prompt);
+        await buffer.sendPrompt(denops, prompt);
       },
       { pattern: "[<f-args>]" },
     ),
 
     await command("paste", "0", async () => {
       const prompt = "/paste";
-      await buffer.sendPromptWithInput(denops, prompt);
+      await buffer.sendPrompt(denops, prompt);
     }),
 
     await command(
@@ -176,7 +176,7 @@ export async function main(denops: Denops): Promise<void> {
       "1",
       async (question: string) => {
         const prompt = `/ask ${question}`;
-        await buffer.sendPromptWithInput(denops, prompt);
+        await buffer.sendPrompt(denops, prompt);
       },
       { pattern: "[<f-args>]" },
     ),
@@ -220,7 +220,7 @@ export async function main(denops: Denops): Promise<void> {
 
     await command("voice", "0", async () => {
       const prompt = "/voice";
-      await buffer.sendPromptWithInput(denops, prompt);
+      await buffer.sendPrompt(denops, prompt);
       await fn.feedkeys(denops, "a"); // Start insert mode to accepet Enter key
     }),
 
@@ -229,7 +229,7 @@ export async function main(denops: Denops): Promise<void> {
       "1",
       async (cmd: string) => {
         const prompt = `/test ${cmd}`;
-        await buffer.sendPromptWithInput(denops, prompt);
+        await buffer.sendPrompt(denops, prompt);
       },
       { pattern: "[<f-args>]", complete: "shellcmd" },
     ),
