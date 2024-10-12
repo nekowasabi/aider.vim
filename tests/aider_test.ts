@@ -33,13 +33,13 @@ test("floating", "AiderSilentRun should work", async (denops) => {
   // TODO if nothing is open, aider buffer is shown on the window(subtle bug)
   await denops.cmd("e hoge.txt"); // open a buffer
   await denops.cmd("AiderSilentRun");
-  await sleep(10);
+  await sleep(100);
   await assertAiderBufferHidden(denops);
 });
 test("vsplit", "AiderSilentRun should work", async (denops) => {
   // TODO if nothing is open, aider buffer is shown on the window(subtle bug)
   await denops.cmd("e hoge.txt"); // open a buffer
   await denops.cmd("AiderSilentRun");
-  await sleep(10);
+  await sleep(100);
   await assertAiderBufferHidden(denops);
 });
