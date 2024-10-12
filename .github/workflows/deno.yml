@@ -16,7 +16,7 @@ on:
 # Use 'nushell' as it's the only sane shell
 defaults:
   run:
-    shell: nu {0} 
+    shell: nu {0}
 
 env:
   DENOPS_BRANCH: ${{ github.event.inputs.denops_branch || 'main' }}
