@@ -18,7 +18,7 @@ export const commands: AiderCommand = {
   },
 
   sendPrompt: async (denops: Denops, _jobId: number, prompt: string): Promise<undefined> => {
-    await fn.feedkeys(denops, `iinput: ${prompt}\n`);
+    await fn.feedkeys(denops, `ainput: ${prompt}\n`, "x");
   },
 
   exit: async (denops: Denops, _jobId: number, _bufnr: number): Promise<undefined> => {
