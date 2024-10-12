@@ -55,7 +55,7 @@ async function bufferStateMessage(denops: Denops): Promise<string> {
     const bufnr = ensure(await denops.call("bufnr", i), is.Number);
     const bufname = ensure(await denops.call("bufname", bufnr), is.String);
     const bufwinnr = ensure(await denops.call("bufwinnr", bufnr), is.Number);
-    message += `${JSON.stringify({ bufnr, bufname, bufwinnr })}\n`;
+    message += `${JSON.stringify({ bufwinnr, bufnr, bufname })}\n`;
   }
   return message;
 }
