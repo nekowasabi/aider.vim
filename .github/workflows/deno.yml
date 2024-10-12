@@ -20,7 +20,7 @@ on:
 # Use 'bash' as default shell even on Windows
 defaults:
   run:
-    shell: bash --noprofile --norc -eo pipefail {0}
+    shell: bash --noprofile --norc -euo pipefail {0}
 
 env:
   DENOPS_BRANCH: ${{ github.event.inputs.denops_branch || 'main' }}
