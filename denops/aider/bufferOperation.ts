@@ -364,11 +364,24 @@ async function checkBufferOpen(denops: Denops, bufnrToCheck: number): Promise<bo
   return false;
 }
 
+/**
+ * Gitリポジトリのルートディレクトリを取得します。
+ *
+ * @param {Denops} denops - Denopsインスタンス
+ * @returns {Promise<string>} Gitリポジトリのルートディレクトリのパス
+ */
 async function getGitRoot(denops: Denops): Promise<string> {
   const gitRoot = ensure(await denops.call("system", "git rev-parse --show-toplevel"), is.String).trim();
   return gitRoot;
 }
 
+/**
+ * フルパスをGitリポジトリのルートからの相対パスに変換します。
+ *
+ * @param {Denops} denops - Denopsインスタンス
+ * @param {string} fullPath - 変換するフルパス
+ * @returns {Promise<string>} Gitリポジトリのルートからの相対パス
+ */
 async function convertToGitRelativePath(denops: Denops, fullPath: string): Promise<string> {
   const gitRoot = await getGitRoot(denops);
   return fullPath.replace(gitRoot, "").slice(1);
