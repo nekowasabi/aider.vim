@@ -7,7 +7,6 @@ export const sleep = (msec: number) => new Promise((resolve) => setTimeout(resol
 
 /**
  * Aiderバッファが開かれており、ウィンドウに表示されているかをアサートします
- * うまく動いてない( ；´。 ｀；)
  */
 export async function assertAiderBufferShown(denops: Denops): Promise<void> {
   const buf = await buffer.getAiderBuffer(denops);
@@ -17,7 +16,6 @@ export async function assertAiderBufferShown(denops: Denops): Promise<void> {
 
 /**
  * Aiderバッファがウィンドウに表示されていないことをアサートします
- * うまく動いてない( ；´。 ｀；)
  */
 export async function assertAiderBufferHidden(denops: Denops): Promise<void> {
   const buf = await buffer.getAiderBuffer(denops);
@@ -33,6 +31,12 @@ export async function assertAiderBufferAlive(denops: Denops): Promise<void> {
   assert(buf !== undefined);
 }
 
+/**
+ * Aiderバッファの内容が期待される文字列と一致することをアサートします
+ *
+ * @param denops - Denopsインスタンス。
+ * @param expected - 期待されるバッファの内容。
+ */
 export async function assertAiderBufferString(denops: Denops, expected: string): Promise<void> {
   const buf = await buffer.getAiderBuffer(denops);
   assert(buf !== undefined);
