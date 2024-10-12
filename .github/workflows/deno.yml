@@ -17,10 +17,10 @@ on:
         required: false
         default: 'main'
 
-# Use 'bash' as default shell even on Windows
+# Use 'nushell' as it's the only sane shell
 defaults:
   run:
-    shell: bash --noprofile --norc -euo pipefail {0}
+    shell: nu {0} 
 
 env:
   DENOPS_BRANCH: ${{ github.event.inputs.denops_branch || 'main' }}
@@ -39,6 +39,10 @@ jobs:
     runs-on: ${{ matrix.runner }}
 
     steps:
+      - uses: hustcer/setup-nu@main
+        with:
+          version: "0.98"
+
       - run: git config --global core.autocrlf false
         if: runner.os == 'Windows'
 
@@ -51,11 +55,11 @@ jobs:
       - name: Get denops
         run: |
           git clone https://github.com/vim-denops/denops.vim /tmp/denops.vim
-          echo "DENOPS_TEST_DENOPS_PATH=/tmp/denops.vim" >> "$GITHUB_ENV"
+          echo "DENOPS_TEST_DENOPS_PATH=/tmp/denops.vim" | save --append $env.GITHUB_ENV
 
       - name: Try switching denops branch
         run: |
-          git -C /tmp/denops.vim switch ${{ env.DENOPS_BRANCH }} || true
+          git -C /tmp/denops.vim switch ${{ env.DENOPS_BRANCH }}
           git -C /tmp/denops.vim branch
 
       - uses: rhysd/action-setup-vim@v1
@@ -66,16 +70,18 @@ jobs:
 
       - name: Export executables
         run: |
-          echo "DENOPS_TEST_NVIM_EXECUTABLE=${{ steps.nvim.outputs.executable }}" >> "$GITHUB_ENV"
+          cat $env.GITHUB_ENV
+          echo "DENOPS_TEST_NVIM_EXECUTABLE=${{ steps.nvim.outputs.executable }}" | save --append $env.GITHUB_ENV
 
       - name: Check versions
         run: |
           deno --version
-          ${DENOPS_TEST_NVIM_EXECUTABLE} --version
+          echo $env
+          ^$env.DENOPS_TEST_NVIM_EXECUTABLE --version
 
       - name: Perform pre-cache
         run: |
-          deno cache ${DENOPS_TEST_DENOPS_PATH}/denops/@denops-private/mod.ts
+          deno cache $"($env.DENOPS_TEST_DENOPS_PATH)/denops/@denops-private/mod.ts"
           deno cache ./denops/aider/main.ts
 
       - name: Run tests
