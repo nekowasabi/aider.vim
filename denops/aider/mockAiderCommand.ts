@@ -17,19 +17,11 @@ export const commands: AiderCommand = {
     await denops.cmd("b#"); // hide buffer
   },
 
-  sendPrompt: async (
-    denops: Denops,
-    _jobId: number,
-    prompt: string,
-  ): Promise<undefined> => {
-    await fn.feedkeys(denops, `input: ${prompt}\n`);
+  sendPrompt: async (denops: Denops, _jobId: number, prompt: string): Promise<undefined> => {
+    await fn.feedkeys(denops, `iinput: ${prompt}\n`);
   },
 
-  exit: async (
-    denops: Denops,
-    _jobId: number,
-    _bufnr: number,
-  ): Promise<undefined> => {
+  exit: async (denops: Denops, _jobId: number, _bufnr: number): Promise<undefined> => {
     if (mockAiderBufnr === undefined) {
       return;
     }
