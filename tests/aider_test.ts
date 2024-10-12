@@ -26,5 +26,5 @@ test("vsplit", "AiderAddCurrentFile should work", async (denops) => {
   await denops.cmd("AiderAddCurrentFile");
   await sleep(10);
   await assertAiderBufferAlive(denops);
-  await assertAiderBufferString(denops, "");
+  await assertAiderBufferString(denops, ""); // "Run Command again." messgae is shown
 });
