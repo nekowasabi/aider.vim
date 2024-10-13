@@ -15,14 +15,6 @@ export interface AiderCommand {
   run: (denops: Denops) => Promise<undefined>;
 
   /**
-   * Aiderコマンドを静かに実行します。
-   *
-   * @param denops - Denopsインスタンス。
-   * @returns コマンドが静かに実行されたときに解決されるPromise。
-   */
-  silentRun: (denops: Denops) => Promise<undefined>;
-
-  /**
    * Aiderコマンドにプロンプトを送信します。
    *
    * @param denops - Denopsインスタンス。
@@ -30,11 +22,7 @@ export interface AiderCommand {
    * @param prompt - 送信するプロンプト文字列。
    * @returns プロンプトが送信されたときに解決されるPromise。
    */
-  sendPrompt: (
-    denops: Denops,
-    jobId: number,
-    prompt: string,
-  ) => Promise<undefined>;
+  sendPrompt: (denops: Denops, jobId: number, prompt: string) => Promise<undefined>;
 
   /**
    * Aiderコマンドを終了します。

@@ -108,7 +108,7 @@ export async function main(denops: Denops): Promise<void> {
       await buffer.openAiderBuffer(denops, openBufferType);
     }),
 
-    await command("silentRun", "0", () => aider().silentRun(denops)),
+    await command("silentRun", "0", () => buffer.silentRun(denops)),
 
     await command("hideVisualSelectFloatingWindow", "0", async () => {
       await buffer.hideVisualSelectFloatingWindow(denops);

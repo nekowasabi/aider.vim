@@ -14,12 +14,6 @@ export const commands: AiderCommand = {
     mockAiderBufnr = bufnr;
   },
 
-  silentRun: async (denops: Denops): Promise<undefined> => {
-    await denops.cmd("enew");
-    await commands.run(denops);
-    await denops.cmd("b#"); // hide buffer
-  },
-
   sendPrompt: async (denops: Denops, _jobId: number, prompt: string): Promise<undefined> => {
     await fn.feedkeys(denops, `ainput: ${prompt}\n`, "x");
   },
