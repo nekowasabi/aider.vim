@@ -21,15 +21,6 @@ type Params = Record<never, never>;
 const isDduItemAction = is.ObjectOf({ path: is.String });
 
 export const BookmarkAction: Actions<Params> = {
-  open: (_: {
-    denops: Denops;
-    context: Context;
-    actionParams: unknown;
-    items: DduItem[];
-  }) => {
-    // const action = args.items[0].action as { path: string };
-    return ActionFlags.None;
-  },
   add: async (args: {
     denops: Denops;
     context: Context;
@@ -51,6 +42,37 @@ export const BookmarkAction: Actions<Params> = {
       await denops.cmd(`AiderAddFile ${paths}`);
     }
 
+    return ActionFlags.None;
+  },
+  readOnly: async (args: {
+    denops: Denops;
+    context: Context;
+    actionParams: unknown;
+    items: DduItem[];
+  }) => {
+    const { denops, items } = args;
+
+    const paths = items
+      .map((item) => {
+        const action = maybe(item?.action, isDduItemAction);
+        return action ? action.path : null;
+      })
+      .filter((path) => path !== null)
+      .join(" ");
+
+    if (paths) {
+      await denops.cmd(`AiderAddFileReadOnly ${paths}`);
+    }
+
+    return ActionFlags.None;
+  },
+  open: (_: {
+    denops: Denops;
+    context: Context;
+    actionParams: unknown;
+    items: DduItem[];
+  }) => {
+    // const action = args.items[0].action as { path: string };
     return ActionFlags.None;
   },
 };
