@@ -25,3 +25,21 @@ test("both", "AiderSilentRun should work", async (denops) => {
   await sleep(SLEEP_BEFORE_ASSERT);
   await assertAiderBufferHidden(denops);
 });
+
+test("both", "AiderAddBuffers should return empty for files not under git management", async (denops) => {
+  await denops.cmd("AiderRun");
+  await sleep(SLEEP_BEFORE_ASSERT);
+  await denops.cmd("AiderAddBuffers");
+  await sleep(SLEEP_BEFORE_ASSERT);
+  await assertAiderBufferAlive(denops);
+  await assertAiderBufferString(denops, "input: /add \n");
+});
+
+test("both", "AiderAddBuffers should return /add `bufferName` if there is a buffer under git management", async (denops) => {
+  await denops.cmd("AiderRun");
+  await sleep(SLEEP_BEFORE_ASSERT);
+  await denops.cmd("e ./tests/aider_test.ts");
+  await denops.cmd("AiderAddBuffers");
+  await sleep(SLEEP_BEFORE_ASSERT);
+  await assertAiderBufferString(denops, "input: /add tests/aider_test.ts\n");
+});
