@@ -21,7 +21,7 @@ export async function getPromptFromVimVariable(
     await v.g.get(denops, variableName),
     is.ArrayOf(is.String),
   );
-  return prompts || undefined;
+  return Array.isArray(prompts) ? prompts : undefined;
 }
 
 /**
