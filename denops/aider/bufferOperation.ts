@@ -76,7 +76,7 @@ export async function silentRun(denops: Denops): Promise<void> {
 }
 export async function prepareAiderBuffer(denops: Denops, openBufferType: BufferLayout): Promise<void> {
   if (openBufferType === "floating") {
-    silentRun(denops);
+    await silentRun(denops);
   } else {
     await openAiderBuffer(denops, openBufferType);
     await denops.cmd("wincmd p");
