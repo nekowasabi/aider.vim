@@ -1,11 +1,11 @@
-import * as fn from "https://deno.land/x/denops_std@v6.4.0/function/mod.ts";
-import type { Denops } from "https://deno.land/x/denops_std@v6.4.0/mod.ts";
-import * as v from "https://deno.land/x/denops_std@v6.4.0/variable/mod.ts";
+import * as fn from "https://deno.land/x/denops_std@v6.5.1/function/mod.ts";
+import type { Denops } from "https://deno.land/x/denops_std@v6.5.1/mod.ts";
+import * as v from "https://deno.land/x/denops_std@v6.5.1/variable/mod.ts";
 import {
   ensure,
   is,
   maybe,
-} from "https://deno.land/x/unknownutil@v3.17.0/mod.ts";
+} from "https://deno.land/x/unknownutil@v3.18.1/mod.ts";
 
 /**
  * Gets the additional prompt from vim global variable "aider_additional_prompt".

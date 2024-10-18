@@ -1,5 +1,5 @@
-import * as fn from "https://deno.land/x/denops_std@v6.4.0/function/mod.ts";
-import type { Denops } from "https://deno.land/x/denops_std@v6.4.0/mod.ts";
+import * as fn from "https://deno.land/x/denops_std@v6.5.1/function/mod.ts";
+import type { Denops } from "https://deno.land/x/denops_std@v6.5.1/mod.ts";
 import { aider } from "./aiderCommand.ts";
 import * as buffer from "./bufferOperation.ts";
 import type { BufferLayout } from "./bufferOperation.ts";

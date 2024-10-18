@@ -1,4 +1,4 @@
-import type { Denops } from "https://deno.land/x/denops_std@v6.4.0/mod.ts";
+import type { Denops } from "https://deno.land/x/denops_std@v6.5.1/mod.ts";
 import * as actual from "./actualAiderCommand.ts";
 import * as mock from "./mockAiderCommand.ts";
 

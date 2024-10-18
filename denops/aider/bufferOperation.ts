@@ -1,9 +1,9 @@
-import * as fn from "https://deno.land/x/denops_std@v6.4.0/function/mod.ts";
-import { feedkeys } from "https://deno.land/x/denops_std@v6.4.0/function/mod.ts";
-import * as n from "https://deno.land/x/denops_std@v6.4.0/function/nvim/mod.ts";
-import type { Denops } from "https://deno.land/x/denops_std@v6.4.0/mod.ts";
-import * as v from "https://deno.land/x/denops_std@v6.4.0/variable/mod.ts";
-import { ensure, is, maybe } from "https://deno.land/x/unknownutil@v3.17.0/mod.ts";
+import * as fn from "https://deno.land/x/denops_std@v6.5.1/function/mod.ts";
+import { feedkeys } from "https://deno.land/x/denops_std@v6.5.1/function/mod.ts";
+import * as n from "https://deno.land/x/denops_std@v6.5.1/function/nvim/mod.ts";
+import type { Denops } from "https://deno.land/x/denops_std@v6.5.1/mod.ts";
+import * as v from "https://deno.land/x/denops_std@v6.5.1/variable/mod.ts";
+import { ensure, is, maybe } from "https://deno.land/x/unknownutil@v3.18.1/mod.ts";
 import { aider } from "./aiderCommand.ts";
 import { getPromptFromVimVariable } from "./utils.ts";
 
