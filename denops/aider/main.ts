@@ -4,6 +4,7 @@ import { aider } from "./aiderCommand.ts";
 import * as buffer from "./bufferOperation.ts";
 import type { BufferLayout } from "./bufferOperation.ts";
 import { getCurrentFilePath } from "./utils.ts";
+import { relative } from "https://deno.land/std@0.115.1/path/mod.ts";
 
 /**
  * The main function that sets up the Aider plugin functionality.
@@ -203,22 +204,30 @@ export async function main(denops: Denops): Promise<void> {
     }),
 
     await command("addIgnoreCurrentFile", "0", async () => {
-      const currentFile = await getCurrentFilePath(denops);
-      const gitRoot = (await fn.system(denops, "git rev-parse --show-toplevel")).trim();
-      const filePathToOpen = `${gitRoot}/.aiderignore`;
-      const relativePath = currentFile.replace(gitRoot, "");
+      try {
+        const currentFile = await getCurrentFilePath(denops);
+        const gitRoot = (await fn.system(denops, "git rev-parse --show-toplevel")).trim();
+        const filePathToOpen = `${gitRoot}/.aiderignore`;
+        const relativePath = relative(gitRoot, currentFile);
 
-      const fileContent = await fn.readfile(denops, filePathToOpen);
-      fileContent.push(`!${relativePath}`);
-      await fn.writefile(denops, fileContent, filePathToOpen);
-      console.log(`Added ${currentFile} to .aiderignore`);
+        const fileContent = await fn.readfile(denops, filePathToOpen);
+        fileContent.push(`!${relativePath}`);
+        await fn.writefile(denops, fileContent, filePathToOpen);
+        console.log(`Added ${currentFile} to .aiderignore`);
+      } catch (error) {
+        console.error("Failed to add file to .aiderignore:", error);
+      }
     }),
 
     await command("voice", "0", async () => {
-      const prompt = "/voice";
-      await buffer.prepareAiderBuffer(denops, openBufferType);
-      await buffer.sendPrompt(denops, prompt);
-      await fn.feedkeys(denops, "a"); // Start insert mode to accepet Enter key
+      try {
+        const prompt = "/voice";
+        await buffer.prepareAiderBuffer(denops, openBufferType);
+        await buffer.sendPrompt(denops, prompt);
+        await fn.feedkeys(denops, "a"); // Start insert mode to accept Enter key
+      } catch (error) {
+        console.error("Failed to execute voice command:", error);
+      }
     }),
 
     await command(
