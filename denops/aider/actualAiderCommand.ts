@@ -41,8 +41,8 @@ async function run(denops: Denops): Promise<undefined> {
  */
 async function sendPrompt(denops: Denops, jobId: number, prompt: string): Promise<undefined> {
   const promptLines = prompt.split("\n");
-  promptLines.push("\n");
-  await denops.call("chansend", jobId, promptLines);
+  const joined = promptLines.join("\x1b\x0d"); // use Esc + Ctrl-M instead of \n to avoid sending cf. https://github.com/Aider-AI/aider/issues/901
+  await denops.call("chansend", jobId, `${joined}\n`);
 }
 
 async function exit(denops: Denops, jobId: number, bufnr: number): Promise<undefined> {
