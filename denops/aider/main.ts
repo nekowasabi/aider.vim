@@ -172,6 +172,16 @@ export async function main(denops: Denops): Promise<void> {
       await buffer.sendPrompt(denops, prompt);
     }),
 
+    await command("toggleCodeMode", "0", async () => {
+      const prompt = "/chat-mode code";
+      await buffer.sendPrompt(denops, prompt);
+    }),
+
+    await command("toggleArchitectMode", "0", async () => {
+      const prompt = "/chat-mode architect";
+      await buffer.sendPrompt(denops, prompt);
+    }),
+
     await command(
       "ask",
       "1",
