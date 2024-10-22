@@ -85,7 +85,7 @@ export async function prepareAiderBuffer(denops: Denops, openBufferType: BufferL
   }
 }
 
-export async function sendPrompt(denops: Denops, input: string): Promise<void> {
+export async function sendPrompt(denops: Denops, input: string, opts = { openBuf: true }): Promise<void> {
   const aiderBuf = await getAiderBuffer(denops);
   if (aiderBuf === undefined) {
     await denops.cmd("echo 'Aider is not running'");
@@ -96,7 +96,9 @@ export async function sendPrompt(denops: Denops, input: string): Promise<void> {
   const openBufferType = await getOpenBufferType(denops);
 
   if (openBufferType === "floating") {
-    await openAiderBuffer(denops, openBufferType);
+    if (opts?.openBuf) {
+      await openAiderBuffer(denops, openBufferType);
+    }
     await sendPromptFromFloatingWindow(denops, input);
     return;
   }
@@ -265,7 +267,6 @@ async function sendPromptFromFloatingWindow(denops: Denops, prompt: string): Pro
   if (aiderBuf === undefined) {
     return;
   }
-  await openFloatingWindow(denops, aiderBuf.bufnr);
 
   await aider().sendPrompt(denops, aiderBuf.jobId, prompt);
 }

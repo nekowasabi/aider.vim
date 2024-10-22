@@ -1,10 +1,9 @@
+import { relative } from "https://deno.land/std@0.115.1/path/mod.ts";
 import * as fn from "https://deno.land/x/denops_std@v6.5.1/function/mod.ts";
 import type { Denops } from "https://deno.land/x/denops_std@v6.5.1/mod.ts";
-import { aider } from "./aiderCommand.ts";
 import * as buffer from "./bufferOperation.ts";
 import type { BufferLayout } from "./bufferOperation.ts";
 import { getCurrentFilePath } from "./utils.ts";
-import { relative } from "https://deno.land/std@0.115.1/path/mod.ts";
 
 /**
  * The main function that sets up the Aider plugin functionality.
@@ -83,7 +82,12 @@ export async function main(denops: Denops): Promise<void> {
 
   const openBufferType: BufferLayout = await buffer.getOpenBufferType(denops);
 
-  async function addFileToAider(denops: Denops, openBufferType: BufferLayout, prefix: string): Promise<void> {
+  async function addFileToAider(
+    denops: Denops,
+    openBufferType: BufferLayout,
+    prefix: string,
+    opts = { openBuf: true },
+  ): Promise<void> {
     const currentBufnr = await fn.bufnr(denops, "%");
     const aiderBuffer = await buffer.getAiderBuffer(denops);
 
@@ -97,7 +101,7 @@ export async function main(denops: Denops): Promise<void> {
 
     const currentFile = await getCurrentFilePath(denops);
     const prompt = `/${prefix} ${currentFile}`;
-    await buffer.sendPrompt(denops, prompt);
+    await buffer.sendPrompt(denops, prompt, opts);
   }
 
   const commands: Command[] = [
@@ -143,9 +147,7 @@ export async function main(denops: Denops): Promise<void> {
     }),
 
     await command("silentAddCurrentFile", "0", async () => {
-      await addFileToAider(denops, openBufferType, "add");
-      await denops.cmd("fclose!");
-      await denops.cmd("silent! e!");
+      await addFileToAider(denops, openBufferType, "add", { openBuf: false });
     }),
 
     await command(
@@ -164,9 +166,9 @@ export async function main(denops: Denops): Promise<void> {
     }),
 
     await command("silentAddCurrentFileReadOnly", "0", async () => {
-      await addFileToAider(denops, openBufferType, "read-only");
-      await denops.cmd("fclose!");
-      await denops.cmd("silent! e!");
+      await addFileToAider(denops, openBufferType, "read-only", {
+        openBuf: false,
+      });
     }),
 
     await command(
