@@ -86,7 +86,7 @@ export async function main(denops: Denops): Promise<void> {
     denops: Denops,
     openBufferType: BufferLayout,
     prefix: string,
-    openBuf = true,
+    opts = { openBuf: true },
   ): Promise<void> {
     const currentBufnr = await fn.bufnr(denops, "%");
     const aiderBuffer = await buffer.getAiderBuffer(denops);
@@ -101,7 +101,7 @@ export async function main(denops: Denops): Promise<void> {
 
     const currentFile = await getCurrentFilePath(denops);
     const prompt = `/${prefix} ${currentFile}`;
-    await buffer.sendPrompt(denops, prompt, openBuf);
+    await buffer.sendPrompt(denops, prompt, opts);
   }
 
   const commands: Command[] = [
@@ -147,7 +147,7 @@ export async function main(denops: Denops): Promise<void> {
     }),
 
     await command("silentAddCurrentFile", "0", async () => {
-      await addFileToAider(denops, openBufferType, "add", false);
+      await addFileToAider(denops, openBufferType, "add", { openBuf: false });
       await denops.cmd("fclose!");
       await denops.cmd("silent! e!");
     }),
@@ -168,7 +168,9 @@ export async function main(denops: Denops): Promise<void> {
     }),
 
     await command("silentAddCurrentFileReadOnly", "0", async () => {
-      await addFileToAider(denops, openBufferType, "read-only", false);
+      await addFileToAider(denops, openBufferType, "read-only", {
+        openBuf: false,
+      });
       await denops.cmd("fclose!");
       await denops.cmd("silent! e!");
     }),
