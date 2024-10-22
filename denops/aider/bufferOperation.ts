@@ -267,7 +267,6 @@ async function sendPromptFromFloatingWindow(denops: Denops, prompt: string): Pro
   if (aiderBuf === undefined) {
     return;
   }
-  await openFloatingWindow(denops, aiderBuf.bufnr);
 
   await aider().sendPrompt(denops, aiderBuf.jobId, prompt);
 }

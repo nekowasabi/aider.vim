@@ -148,8 +148,6 @@ export async function main(denops: Denops): Promise<void> {
 
     await command("silentAddCurrentFile", "0", async () => {
       await addFileToAider(denops, openBufferType, "add", { openBuf: false });
-      await denops.cmd("fclose!");
-      await denops.cmd("silent! e!");
     }),
 
     await command(
@@ -171,8 +169,6 @@ export async function main(denops: Denops): Promise<void> {
       await addFileToAider(denops, openBufferType, "read-only", {
         openBuf: false,
       });
-      await denops.cmd("fclose!");
-      await denops.cmd("silent! e!");
     }),
 
     await command(
