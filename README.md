@@ -4,9 +4,21 @@ Minimal helper plugin for aider with neovim.
 
 ## Demo
 
+You can invoke Aider from vim
+
 <img src="./demo/aider_default.gif" alt="Demo GIF" width="500">
 
+You can send the selected range to Aider as context
+
 <img src="./demo/aider_visual_mode.gif" alt="Visual Mode Demo GIF" width="500">
+
+You can send the current buffer to Aider as context
+
+<img src="./demo/aider_add_current_file.gif" alt="Add current file Demo GIF" width="500">
+
+You can send voice commands to Aider using Whisper
+
+<img src="./demo/aider_voice.gif" alt="Voice input Demo GIF" width="500">
 
 ## Requirements
 
@@ -179,3 +191,7 @@ nnoremap <silent> <Leader>ad
 With this configuration, you can press `<leader>ad` to open ddu with the aider
 source. You can then select files and press `<CR>` to add them to the aider
 context.
+
+### DEMO
+
+<img src="./demo/aider_ddu_integration.gif" alt="Ddu Integration Demo GIF" width="500">
