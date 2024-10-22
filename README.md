@@ -1,6 +1,6 @@
 # aider.vim
 
-Minimal helper plugin for aider with neovim.
+Minimal helper plugin for [aider](https://github.com/Aider-AI/aider) with neovim.
 
 ## Demo
 
@@ -195,3 +195,7 @@ context.
 ### DEMO
 
 <img src="./demo/aider_ddu_integration.gif" alt="Ddu Integration Demo GIF" width="500">
+
+##  Acknowledgements
+
+Aider CLI tool created by [Paul Gauthier](https://github.com/paul-gauthier).
