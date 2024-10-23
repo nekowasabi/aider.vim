@@ -9,7 +9,6 @@ async function setup(denops: Denops, bufferLayout: BufferLayout) {
   const runtimepath = fromFileUrl(import.meta.resolve("../"));
   aider.setTestMode();
   await denops.cmd(`set runtimepath^=${runtimepath}`);
-  await denops.cmd(`let g:aider_command = "${runtimepath}tests/mockServer.ts"`);
   await denops.cmd(`let g:aider_buffer_open_type = "${bufferLayout}"`);
   await denops.cmd("let g:aider_floatwin_height = 50");
   await denops.cmd("let g:aider_floatwin_width = 50");

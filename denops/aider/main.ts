@@ -2,8 +2,10 @@ import { relative } from "https://deno.land/std@0.115.1/path/mod.ts";
 import * as fn from "https://deno.land/x/denops_std@v6.5.1/function/mod.ts";
 import type { Denops } from "https://deno.land/x/denops_std@v6.5.1/mod.ts";
 import * as buffer from "./bufferOperation.ts";
+
 import type { BufferLayout } from "./bufferOperation.ts";
 import { getCurrentFilePath } from "./utils.ts";
+import { aider, setTestMode } from "./aiderCommand.ts";
 
 /**
  * The main function that sets up the Aider plugin functionality.
@@ -77,6 +79,17 @@ export async function main(denops: Denops): Promise<void> {
     return {
       methodName: dispatcherMethod,
       impl: impl,
+    };
+  }
+
+  /**
+   * デバッグ用などの内部コマンドを生成します。
+   * :echo denops#notify("aider", "setDebug", []) のように呼び出せます。
+   */
+  function internalCommand(methodName: string, impl: () => Promise<void>): Command {
+    return {
+      methodName,
+      impl,
     };
   }
 
@@ -266,6 +279,14 @@ export async function main(denops: Denops): Promise<void> {
         await buffer.sendPrompt(denops, prompt);
       },
       { pattern: "[<f-args>]", complete: "shellcmd" },
+    ),
+
+    internalCommand(
+      "setDebug",
+      () =>
+        new Promise(() => {
+          setTestMode();
+        }),
     ),
   ];
 
