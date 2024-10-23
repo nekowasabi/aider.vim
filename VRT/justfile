@@ -1,0 +1,5 @@
+set shell := ["nu", "-c"]
+
+run:
+  nu spec.nu runSpec
+
