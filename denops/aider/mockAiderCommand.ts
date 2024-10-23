@@ -8,7 +8,7 @@ let mockAiderBufnr: number | undefined = undefined;
 export const commands: AiderCommand = {
   run: async (denops: Denops): Promise<undefined> => {
     const bufnr = await fn.bufnr(denops, "%");
-    await denops.cmd("file dummyaider"); // set buffer name
+    await denops.cmd("file /tmp/dummyaider"); // set buffer name
 
     await emit(denops, "User", "AiderOpen");
     mockAiderBufnr = bufnr;
