@@ -119,6 +119,8 @@ export async function sendPromptByBuffer(denops: Denops, openBufferType: BufferL
     await sendPromptFromSplitWindow(denops, bufferContent);
   }
 
+  // aiderバッファの最下段へ移動（AiderVisualSelect用）
+  await fn.feedkeys(denops, "G");
   return;
 }
 
