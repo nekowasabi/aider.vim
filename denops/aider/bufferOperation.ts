@@ -33,8 +33,8 @@ export async function exitAiderBuffer(denops: Denops): Promise<void> {
 
 /**
  * Opens an Aider buffer.
- * If an Aider buffer is already open, it opens that buffer.
- * If no Aider buffer is open, it creates a new buffer and opens it.
+ * If an Aider buffer is already alive, it opens that buffer.
+ * If no Aider buffer is alive, it creates a new buffer and opens it.
  * The way the buffer is opened depends on the value of openBufferType.
  * If openBufferType is "split" or "vsplit", the buffer is opened in a split.
  * Otherwise, the buffer is opened in a floating window.
