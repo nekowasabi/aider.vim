@@ -336,6 +336,9 @@ export async function getAiderBuffer(denops: Denops): Promise<AiderBuffer | unde
 
   for (let i = 1; i <= buf_count; i++) {
     const bufnr = ensure(await fn.bufnr(denops, i), is.Number);
+    if (bufnr === -1 || !(await fn.bufloaded(denops, bufnr))) {
+      continue;
+    }
 
     if (await aider().checkIfAiderBuffer(denops, bufnr)) {
       const jobId = ensure(await fn.getbufvar(denops, bufnr, "&channel"), is.Number);
