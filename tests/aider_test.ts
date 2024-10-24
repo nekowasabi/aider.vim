@@ -59,7 +59,7 @@ test("both", "AiderSendPromptByCommandline should work", async (denops) => {
 });
 
 test("both", "AiderSilentSendPromptByCommandline should work", async (denops) => {
-  await denops.cmd("AiderRun");
+  await denops.cmd("AiderSilentRun");
   await sleep(SLEEP_BEFORE_ASSERT);
   await assertAiderBufferAlive(denops);
   await sleep(SLEEP_BEFORE_ASSERT);
