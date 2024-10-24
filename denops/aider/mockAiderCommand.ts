@@ -23,7 +23,8 @@ export const commands: AiderCommand = {
       return;
     }
 
-    await fn.bufnr(denops, mockAiderBufnr.toString(), true);
+    await denops.cmd(`bdelete! ${mockAiderBufnr}`);
+    mockAiderBufnr = undefined;
     await denops.cmd("bd!");
   },
 
