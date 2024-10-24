@@ -123,6 +123,7 @@ export async function main(denops: Denops): Promise<void> {
       "1",
       async (prompt: string) => {
         await buffer.sendPrompt(denops, prompt, { openBuf: false });
+        console.log(`Sent prompt: ${prompt}`);
       },
       { pattern: "[<f-args>]" },
     ),
