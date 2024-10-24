@@ -109,6 +109,24 @@ export async function main(denops: Denops): Promise<void> {
       await buffer.sendPromptByBuffer(denops, openBufferType);
     }),
 
+    await command(
+      "sendPromptByCommandline",
+      "1",
+      async (prompt: string) => {
+        await buffer.sendPrompt(denops, prompt, { openBuf: true });
+      },
+      { pattern: "[<f-args>]" },
+    ),
+
+    await command(
+      "silentSendPromptByCommandline",
+      "1",
+      async (prompt: string) => {
+        await buffer.sendPrompt(denops, prompt, { openBuf: false });
+      },
+      { pattern: "[<f-args>]" },
+    ),
+
     await command("run", "0", async () => {
       await buffer.openAiderBuffer(denops, openBufferType);
     }),
