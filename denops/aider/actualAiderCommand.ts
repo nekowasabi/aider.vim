@@ -46,7 +46,9 @@ async function sendPrompt(denops: Denops, jobId: number, prompt: string): Promis
 }
 
 async function exit(denops: Denops, jobId: number, bufnr: number): Promise<undefined> {
-  await denops.call("chansend", jobId, "/exit\n");
+  if (jobId !== 0) {
+    await denops.call("chansend", jobId, "/exit\n");
+  }
   await denops.cmd(`bdelete! ${bufnr}`);
 }
 
