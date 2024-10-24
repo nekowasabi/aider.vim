@@ -1,6 +1,6 @@
 import { assert } from "https://deno.land/std@0.217.0/assert/assert.ts";
-import { ensure, is } from "https://deno.land/x/unknownutil@v3.17.0/mod.ts";
 import type { Denops } from "https://deno.land/x/denops_std@v6.4.0/mod.ts";
+import { ensure, is } from "https://deno.land/x/unknownutil@v3.17.0/mod.ts";
 import * as buffer from "../denops/aider/bufferOperation.ts";
 
 export const sleep = (msec: number) => new Promise((resolve) => setTimeout(resolve, msec));

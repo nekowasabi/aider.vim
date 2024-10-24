@@ -23,13 +23,8 @@ export class Source extends BaseSource<Params> {
     return new ReadableStream<Item<ActionData>[]>({
       async start(controller) {
         try {
-          const result = ensure(
-            await args.denops.call("system", "git ls-files"),
-            is.String,
-          );
-          const files = result
-            .split("\n")
-            .filter((file: string) => file !== "");
+          const result = ensure(await args.denops.call("system", "git ls-files"), is.String);
+          const files = result.split("\n").filter((file: string) => file !== "");
           const items: Item<ActionData>[] = files.map((file: string) => ({
             word: file,
             action: {
