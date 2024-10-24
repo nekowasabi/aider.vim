@@ -24,11 +24,16 @@ export async function getOpenBufferType(denops: Denops): Promise<BufferLayout> {
 }
 
 export async function exitAiderBuffer(denops: Denops): Promise<void> {
-  const buffer = await getAiderBuffer(denops);
-  if (buffer === undefined) {
-    return;
+  const buf_count = ensure(await fn.bufnr(denops, "$"), is.Number);
+
+  for (let i = 1; i <= buf_count; i++) {
+    const bufnr = ensure(await fn.bufnr(denops, i), is.Number);
+
+    if (await aider().checkIfAiderBuffer(denops, bufnr)) {
+      const jobId = ensure(await fn.getbufvar(denops, bufnr, "&channel"), is.Number);
+      aider().exit(denops, jobId, bufnr);
+    }
   }
-  aider().exit(denops, buffer.jobId, buffer.bufnr);
 }
 
 /**
