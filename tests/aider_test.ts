@@ -35,11 +35,35 @@ test("both", "AiderAddBuffers should return empty for files not under git manage
   await assertAiderBufferString(denops, "input: /add \n");
 });
 
-test("both", "AiderAddBuffers should return /add `bufferName` if there is a buffer under git management", async (denops) => {
+test(
+  "both",
+  "AiderAddBuffers should return /add `bufferName` if there is a buffer under git management",
+  async (denops) => {
+    await denops.cmd("AiderRun");
+    await sleep(SLEEP_BEFORE_ASSERT);
+    await denops.cmd("e ./tests/aider_test.ts");
+    await denops.cmd("AiderAddBuffers");
+    await sleep(SLEEP_BEFORE_ASSERT);
+    await assertAiderBufferString(denops, "input: /add tests/aider_test.ts\n");
+  },
+);
+
+test("both", "AiderSendPromptByCommandline should work", async (denops) => {
   await denops.cmd("AiderRun");
   await sleep(SLEEP_BEFORE_ASSERT);
-  await denops.cmd("e ./tests/aider_test.ts");
-  await denops.cmd("AiderAddBuffers");
+  await assertAiderBufferAlive(denops);
   await sleep(SLEEP_BEFORE_ASSERT);
-  await assertAiderBufferString(denops, "input: /add tests/aider_test.ts\n");
+  await denops.cmd("AiderSendPromptByCommandline test");
+  await sleep(SLEEP_BEFORE_ASSERT);
+  await assertAiderBufferString(denops, "input: test\n");
+});
+
+test("both", "AiderSilentSendPromptByCommandline should work", async (denops) => {
+  await denops.cmd("AiderSilentRun");
+  await sleep(SLEEP_BEFORE_ASSERT);
+  await assertAiderBufferAlive(denops);
+  await sleep(SLEEP_BEFORE_ASSERT);
+  await denops.cmd("AiderSilentSendPromptByCommandline silent test");
+  await sleep(SLEEP_BEFORE_ASSERT);
+  await assertAiderBufferString(denops, "input: silent test\n");
 });

@@ -157,7 +157,7 @@ export async function openFloatingWindowWithSelectedCode(
   await n.nvim_buf_set_keymap(denops, bufnr, "n", "q", "<cmd>AiderHideVisualSelectFloatingWindow<CR>", {
     silent: true,
   });
-  await n.nvim_buf_set_keymap(denops, bufnr, "n", "<cr>", "<cmd>AiderSendPrompt<cr><cmd>AiderRun<cr>", {
+  await n.nvim_buf_set_keymap(denops, bufnr, "n", "<cr>", "<cmd>AiderSendPromptByBuffer<cr><cmd>AiderRun<cr>", {
     silent: true,
   });
 }
