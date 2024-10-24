@@ -105,7 +105,7 @@ export async function main(denops: Denops): Promise<void> {
   }
 
   const commands: Command[] = [
-    await command("sendPrompt", "0", async () => {
+    await command("sendPromptByBuffer", "0", async () => {
       await buffer.sendPromptByBuffer(denops, openBufferType);
     }),
 
