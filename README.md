@@ -135,11 +135,25 @@ To use aider.vim, you can run the following commands within Vim or Neovim:
 - `:AiderAddWeb` - Displays a prompt for the specified URL and adds it to the aider context.
 - `:AiderOpenIgnore` - Opens the `.aiderignore` file in the git root directory if it exists.
 - `:AiderAddIgnoreCurrentFile` - Adds the current file to the `.aiderignore`.
+- `:AiderSendPromptByCommandline <prompt>` - Sends a prompt from the command line and displays the Aider window.
+- `:AiderSilentSendPromptByCommandline <prompt>` - Sends a prompt from the command line and refreshes the buffer.
 - `:AiderAsk <question>` - Sends a question to aider without adding any files to the context.
 - `:AiderHide` - Hides the floating window and reloads the buffer.
 - `:AiderPaste` - Pastes the content from the clipboard into the aider context.
 - `:AiderHideVisualSelectFloatingWindow` - Hides the visual selection floating window used for displaying selected text.
 - `:AiderVoice` - Sends voice commands to Aider(using wishper).
+
+### Advanced Usage
+If you want to send a custom prompt to Aider, use `AiderSendPromptByCommandline`.
+Set it up as follows:
+
+```vim
+" Send a prompt to Aider and display the Aider window
+:AiderSendPromptByCommandline "/chat-mode architect"
+
+" Send a prompt to Aider but do not display the Aider window
+:AiderSilentSendPromptByCommandline "/chat-mode code"
+```
 
 ## Additional Prompt
 
