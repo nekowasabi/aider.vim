@@ -346,9 +346,7 @@ export async function getAiderBuffer(denops: Denops): Promise<AiderBuffer | unde
       // testMode時はjobを走らせていないのでその場合は0でも許容
       // プロセスが動いていない場合(session復元時など)はバッファを削除
       if (!aider().isTestMode() && jobId === 0) {
-        await denops.cmd(`b ${bufnr}`);
-        await denops.cmd("b#");
-        await denops.cmd("bd! #");
+        await denops.cmd(`bd! ${bufnr}`);
         continue;
       }
 
