@@ -45,6 +45,8 @@ export async function main(denops: Denops): Promise<void> {
 
   /**
    * Commandは、メソッド名とその実装を含むコマンドオブジェクトを定義します。
+   * @property {string} methodName - Denopsディスパッチャーで使用されるメソッド名
+   * @property {ImplType<ArgCount>} impl - コマンドの実装関数
    */
   type Command = {
     methodName: string;
