@@ -119,6 +119,7 @@ export async function sendPromptByBuffer(denops: Denops, openBufferType: BufferL
   await denops.cmd("bdelete!");
 
   if (openBufferType === "floating") {
+    await denops.cmd("AiderRun");
     await sendPromptFromFloatingWindow(denops, bufferContent);
   } else {
     await sendPromptFromSplitWindow(denops, bufferContent);
@@ -162,7 +163,7 @@ export async function openFloatingWindowWithSelectedCode(
   await n.nvim_buf_set_keymap(denops, bufnr, "n", "q", "<cmd>AiderHideVisualSelectFloatingWindow<CR>", {
     silent: true,
   });
-  await n.nvim_buf_set_keymap(denops, bufnr, "n", "<cr>", "<cmd>AiderSendPromptByBuffer<cr><cmd>AiderRun<cr>", {
+  await n.nvim_buf_set_keymap(denops, bufnr, "n", "<cr>", "<cmd>AiderSendPromptByBuffer<cr>", {
     silent: true,
   });
 }
