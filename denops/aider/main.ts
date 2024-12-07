@@ -82,8 +82,6 @@ export async function main(denops: Denops): Promise<void> {
     };
   }
 
-  const openBufferType: BufferLayout = await buffer.getOpenBufferType(denops);
-
   async function addFileToAider(
     denops: Denops,
     openBufferType: BufferLayout,
@@ -108,7 +106,7 @@ export async function main(denops: Denops): Promise<void> {
 
   const commands: Command[] = [
     await command("sendPromptByBuffer", "0", async () => {
-      await buffer.sendPromptByBuffer(denops, openBufferType);
+      await buffer.sendPromptByBuffer(denops, await buffer.getOpenBufferType(denops));
     }),
 
     await command(
@@ -131,7 +129,7 @@ export async function main(denops: Denops): Promise<void> {
     ),
 
     await command("run", "0", async () => {
-      await buffer.openAiderBuffer(denops, openBufferType);
+      await buffer.openAiderBuffer(denops, await buffer.getOpenBufferType(denops));
     }),
 
     await command("silentRun", "0", () => buffer.silentRun(denops)),
@@ -164,11 +162,11 @@ export async function main(denops: Denops): Promise<void> {
     }),
 
     await command("addCurrentFile", "0", async () => {
-      await addFileToAider(denops, openBufferType, "add");
+      await addFileToAider(denops, await buffer.getOpenBufferType(denops), "add");
     }),
 
     await command("silentAddCurrentFile", "0", async () => {
-      await addFileToAider(denops, openBufferType, "add", { openBuf: false });
+      await addFileToAider(denops, await buffer.getOpenBufferType(denops), "add", { openBuf: false });
       const currentFile = await getCurrentFilePath(denops);
       console.log(`Added ${currentFile} to Aider`);
     }),
@@ -185,11 +183,11 @@ export async function main(denops: Denops): Promise<void> {
     ),
 
     await command("addCurrentFileReadOnly", "0", async () => {
-      await addFileToAider(denops, openBufferType, "read-only");
+      await addFileToAider(denops, await buffer.getOpenBufferType(denops), "read-only");
     }),
 
     await command("silentAddCurrentFileReadOnly", "0", async () => {
-      await addFileToAider(denops, openBufferType, "read-only", {
+      await addFileToAider(denops, await buffer.getOpenBufferType(denops), "read-only", {
         openBuf: false,
       });
       const currentFile = await getCurrentFilePath(denops);
@@ -237,7 +235,7 @@ export async function main(denops: Denops): Promise<void> {
       "visualTextWithPrompt",
       "*",
       async (start: string, end: string) => {
-        await buffer.openFloatingWindowWithSelectedCode(denops, start, end, openBufferType);
+        await buffer.openFloatingWindowWithSelectedCode(denops, start, end, await buffer.getOpenBufferType(denops));
       },
       { pattern: "[<line1>, <line2>]", range: true },
     ),
@@ -271,7 +269,7 @@ export async function main(denops: Denops): Promise<void> {
     await command("voice", "0", async () => {
       try {
         const prompt = "/voice";
-        await buffer.prepareAiderBuffer(denops, openBufferType);
+        await buffer.prepareAiderBuffer(denops, await buffer.getOpenBufferType(denops));
         await buffer.sendPrompt(denops, prompt);
         await fn.feedkeys(denops, "a"); // Start insert mode to accept Enter key
       } catch (error) {
