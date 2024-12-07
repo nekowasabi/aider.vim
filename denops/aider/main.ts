@@ -229,7 +229,12 @@ export async function main(denops: Denops): Promise<void> {
       { pattern: "[<f-args>]" },
     ),
 
-    await command("exit", "0", () => buffer.exitAiderBuffer(denops)),
+    await command("exit", "0", async () => {
+      const aiderBuffer = await buffer.getAiderBuffer(denops);
+      if (aiderBuffer) {
+        buffer.exitAiderBuffer(denops);
+      }
+    }),
 
     await command(
       "visualTextWithPrompt",
