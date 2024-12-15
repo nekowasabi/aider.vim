@@ -82,6 +82,14 @@ export async function main(denops: Denops): Promise<void> {
     };
   }
 
+  /**
+   * 現在のファイルをAiderに追加する関数
+   * @param denops - Denopsインスタンス
+   * @param openBufferType - バッファの開き方の設定
+   * @param prefix - コマンドのプレフィックス ("add" または "read-only")
+   * @param opts - オプション設定 (デフォルト: { openBuf: true })
+   * @returns Promise<void>
+   */
   async function addFileToAider(
     denops: Denops,
     openBufferType: BufferLayout,
