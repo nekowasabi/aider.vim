@@ -215,7 +215,7 @@ context.
 Aider CLI tool created by [Paul Gauthier](https://github.com/paul-gauthier).
 
 # `diff GeorgesAlkhouri/nvim-aider`
-// TODO: State differences
+<!-- TODO: State differences -->
 
 # `diff joshuavial/aider.nvim`
 // TODO: State differences
