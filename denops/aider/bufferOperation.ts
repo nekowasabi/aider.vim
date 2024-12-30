@@ -437,7 +437,7 @@ export async function getFileBuffers(denops: Denops): Promise<undefined | string
  * @param {Denops} denops - Denopsインスタンス
  * @param {string} start - 選択範囲の開始行
  * @param {string} end - 選択範囲の終了行
- * @retuns {Promise<string>} 一時ファイルのパス
+ * @returns {Promise<string>} 一時ファイルのパス
  */
 export async function getPartialContextFilePath(denops: Denops, start: string, end: string): Promise<string> {
   const context = ensure(await denops.call("getline", start, end), is.ArrayOf(is.String));
