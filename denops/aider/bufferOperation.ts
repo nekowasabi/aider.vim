@@ -403,10 +403,10 @@ async function convertToGitRelativePath(denops: Denops, fullPath: string): Promi
 }
 
 /**
- * 現在開いているバッファの中で、Git管理下にあるファイルのパスを取得します。
+ * Retrieves the paths of files under Git management in the currently open buffer.
  *
- * @param {Denops} denops - Denopsインスタンス
- * @returns {Promise<undefined | string>} Git管理下にあるファイルの相対パスをスペースで区切った文字列、またはundefined
+ * @param {Denops} denops - Denops instance
+ * @returns {Promise<undefined | string>} A space-separated string of relative paths of files under Git management, or undefined
  */
 export async function getFileBuffers(denops: Denops): Promise<undefined | string> {
   const buf_count = ensure(await fn.bufnr(denops, "$"), is.Number);
@@ -432,12 +432,12 @@ export async function getFileBuffers(denops: Denops): Promise<undefined | string
 }
 
 /**
- * 選択したテキストを一時ファイルに保存し、ファイルのパスを返します。
+ * Saves the selected text to a temporary file and returns the file path.
  *
- * @param {Denops} denops - Denopsインスタンス
- * @param {string} start - 選択範囲の開始行
- * @param {string} end - 選択範囲の終了行
- * @returns {Promise<string>} 一時ファイルのパス
+ * @param {Denops} denops - Denops instance
+ * @param {string} start - The starting line of the selection range
+ * @param {string} end - The ending line of the selection range
+ * @returns {Promise<string>} The path to the temporary file
  */
 export async function getPartialContextFilePath(denops: Denops, start: string, end: string): Promise<string> {
   const context = ensure(await denops.call("getline", start, end), is.ArrayOf(is.String));
@@ -449,7 +449,6 @@ export async function getPartialContextFilePath(denops: Denops, start: string, e
 
   context.unshift(...annotation);
 
-  // 一時ファイルに選択範囲を書き込む
   const tempFile = ensure(await denops.call("tempname"), is.String);
   await Deno.writeTextFile(tempFile, context.join("\n"));
 
