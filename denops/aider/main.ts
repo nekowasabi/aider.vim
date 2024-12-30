@@ -248,8 +248,9 @@ export async function main(denops: Denops): Promise<void> {
       "addPartialReadonlyContext",
       "*",
       async (start: string, end: string) => {
-        const partialContextFile = buffer.getPartialContextFilePath(denops, start, end);
-        // aider addする
+        const partialContextFile = await buffer.getPartialContextFilePath(denops, start, end);
+        const prompt = `/read-only ${partialContextFile}`;
+        await buffer.sendPrompt(denops, prompt);
       },
       { pattern: "[<line1>, <line2>]", range: true },
     ),

@@ -5,7 +5,7 @@ import type { Denops } from "https://deno.land/x/denops_std@v6.5.1/mod.ts";
 import * as v from "https://deno.land/x/denops_std@v6.5.1/variable/mod.ts";
 import { ensure, is, maybe } from "https://deno.land/x/unknownutil@v3.18.1/mod.ts";
 import { aider } from "./aiderCommand.ts";
-import { getPromptFromVimVariable } from "./utils.ts";
+import { getCurrentFilePath, getPromptFromVimVariable } from "./utils.ts";
 
 /**
  * Enum representing different buffer layout options.
@@ -440,8 +440,22 @@ export async function getFileBuffers(denops: Denops): Promise<undefined | string
  * @retuns {Promise<string>} 一時ファイルのパス
  */
 export async function getPartialContextFilePath(denops: Denops, start: string, end: string): Promise<string> {
-  const buf_count = ensure(await fn.bufnr(denops, "$"), is.Number);
-  const s = ensure(start, is.String);
-  const e = ensure(end, is.String);
-  return `${s}:${e}:${buf_count}`;
+  const context = ensure(await denops.call("getline", start, end), is.ArrayOf(is.String));
+  const filePath = ensure(await getCurrentFilePath(denops), is.String);
+
+  const annotation = ensure([`// Path: ${filePath}`], is.ArrayOf(is.String));
+
+  annotation.push(`// Line: ${start}-${end}`);
+
+  context.unshift(...annotation);
+
+  // 一時ファイルに選択範囲を書き込む
+  const tempFile = ensure(await denops.call("tempname"), is.String);
+  await Deno.writeTextFile(tempFile, context.join("\n"));
+
+  // set filetype
+  const fileType = ensure(await fn.getbufvar(denops, "%", "&filetype"), is.String);
+  await denops.cmd(`setlocal filetype=${fileType}`);
+
+  return tempFile;
 }
