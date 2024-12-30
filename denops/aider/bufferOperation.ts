@@ -5,7 +5,7 @@ import type { Denops } from "https://deno.land/x/denops_std@v6.5.1/mod.ts";
 import * as v from "https://deno.land/x/denops_std@v6.5.1/variable/mod.ts";
 import { ensure, is, maybe } from "https://deno.land/x/unknownutil@v3.18.1/mod.ts";
 import { aider } from "./aiderCommand.ts";
-import { getPromptFromVimVariable } from "./utils.ts";
+import { getCurrentFilePath, getPromptFromVimVariable } from "./utils.ts";
 
 /**
  * Enum representing different buffer layout options.
@@ -429,4 +429,33 @@ export async function getFileBuffers(denops: Denops): Promise<undefined | string
   }
 
   return buffers.join(" ") ?? undefined;
+}
+
+/**
+ * 選択したテキストを一時ファイルに保存し、ファイルのパスを返します。
+ *
+ * @param {Denops} denops - Denopsインスタンス
+ * @param {string} start - 選択範囲の開始行
+ * @param {string} end - 選択範囲の終了行
+ * @retuns {Promise<string>} 一時ファイルのパス
+ */
+export async function getPartialContextFilePath(denops: Denops, start: string, end: string): Promise<string> {
+  const context = ensure(await denops.call("getline", start, end), is.ArrayOf(is.String));
+  const filePath = ensure(await getCurrentFilePath(denops), is.String);
+
+  const annotation = ensure([`// Path: ${filePath}`], is.ArrayOf(is.String));
+
+  annotation.push(`// Line: ${start}-${end}`);
+
+  context.unshift(...annotation);
+
+  // 一時ファイルに選択範囲を書き込む
+  const tempFile = ensure(await denops.call("tempname"), is.String);
+  await Deno.writeTextFile(tempFile, context.join("\n"));
+
+  // set filetype
+  const fileType = ensure(await fn.getbufvar(denops, "%", "&filetype"), is.String);
+  await denops.cmd(`setlocal filetype=${fileType}`);
+
+  return tempFile;
 }

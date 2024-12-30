@@ -245,6 +245,17 @@ export async function main(denops: Denops): Promise<void> {
     }),
 
     await command(
+      "addPartialReadonlyContext",
+      "*",
+      async (start: string, end: string) => {
+        const partialContextFile = await buffer.getPartialContextFilePath(denops, start, end);
+        const prompt = `/read-only ${partialContextFile}`;
+        await buffer.sendPrompt(denops, prompt);
+      },
+      { pattern: "[<line1>, <line2>]", range: true },
+    ),
+
+    await command(
       "visualTextWithPrompt",
       "*",
       async (start: string, end: string) => {
