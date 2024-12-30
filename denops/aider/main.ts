@@ -245,6 +245,16 @@ export async function main(denops: Denops): Promise<void> {
     }),
 
     await command(
+      "addPartialReadonlyContext",
+      "*",
+      async (start: string, end: string) => {
+        const partialContextFile = buffer.getPartialContextFilePath(denops, start, end);
+        // aider addする
+      },
+      { pattern: "[<line1>, <line2>]", range: true },
+    ),
+
+    await command(
       "visualTextWithPrompt",
       "*",
       async (start: string, end: string) => {

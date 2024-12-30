@@ -430,3 +430,18 @@ export async function getFileBuffers(denops: Denops): Promise<undefined | string
 
   return buffers.join(" ") ?? undefined;
 }
+
+/**
+ * 選択したテキストを一時ファイルに保存し、ファイルのパスを返します。
+ *
+ * @param {Denops} denops - Denopsインスタンス
+ * @param {string} start - 選択範囲の開始行
+ * @param {string} end - 選択範囲の終了行
+ * @retuns {Promise<string>} 一時ファイルのパス
+ */
+export async function getPartialContextFilePath(denops: Denops, start: string, end: string): Promise<string> {
+  const buf_count = ensure(await fn.bufnr(denops, "$"), is.Number);
+  const s = ensure(start, is.String);
+  const e = ensure(end, is.String);
+  return `${s}:${e}:${buf_count}`;
+}
