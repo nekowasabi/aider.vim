@@ -124,12 +124,14 @@ Please add the following settings to your lazy settings.
 
 To use aider.vim, you can run the following commands within Vim or Neovim:
 
+`All commands with the name "Silent" send commands to aider without moving the focus to the aider buffer.`
+
 - `:AiderRun` - Runs aider or display aider window.
 - `:AiderAddCurrentFile` - Adds the current file to aider's context.
 - `:AiderAddCurrentFileReadOnly` - Adds the current file as read-only to aider's context.
 - `:AiderAddBuffers` - Adds all currently open buffers under Git management to aider's context.
-- `:AiderSilentAddCurrentFile` - Silently adds the current file to aider's context and refreshes the buffer.
-- `:AiderSilentAddCurrentFileReadOnly` - Silently adds the current file as read-only to aider's context.
+- `:AiderSilentAddCurrentFile` - Without moving the focus to the aider buffer,  adds the current file to aider's context and refreshes the buffer.
+- `:AiderSilentAddCurrentFileReadOnly` - Without moving the focus to the aider buffer, adds the current file as read-only to aider's context.
 - `:AiderExit` - Exits aider and cleans up the session.
 - `:AiderVisualTextWithPrompt` - Edit the selected text in visual mode in a floating window and send it to aider. In the floating window, send to aider with `<CR>` in normal mode, and close the floating window with `Q`. You can also backup prompt with `q`.
 - `:AiderAddPartialReadonlyContext` - Adds the selected text in visual mode as read-only context to Aider.
