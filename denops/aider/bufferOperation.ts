@@ -445,6 +445,8 @@ export async function getPartialContextFilePath(denops: Denops, start: string, e
 
   const annotation = ensure([`// Path: ${filePath}`], is.ArrayOf(is.String));
 
+  annotation.push(`// Filetype: ${ensure(await fn.getbufvar(denops, "%", "&filetype"), is.String)}`);
+
   annotation.push(`// Line: ${start}-${end}`);
 
   context.unshift(...annotation);
