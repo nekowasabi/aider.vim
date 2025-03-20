@@ -290,17 +290,36 @@ export async function main(denops: Denops): Promise<void> {
       }
     }),
 
+    /**
+     * 音声入力コマンドを実行する
+     * @async
+     * @function
+     * @throws {Error} 音声コマンドの実行に失敗した場合にスロー
+     * @description
+     * 1. Aiderバッファを準備
+     * 2. /voiceコマンドを送信
+     * 3. 挿入モードに切り替えて音声入力を受け付ける
+     */
     await command("voice", "0", async () => {
       try {
         const prompt = "/voice";
         await buffer.prepareAiderBuffer(denops, await buffer.getOpenBufferType(denops));
         await buffer.sendPrompt(denops, prompt);
-        await fn.feedkeys(denops, "a"); // Start insert mode to accept Enter key
+        await fn.feedkeys(denops, "a"); // エンターキーを受け付けるため挿入モードを開始
       } catch (error) {
-        console.error("Failed to execute voice command:", error);
+        console.error("音声コマンドの実行に失敗しました:", error);
       }
     }),
 
+    /**
+     * テストコマンドを実行する
+     * @async
+     * @function
+     * @param {string} cmd - 実行するテストコマンド
+     * @description
+     * 1. 指定されたテストコマンドをAiderに送信
+     * 2. シェルコマンドの補完をサポート
+     */
     await command(
       "test",
       "1",
