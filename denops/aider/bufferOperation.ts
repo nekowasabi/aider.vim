@@ -23,6 +23,12 @@ export async function getOpenBufferType(denops: Denops): Promise<BufferLayout> {
   return maybe(await v.g.get(denops, "aider_buffer_open_type"), is.LiteralOneOf(bufferLayouts)) ?? "floating";
 }
 
+/**
+ * すべてのAiderバッファを閉じ、関連するジョブを終了します
+ *
+ * @param {Denops} denops - Denopsインスタンス
+ * @returns {Promise<void>} 処理が完了すると解決されるPromise
+ */
 export async function exitAiderBuffer(denops: Denops): Promise<void> {
   const buf_count = ensure(await fn.bufnr(denops, "$"), is.Number);
 
