@@ -80,11 +80,20 @@ export async function openAiderBuffer(denops: Denops, openBufferType: BufferLayo
   }
 }
 
+/**
+ * 新しいバッファでAiderをサイレント実行し、直前のバッファに戻る
+ * ウィンドウレイアウトを変更せずにAiderバッファを作成する
+ */
 export async function silentRun(denops: Denops): Promise<void> {
   await denops.cmd("enew");
   await aider().run(denops);
   await denops.cmd("b#");
 }
+/**
+ * Aiderバッファの準備処理
+ * @param {BufferLayout} openBufferType - バッファオープンタイプ
+ * @returns {Promise<void>}
+ */
 export async function prepareAiderBuffer(denops: Denops, openBufferType: BufferLayout): Promise<void> {
   if (openBufferType === "floating") {
     await silentRun(denops);
@@ -96,6 +105,14 @@ export async function prepareAiderBuffer(denops: Denops, openBufferType: BufferL
   }
 }
 
+/**
+ * プロンプトをAiderに送信する
+ * @param {Denops} denops - Denopsインスタンス
+ * @param {string} input - 送信するプロンプト内容
+ * @param {Object} [opts] - オプション設定
+ * @param {boolean} [opts.openBuf=true] - バッファを自動で開くかどうか
+ * @returns {Promise<void>}
+ */
 export async function sendPrompt(denops: Denops, input: string, opts = { openBuf: true }): Promise<void> {
   const aiderBuf = await getAiderBuffer(denops);
   if (aiderBuf === undefined) {
