@@ -279,13 +279,14 @@ async function openFloatingWindow(denops: Denops, bufnr: number): Promise<void> 
   const floatWinHeight = maybe(await v.g.get(denops, "aider_floatwin_height"), is.Number) || 20;
   const floatWinWidth = maybe(await v.g.get(denops, "aider_floatwin_width"), is.Number) || 100;
   const floatWinStyle = maybe(await v.g.set(denops, "aider_floatwin_style"), is.String) || "minimal";
+  const floatWinBorder = maybe(await v.g.set(denops, "aider_floatwin_style"), is.String) || "double";
 
   const row = Math.floor((terminal_height - floatWinHeight) / 2);
   const col = Math.floor((terminal_width - floatWinWidth) / 2);
 
   await n.nvim_open_win(denops, bufnr, true, {
     relative: "editor",
-    border: "double",
+    border: floatWinBorder,
     width: floatWinWidth,
     height: floatWinHeight,
     row: row,
