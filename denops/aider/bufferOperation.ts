@@ -278,6 +278,7 @@ async function openFloatingWindow(denops: Denops, bufnr: number): Promise<void> 
   const terminal_height = Math.floor(ensure(await n.nvim_get_option(denops, "lines"), is.Number));
   const floatWinHeight = maybe(await v.g.get(denops, "aider_floatwin_height"), is.Number) || 20;
   const floatWinWidth = maybe(await v.g.get(denops, "aider_floatwin_width"), is.Number) || 100;
+  const floatWinStyle = maybe(await v.g.set(denops, "aider_floatwin_style"), is.String) || "minimal";
 
   const row = Math.floor((terminal_height - floatWinHeight) / 2);
   const col = Math.floor((terminal_width - floatWinWidth) / 2);
@@ -289,6 +290,7 @@ async function openFloatingWindow(denops: Denops, bufnr: number): Promise<void> 
     height: floatWinHeight,
     row: row,
     col: col,
+    style: floatWinStyle,
   });
 
   await denops.cmd("set nonumber");
