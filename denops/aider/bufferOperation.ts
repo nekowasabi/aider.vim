@@ -3,7 +3,11 @@ import { feedkeys } from "https://deno.land/x/denops_std@v6.5.1/function/mod.ts"
 import * as n from "https://deno.land/x/denops_std@v6.5.1/function/nvim/mod.ts";
 import type { Denops } from "https://deno.land/x/denops_std@v6.5.1/mod.ts";
 import * as v from "https://deno.land/x/denops_std@v6.5.1/variable/mod.ts";
-import { ensure, is, maybe } from "https://deno.land/x/unknownutil@v3.18.1/mod.ts";
+import {
+  ensure,
+  is,
+  maybe,
+} from "https://deno.land/x/unknownutil@v3.18.1/mod.ts";
 import { aider } from "./aiderCommand.ts";
 import { getCurrentFilePath, getPromptFromVimVariable } from "./utils.ts";
 
@@ -20,7 +24,10 @@ export type BufferLayout = (typeof bufferLayouts)[number];
  * floating: floating window
  */
 export async function getOpenBufferType(denops: Denops): Promise<BufferLayout> {
-  return maybe(await v.g.get(denops, "aider_buffer_open_type"), is.LiteralOneOf(bufferLayouts)) ?? "floating";
+  return maybe(
+    await v.g.get(denops, "aider_buffer_open_type"),
+    is.LiteralOneOf(bufferLayouts),
+  ) ?? "floating";
 }
 
 /**
@@ -36,7 +43,10 @@ export async function exitAiderBuffer(denops: Denops): Promise<void> {
     const bufnr = ensure(await fn.bufnr(denops, i), is.Number);
 
     if (await aider().checkIfAiderBuffer(denops, bufnr)) {
-      const jobId = ensure(await fn.getbufvar(denops, bufnr, "&channel"), is.Number);
+      const jobId = ensure(
+        await fn.getbufvar(denops, bufnr, "&channel"),
+        is.Number,
+      );
       aider().exit(denops, jobId, bufnr);
     }
   }
@@ -54,11 +64,17 @@ export async function exitAiderBuffer(denops: Denops): Promise<void> {
  * @param {BufferLayout} openBufferType - The type of buffer to open.
  * @returns {Promise<undefined | boolean>}
  */
-export async function openAiderBuffer(denops: Denops, openBufferType: BufferLayout): Promise<void> {
+export async function openAiderBuffer(
+  denops: Denops,
+  openBufferType: BufferLayout,
+): Promise<void> {
   const aiderBuf = await getAiderBuffer(denops);
   if (openBufferType === "floating") {
     if (aiderBuf === undefined) {
-      const bufnr = ensure(await n.nvim_create_buf(denops, false, true), is.Number);
+      const bufnr = ensure(
+        await n.nvim_create_buf(denops, false, true),
+        is.Number,
+      );
       await openFloatingWindow(denops, bufnr);
       await aider().run(denops);
       return;
@@ -94,7 +110,10 @@ export async function silentRun(denops: Denops): Promise<void> {
  * @param {BufferLayout} openBufferType - バッファオープンタイプ
  * @returns {Promise<void>}
  */
-export async function prepareAiderBuffer(denops: Denops, openBufferType: BufferLayout): Promise<void> {
+export async function prepareAiderBuffer(
+  denops: Denops,
+  openBufferType: BufferLayout,
+): Promise<void> {
   if (openBufferType === "floating") {
     await silentRun(denops);
   } else {
@@ -113,7 +132,11 @@ export async function prepareAiderBuffer(denops: Denops, openBufferType: BufferL
  * @param {boolean} [opts.openBuf=true] - バッファを自動で開くかどうか
  * @returns {Promise<void>}
  */
-export async function sendPrompt(denops: Denops, input: string, opts = { openBuf: true }): Promise<void> {
+export async function sendPrompt(
+  denops: Denops,
+  input: string,
+  opts = { openBuf: true },
+): Promise<void> {
   const aiderBuf = await getAiderBuffer(denops);
   if (aiderBuf === undefined) {
     await denops.cmd("echo 'Aider is not running'");
@@ -136,8 +159,14 @@ export async function sendPrompt(denops: Denops, input: string, opts = { openBuf
 
 /** バッファ内の内容をプロンプトとして送信する
  */
-export async function sendPromptByBuffer(denops: Denops, openBufferType: BufferLayout): Promise<void> {
-  const bufferContent = ensure(await denops.call("getbufline", "%", 1, "$"), is.ArrayOf(is.String)).join("\n");
+export async function sendPromptByBuffer(
+  denops: Denops,
+  openBufferType: BufferLayout,
+): Promise<void> {
+  const bufferContent = ensure(
+    await denops.call("getbufline", "%", 1, "$"),
+    is.ArrayOf(is.String),
+  ).join("\n");
 
   await denops.cmd("bdelete!");
 
@@ -159,7 +188,10 @@ export async function openFloatingWindowWithSelectedCode(
   end: unknown,
   openBufferType: BufferLayout,
 ): Promise<void> {
-  const words = ensure(await denops.call("getline", start, end), is.ArrayOf(is.String));
+  const words = ensure(
+    await denops.call("getline", start, end),
+    is.ArrayOf(is.String),
+  );
   const aiderBuf = await getAiderBuffer(denops);
   if (openBufferType !== "floating") {
     if (aiderBuf === undefined) {
@@ -168,7 +200,10 @@ export async function openFloatingWindowWithSelectedCode(
       return;
     }
   }
-  const backupPrompt = await getPromptFromVimVariable(denops, "aider_visual_select_buffer_prompt");
+  const backupPrompt = await getPromptFromVimVariable(
+    denops,
+    "aider_visual_select_buffer_prompt",
+  );
   const bufnr = ensure(await n.nvim_create_buf(denops, false, true), is.Number);
   await openFloatingWindow(denops, bufnr);
 
@@ -183,12 +218,26 @@ export async function openFloatingWindowWithSelectedCode(
   await n.nvim_buf_set_keymap(denops, bufnr, "n", "Q", "<cmd>fclose!<CR>", {
     silent: true,
   });
-  await n.nvim_buf_set_keymap(denops, bufnr, "n", "q", "<cmd>AiderHideVisualSelectFloatingWindow<CR>", {
-    silent: true,
-  });
-  await n.nvim_buf_set_keymap(denops, bufnr, "n", "<cr>", "<cmd>AiderSendPromptByBuffer<cr>", {
-    silent: true,
-  });
+  await n.nvim_buf_set_keymap(
+    denops,
+    bufnr,
+    "n",
+    "q",
+    "<cmd>AiderHideVisualSelectFloatingWindow<CR>",
+    {
+      silent: true,
+    },
+  );
+  await n.nvim_buf_set_keymap(
+    denops,
+    bufnr,
+    "n",
+    "<cr>",
+    "<cmd>AiderSendPromptByBuffer<cr>",
+    {
+      silent: true,
+    },
+  );
 }
 
 /**
@@ -201,7 +250,11 @@ export async function openFloatingWindowWithSelectedCode(
  * @param {number} bufnr - バッファ番号。
  * @param {string[]} backupPrompt - バックアッププロンプトの内容。
  */
-async function handleBackupPrompt(denops: Denops, bufnr: number, backupPrompt: string[]) {
+async function handleBackupPrompt(
+  denops: Denops,
+  bufnr: number,
+  backupPrompt: string[],
+) {
   await v.g.set(denops, "aider_visual_select_buffer_prompt", undefined);
   await n.nvim_buf_set_lines(denops, bufnr, 0, -1, true, backupPrompt);
   await feedkeys(denops, "Gi");
@@ -217,9 +270,15 @@ async function handleBackupPrompt(denops: Denops, bufnr: number, backupPrompt: s
  * @param {number} bufnr - バッファ番号。
  * @param {string[]} words - バッファに設定するコード行。
  */
-async function handleNoBackupPrompt(denops: Denops, bufnr: number, words: string[]) {
-  const filetype = ensure(await fn.getbufvar(denops, "%", "&filetype"), is.String);
-  // biome-ignore lint: ignore useTemplate to avoid \`\`\`
+async function handleNoBackupPrompt(
+  denops: Denops,
+  bufnr: number,
+  words: string[],
+) {
+  const filetype = ensure(
+    await fn.getbufvar(denops, "%", "&filetype"),
+    is.String,
+  );
   words.unshift("```" + filetype);
   words.push("```");
 
@@ -227,7 +286,10 @@ async function handleNoBackupPrompt(denops: Denops, bufnr: number, words: string
   await n.nvim_buf_set_lines(denops, bufnr, 0, 1, true, []);
   await n.nvim_buf_set_lines(denops, bufnr, -1, -1, true, [""]);
 
-  const additionalPrompt = await getPromptFromVimVariable(denops, "aider_additional_prompt");
+  const additionalPrompt = await getPromptFromVimVariable(
+    denops,
+    "aider_additional_prompt",
+  );
   if (additionalPrompt) {
     await n.nvim_buf_set_lines(denops, bufnr, -1, -1, true, ["# rule"]);
     await n.nvim_buf_set_lines(denops, bufnr, -1, -1, true, additionalPrompt);
@@ -238,8 +300,13 @@ async function handleNoBackupPrompt(denops: Denops, bufnr: number, words: string
   await feedkeys(denops, "Gi");
 }
 
-export async function hideVisualSelectFloatingWindow(denops: Denops): Promise<void> {
-  const bufferContent = ensure(await denops.call("getbufline", "%", 1, "$"), is.ArrayOf(is.String));
+export async function hideVisualSelectFloatingWindow(
+  denops: Denops,
+): Promise<void> {
+  const bufferContent = ensure(
+    await denops.call("getbufline", "%", 1, "$"),
+    is.ArrayOf(is.String),
+  );
   await v.g.set(denops, "aider_visual_select_buffer_prompt", bufferContent);
 
   await denops.cmd("fclose!");
@@ -251,7 +318,10 @@ export async function hideVisualSelectFloatingWindow(denops: Denops): Promise<vo
  * @param {number} bufnr - バッファ番号
  * @returns {Promise<boolean>}
  */
-export async function checkIfTerminalBuffer(denops: Denops, bufnr: number): Promise<boolean> {
+export async function checkIfTerminalBuffer(
+  denops: Denops,
+  bufnr: number,
+): Promise<boolean> {
   const buftype = await fn.getbufvar(denops, bufnr, "&buftype");
   return buftype === "terminal";
 }
@@ -273,11 +343,20 @@ export async function openSplitWindow(denops: Denops): Promise<void> {
  * @param {number} bufnr - The buffer number.
  * @returns {Promise<void>}
  */
-async function openFloatingWindow(denops: Denops, bufnr: number): Promise<void> {
-  const terminal_width = Math.floor(ensure(await n.nvim_get_option(denops, "columns"), is.Number));
-  const terminal_height = Math.floor(ensure(await n.nvim_get_option(denops, "lines"), is.Number));
-  const floatWinHeight = maybe(await v.g.get(denops, "aider_floatwin_height"), is.Number) || 20;
-  const floatWinWidth = maybe(await v.g.get(denops, "aider_floatwin_width"), is.Number) || 100;
+async function openFloatingWindow(
+  denops: Denops,
+  bufnr: number,
+): Promise<void> {
+  const terminal_width = Math.floor(
+    ensure(await n.nvim_get_option(denops, "columns"), is.Number),
+  );
+  const terminal_height = Math.floor(
+    ensure(await n.nvim_get_option(denops, "lines"), is.Number),
+  );
+  const floatWinHeight =
+    maybe(await v.g.get(denops, "aider_floatwin_height"), is.Number) || 20;
+  const floatWinWidth =
+    maybe(await v.g.get(denops, "aider_floatwin_width"), is.Number) || 100;
 
   const row = Math.floor((terminal_height - floatWinHeight) / 2);
   const col = Math.floor((terminal_width - floatWinWidth) / 2);
@@ -293,7 +372,10 @@ async function openFloatingWindow(denops: Denops, bufnr: number): Promise<void> 
 
   await denops.cmd("set nonumber");
 }
-async function sendPromptFromFloatingWindow(denops: Denops, prompt: string): Promise<void> {
+async function sendPromptFromFloatingWindow(
+  denops: Denops,
+  prompt: string,
+): Promise<void> {
   const aiderBuf = await getAiderBuffer(denops);
   if (aiderBuf === undefined) {
     return;
@@ -316,7 +398,10 @@ async function sendPromptFromFloatingWindow(denops: Denops, prompt: string): Pro
  * @param {Denops} denops - Denopsインスタンス
  * @param {string} prompt - 送信するプロンプト
  */
-async function sendPromptFromSplitWindow(denops: Denops, prompt: string): Promise<void> {
+async function sendPromptFromSplitWindow(
+  denops: Denops,
+  prompt: string,
+): Promise<void> {
   const aiderBuf = await getAiderBuffer(denops);
   if (aiderBuf === undefined) {
     return;
@@ -325,7 +410,10 @@ async function sendPromptFromSplitWindow(denops: Denops, prompt: string): Promis
   if ((await v.g.get(denops, "aider_buffer_open_type")) !== "floating") {
     await denops.cmd(`${aiderBuf.winnr}wincmd w`);
   } else {
-    const totalWindows = ensure<number>(await denops.call("winnr", "$"), is.Number);
+    const totalWindows = ensure<number>(
+      await denops.call("winnr", "$"),
+      is.Number,
+    );
 
     for (let winnr = 1; winnr <= totalWindows; winnr++) {
       const bufnr = await denops.call("winbufnr", winnr);
@@ -354,7 +442,9 @@ type AiderBuffer = {
  * @param {Denops} denops - The Denops instance.
  * @returns {Promise<number | undefined>} The buffer number or undefined.
  */
-export async function getAiderBuffer(denops: Denops): Promise<AiderBuffer | undefined> {
+export async function getAiderBuffer(
+  denops: Denops,
+): Promise<AiderBuffer | undefined> {
   // Get all open buffer numbers
   const buf_count = ensure(await fn.bufnr(denops, "$"), is.Number);
 
@@ -365,7 +455,10 @@ export async function getAiderBuffer(denops: Denops): Promise<AiderBuffer | unde
     }
 
     if (await aider().checkIfAiderBuffer(denops, bufnr)) {
-      const jobId = ensure(await fn.getbufvar(denops, bufnr, "&channel"), is.Number);
+      const jobId = ensure(
+        await fn.getbufvar(denops, bufnr, "&channel"),
+        is.Number,
+      );
 
       // testMode時はjobを走らせていないのでその場合は0でも許容
       // プロセスが動いていない場合(session復元時など)はバッファを削除
@@ -391,7 +484,10 @@ export async function getAiderBuffer(denops: Denops): Promise<AiderBuffer | unde
  * @param {number} bufnrToCheck - 確認したいバッファ番号
  * @returns {Promise<boolean>} バッファが開かれている場合はtrue、そうでない場合はfalse
  */
-async function checkBufferOpen(denops: Denops, bufnrToCheck: number): Promise<boolean> {
+async function checkBufferOpen(
+  denops: Denops,
+  bufnrToCheck: number,
+): Promise<boolean> {
   const win_count = ensure(await fn.winnr(denops, "$"), is.Number);
   for (let i = 1; i <= win_count; i++) {
     const bufnr = ensure(await fn.winbufnr(denops, i), is.Number);
@@ -409,7 +505,10 @@ async function checkBufferOpen(denops: Denops, bufnrToCheck: number): Promise<bo
  * @returns {Promise<string>} Gitリポジトリのルートディレクトリのパス
  */
 async function getGitRoot(denops: Denops): Promise<string> {
-  const gitRoot = ensure(await denops.call("system", "git rev-parse --show-toplevel"), is.String).trim();
+  const gitRoot = ensure(
+    await denops.call("system", "git rev-parse --show-toplevel"),
+    is.String,
+  ).trim();
   return gitRoot;
 }
 
@@ -420,7 +519,10 @@ async function getGitRoot(denops: Denops): Promise<string> {
  * @param {string} fullPath - 変換するフルパス
  * @returns {Promise<string>} Gitリポジトリのルートからの相対パス
  */
-async function convertToGitRelativePath(denops: Denops, fullPath: string): Promise<string> {
+async function convertToGitRelativePath(
+  denops: Denops,
+  fullPath: string,
+): Promise<string> {
   const gitRoot = await getGitRoot(denops);
   return fullPath.replace(gitRoot, "").slice(1);
 }
@@ -431,10 +533,15 @@ async function convertToGitRelativePath(denops: Denops, fullPath: string): Promi
  * @param {Denops} denops - Denops instance
  * @returns {Promise<undefined | string>} A space-separated string of relative paths of files under Git management, or undefined
  */
-export async function getFileBuffers(denops: Denops): Promise<undefined | string> {
+export async function getFileBuffers(
+  denops: Denops,
+): Promise<undefined | string> {
   const buf_count = ensure(await fn.bufnr(denops, "$"), is.Number);
 
-  const gitFiles = ensure(await denops.call("system", "git ls-files"), is.String).split("\n");
+  const gitFiles = ensure(
+    await denops.call("system", "git ls-files"),
+    is.String,
+  ).split("\n");
 
   const buffers = [];
   for (let i = 1; i <= buf_count; i++) {
@@ -442,7 +549,10 @@ export async function getFileBuffers(denops: Denops): Promise<undefined | string
 
     if (!(await aider().checkIfAiderBuffer(denops, bufnr))) {
       const bufferName = ensure(await fn.bufname(denops, bufnr), is.String);
-      const fullPath = ensure(await fn.fnamemodify(denops, bufferName, ":p"), is.String);
+      const fullPath = ensure(
+        await fn.fnamemodify(denops, bufferName, ":p"),
+        is.String,
+      );
       const gitRelativePath = await convertToGitRelativePath(denops, fullPath);
 
       if (gitFiles.includes(gitRelativePath)) {
@@ -462,13 +572,24 @@ export async function getFileBuffers(denops: Denops): Promise<undefined | string
  * @param {string} end - The ending line of the selection range
  * @returns {Promise<string>} The path to the temporary file
  */
-export async function getPartialContextFilePath(denops: Denops, start: string, end: string): Promise<string> {
-  const context = ensure(await denops.call("getline", start, end), is.ArrayOf(is.String));
+export async function getPartialContextFilePath(
+  denops: Denops,
+  start: string,
+  end: string,
+): Promise<string> {
+  const context = ensure(
+    await denops.call("getline", start, end),
+    is.ArrayOf(is.String),
+  );
   const filePath = ensure(await getCurrentFilePath(denops), is.String);
 
   const annotation = ensure([`// Path: ${filePath}`], is.ArrayOf(is.String));
 
-  annotation.push(`// Filetype: ${ensure(await fn.getbufvar(denops, "%", "&filetype"), is.String)}`);
+  annotation.push(
+    `// Filetype: ${
+      ensure(await fn.getbufvar(denops, "%", "&filetype"), is.String)
+    }`,
+  );
 
   annotation.push(`// Line: ${start}-${end}`);
 
@@ -478,7 +599,10 @@ export async function getPartialContextFilePath(denops: Denops, start: string, e
   await Deno.writeTextFile(tempFile, context.join("\n"));
 
   // set filetype
-  const fileType = ensure(await fn.getbufvar(denops, "%", "&filetype"), is.String);
+  const fileType = ensure(
+    await fn.getbufvar(denops, "%", "&filetype"),
+    is.String,
+  );
   await denops.cmd(`setlocal filetype=${fileType}`);
 
   return tempFile;
