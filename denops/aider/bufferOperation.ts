@@ -408,7 +408,7 @@ async function openFloatingWindow(
     const floatWinBorder = maybe(
         await v.g.get(denops, "aider_floatwin_border"),
         is.UnionOf([is.LiteralOneOf(basicBorderOpt), tupleBorderOpt]),
-    );
+    ) || "double";
 
     const floatWinBlend =
         maybe(await v.g.get(denops, "aider_floatwin_blend"), is.Number) || 0;
