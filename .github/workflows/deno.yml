@@ -1,91 +1,91 @@
 name: Test
 
 on:
-  push:
-    branches:
-      - main
-  pull_request:
-    types:
-      - opened
-      - synchronize
-      - reopened
-      - ready_for_review
-      - labeled
-      - unlabeled
+    push:
+        branches:
+            - main
+    pull_request:
+        types:
+            - opened
+            - synchronize
+            - reopened
+            - ready_for_review
+            - labeled
+            - unlabeled
 
-  workflow_dispatch:
-    inputs:
-      denops_branch:
-        description: "Denops branch to test"
-        required: false
-        default: "main"
+    workflow_dispatch:
+        inputs:
+            denops_branch:
+                description: "Denops branch to test"
+                required: false
+                default: "main"
 
 # Use 'nushell' as it's the only sane shell
 defaults:
-  run:
-    shell: nu {0}
+    run:
+        shell: nu {0}
 
 env:
-  DENOPS_BRANCH: ${{ github.event.inputs.denops_branch || 'main' }}
+    DENOPS_BRANCH: ${{ github.event.inputs.denops_branch || 'main' }}
 
 jobs:
-  test:
-    strategy:
-      matrix:
-        runner:
-          - ubuntu-latest
-        deno_version:
-          - "1.x"
-        host_version:
-          - nvim: "v0.10.0"
+    test:
+        strategy:
+            matrix:
+                runner:
+                    - ubuntu-latest
+                deno_version:
+                    - "1.x"
+                host_version:
+                    - nvim: "v0.10.0"
 
-    runs-on: ${{ matrix.runner }}
+        runs-on: ${{ matrix.runner }}
 
-    steps:
-      - uses: hustcer/setup-nu@main
-        with:
-          version: "0.98"
+        steps:
+            - uses: hustcer/setup-nu@main
+              with:
+                  version: "0.98"
 
-      - run: git config --global core.autocrlf false
-        if: runner.os == 'Windows'
+            - run: git config --global core.autocrlf false
+              if: runner.os == 'Windows'
 
-      - uses: actions/checkout@v4
+            - uses: actions/checkout@v4
 
-      - uses: denoland/setup-deno@v1
-        with:
-          deno-version: ${{ matrix.deno_version }}
+            - uses: denoland/setup-deno@v1
+              with:
+                  deno-version: ${{ matrix.deno_version }}
 
-      - name: Get denops
-        run: |
-          git clone https://github.com/vim-denops/denops.vim /tmp/denops.vim
-          echo "DENOPS_TEST_DENOPS_PATH=/tmp/denops.vim" | save --append $env.GITHUB_ENV
+            - name: Get denops
+              run: |
+                  git clone https://github.com/vim-denops/denops.vim /tmp/denops.vim
+                  echo "DENOPS_TEST_DENOPS_PATH=/tmp/denops.vim" | save --append $env.GITHUB_ENV
 
-      - name: Try switching denops branch
-        run: |
-          git -C /tmp/denops.vim switch ${{ env.DENOPS_BRANCH }}
-          git -C /tmp/denops.vim branch
+            - name: Try switching denops branch
+              run: |
+                  git -C /tmp/denops.vim switch ${{ env.DENOPS_BRANCH }}
+                  git -C /tmp/denops.vim branch
 
-      - uses: rhysd/action-setup-vim@v1
-        id: nvim
-        with:
-          neovim: true
-          version: ${{ matrix.host_version.nvim }}
+            - uses: rhysd/action-setup-vim@v1
+              id: nvim
+              with:
+                  neovim: true
+                  version: ${{ matrix.host_version.nvim }}
 
-      - name: Export executables
-        run: |
-          cat $env.GITHUB_ENV
-          echo "DENOPS_TEST_NVIM_EXECUTABLE=${{ steps.nvim.outputs.executable }}" | save --append $env.GITHUB_ENV
+            - name: Export executables
+              run: |
+                  cat $env.GITHUB_ENV
+                  echo "DENOPS_TEST_NVIM_EXECUTABLE=${{ steps.nvim.outputs.executable }}" | save --append $env.GITHUB_ENV
 
-      - name: Check versions
-        run: |
-          deno --version
-          echo $env
-          ^$env.DENOPS_TEST_NVIM_EXECUTABLE --version
+            - name: Check versions
+              run: |
+                  deno --version
+                  echo $env
+                  ^$env.DENOPS_TEST_NVIM_EXECUTABLE --version
 
-      - name: Perform pre-cache
-        run: |
-          deno cache $"($env.DENOPS_TEST_DENOPS_PATH)/denops/@denops-private/mod.ts"
-          deno cache ./denops/aider/main.ts
+            - name: Perform pre-cache
+              run: |
+                  deno cache $"($env.DENOPS_TEST_DENOPS_PATH)/denops/@denops-private/mod.ts"
+                  deno cache ./denops/aider/main.ts
 
-      - name: Run tests
-        run: deno test -A
+            - name: Run tests
+              run: deno test -A

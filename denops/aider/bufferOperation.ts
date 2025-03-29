@@ -4,9 +4,9 @@ import * as n from "https://deno.land/x/denops_std@v6.5.1/function/nvim/mod.ts";
 import type { Denops } from "https://deno.land/x/denops_std@v6.5.1/mod.ts";
 import * as v from "https://deno.land/x/denops_std@v6.5.1/variable/mod.ts";
 import {
-	ensure,
-	is,
-	maybe,
+    ensure,
+    is,
+    maybe,
 } from "https://deno.land/x/unknownutil@v3.18.1/mod.ts";
 import { aider } from "./aiderCommand.ts";
 import { getCurrentFilePath, getPromptFromVimVariable } from "./utils.ts";
@@ -24,12 +24,12 @@ export type BufferLayout = (typeof bufferLayouts)[number];
  * floating: floating window
  */
 export async function getOpenBufferType(denops: Denops): Promise<BufferLayout> {
-	return (
-		maybe(
-			await v.g.get(denops, "aider_buffer_open_type"),
-			is.LiteralOneOf(bufferLayouts),
-		) ?? "floating"
-	);
+    return (
+        maybe(
+            await v.g.get(denops, "aider_buffer_open_type"),
+            is.LiteralOneOf(bufferLayouts),
+        ) ?? "floating"
+    );
 }
 
 /**
@@ -39,19 +39,19 @@ export async function getOpenBufferType(denops: Denops): Promise<BufferLayout> {
  * @returns {Promise<void>} 処理が完了すると解決されるPromise
  */
 export async function exitAiderBuffer(denops: Denops): Promise<void> {
-	const buf_count = ensure(await fn.bufnr(denops, "$"), is.Number);
+    const buf_count = ensure(await fn.bufnr(denops, "$"), is.Number);
 
-	for (let i = 1; i <= buf_count; i++) {
-		const bufnr = ensure(await fn.bufnr(denops, i), is.Number);
+    for (let i = 1; i <= buf_count; i++) {
+        const bufnr = ensure(await fn.bufnr(denops, i), is.Number);
 
-		if (await aider().checkIfAiderBuffer(denops, bufnr)) {
-			const jobId = ensure(
-				await fn.getbufvar(denops, bufnr, "&channel"),
-				is.Number,
-			);
-			aider().exit(denops, jobId, bufnr);
-		}
-	}
+        if (await aider().checkIfAiderBuffer(denops, bufnr)) {
+            const jobId = ensure(
+                await fn.getbufvar(denops, bufnr, "&channel"),
+                is.Number,
+            );
+            aider().exit(denops, jobId, bufnr);
+        }
+    }
 }
 
 /**
@@ -67,35 +67,35 @@ export async function exitAiderBuffer(denops: Denops): Promise<void> {
  * @returns {Promise<undefined | boolean>}
  */
 export async function openAiderBuffer(
-	denops: Denops,
-	openBufferType: BufferLayout,
+    denops: Denops,
+    openBufferType: BufferLayout,
 ): Promise<void> {
-	const aiderBuf = await getAiderBuffer(denops);
-	if (openBufferType === "floating") {
-		if (aiderBuf === undefined) {
-			const bufnr = ensure(
-				await n.nvim_create_buf(denops, false, true),
-				is.Number,
-			);
-			await openFloatingWindow(denops, bufnr);
-			await aider().run(denops);
-			return;
-		}
-		if (aiderBuf !== undefined) {
-			await openFloatingWindow(denops, aiderBuf.bufnr);
-			return;
-		}
-	}
+    const aiderBuf = await getAiderBuffer(denops);
+    if (openBufferType === "floating") {
+        if (aiderBuf === undefined) {
+            const bufnr = ensure(
+                await n.nvim_create_buf(denops, false, true),
+                is.Number,
+            );
+            await openFloatingWindow(denops, bufnr);
+            await aider().run(denops);
+            return;
+        }
+        if (aiderBuf !== undefined) {
+            await openFloatingWindow(denops, aiderBuf.bufnr);
+            return;
+        }
+    }
 
-	if (openBufferType === "split" || openBufferType === "vsplit") {
-		if (aiderBuf === undefined) {
-			await denops.cmd(openBufferType);
-		} else {
-			await openSplitWindow(denops);
-		}
-		await aider().run(denops);
-		return;
-	}
+    if (openBufferType === "split" || openBufferType === "vsplit") {
+        if (aiderBuf === undefined) {
+            await denops.cmd(openBufferType);
+        } else {
+            await openSplitWindow(denops);
+        }
+        await aider().run(denops);
+        return;
+    }
 }
 
 /**
@@ -103,9 +103,9 @@ export async function openAiderBuffer(
  * ウィンドウレイアウトを変更せずにAiderバッファを作成する
  */
 export async function silentRun(denops: Denops): Promise<void> {
-	await denops.cmd("enew");
-	await aider().run(denops);
-	await denops.cmd("b#");
+    await denops.cmd("enew");
+    await aider().run(denops);
+    await denops.cmd("b#");
 }
 /**
  * Aiderバッファの準備処理
@@ -113,17 +113,17 @@ export async function silentRun(denops: Denops): Promise<void> {
  * @returns {Promise<void>}
  */
 export async function prepareAiderBuffer(
-	denops: Denops,
-	openBufferType: BufferLayout,
+    denops: Denops,
+    openBufferType: BufferLayout,
 ): Promise<void> {
-	if (openBufferType === "floating") {
-		await silentRun(denops);
-	} else {
-		await openAiderBuffer(denops, openBufferType);
-		await denops.cmd("wincmd p");
-		console.log("Run Command again.");
-		return;
-	}
+    if (openBufferType === "floating") {
+        await silentRun(denops);
+    } else {
+        await openAiderBuffer(denops, openBufferType);
+        await denops.cmd("wincmd p");
+        console.log("Run Command again.");
+        return;
+    }
 }
 
 /**
@@ -135,111 +135,114 @@ export async function prepareAiderBuffer(
  * @returns {Promise<void>}
  */
 export async function sendPrompt(
-	denops: Denops,
-	input: string,
-	opts = { openBuf: true },
+    denops: Denops,
+    input: string,
+    opts = { openBuf: true },
 ): Promise<void> {
-	const aiderBuf = await getAiderBuffer(denops);
-	if (aiderBuf === undefined) {
-		await denops.cmd("echo 'Aider is not running'");
-		await denops.cmd("AiderRun");
-		return;
-	}
+    const aiderBuf = await getAiderBuffer(denops);
+    if (aiderBuf === undefined) {
+        await denops.cmd("echo 'Aider is not running'");
+        await denops.cmd("AiderRun");
+        return;
+    }
 
-	const openBufferType = await getOpenBufferType(denops);
+    const openBufferType = await getOpenBufferType(denops);
 
-	if (openBufferType === "floating") {
-		if (opts?.openBuf) {
-			await openAiderBuffer(denops, openBufferType);
-		}
-		await sendPromptFromFloatingWindow(denops, input);
-		return;
-	}
+    if (openBufferType === "floating") {
+        if (opts?.openBuf) {
+            await openAiderBuffer(denops, openBufferType);
+        }
+        await sendPromptFromFloatingWindow(denops, input);
+        return;
+    }
 
-	await sendPromptFromSplitWindow(denops, input);
+    await sendPromptFromSplitWindow(denops, input);
 }
 
 /** バッファ内の内容をプロンプトとして送信する
  */
 export async function sendPromptByBuffer(
-	denops: Denops,
-	openBufferType: BufferLayout,
+    denops: Denops,
+    openBufferType: BufferLayout,
 ): Promise<void> {
-	const bufferContent = ensure(
-		await denops.call("getbufline", "%", 1, "$"),
-		is.ArrayOf(is.String),
-	).join("\n");
+    const bufferContent = ensure(
+        await denops.call("getbufline", "%", 1, "$"),
+        is.ArrayOf(is.String),
+    ).join("\n");
 
-	await denops.cmd("bdelete!");
+    await denops.cmd("bdelete!");
 
-	if (openBufferType === "floating") {
-		await denops.cmd("AiderRun");
-		await sendPromptFromFloatingWindow(denops, bufferContent);
-	} else {
-		await sendPromptFromSplitWindow(denops, bufferContent);
-	}
+    if (openBufferType === "floating") {
+        await denops.cmd("AiderRun");
+        await sendPromptFromFloatingWindow(denops, bufferContent);
+    } else {
+        await sendPromptFromSplitWindow(denops, bufferContent);
+    }
 
-	// aiderバッファの最下段へ移動（AiderVisualSelect用）
-	await fn.feedkeys(denops, "G");
-	return;
+    // aiderバッファの最下段へ移動（AiderVisualSelect用）
+    await fn.feedkeys(denops, "G");
+    return;
 }
 
 export async function openFloatingWindowWithSelectedCode(
-	denops: Denops,
-	start: unknown,
-	end: unknown,
-	openBufferType: BufferLayout,
+    denops: Denops,
+    start: unknown,
+    end: unknown,
+    openBufferType: BufferLayout,
 ): Promise<void> {
-	const words = ensure(
-		await denops.call("getline", start, end),
-		is.ArrayOf(is.String),
-	);
-	const aiderBuf = await getAiderBuffer(denops);
-	if (openBufferType !== "floating") {
-		if (aiderBuf === undefined) {
-			await denops.cmd("echo 'Aider is not running'");
-			await denops.cmd("AiderRun");
-			return;
-		}
-	}
-	const backupPrompt = await getPromptFromVimVariable(
-		denops,
-		"aider_visual_select_buffer_prompt",
-	);
-	const bufnr = ensure(await n.nvim_create_buf(denops, false, true), is.Number);
-	await openFloatingWindow(denops, bufnr);
+    const words = ensure(
+        await denops.call("getline", start, end),
+        is.ArrayOf(is.String),
+    );
+    const aiderBuf = await getAiderBuffer(denops);
+    if (openBufferType !== "floating") {
+        if (aiderBuf === undefined) {
+            await denops.cmd("echo 'Aider is not running'");
+            await denops.cmd("AiderRun");
+            return;
+        }
+    }
+    const backupPrompt = await getPromptFromVimVariable(
+        denops,
+        "aider_visual_select_buffer_prompt",
+    );
+    const bufnr = ensure(
+        await n.nvim_create_buf(denops, false, true),
+        is.Number,
+    );
+    await openFloatingWindow(denops, bufnr);
 
-	if (backupPrompt) {
-		await handleBackupPrompt(denops, bufnr, backupPrompt);
-	} else {
-		await handleNoBackupPrompt(denops, bufnr, words);
-	}
+    if (backupPrompt) {
+        await handleBackupPrompt(denops, bufnr, backupPrompt);
+    } else {
+        await handleNoBackupPrompt(denops, bufnr, words);
+    }
 
-	await denops.cmd("setlocal filetype=markdown");
+    await denops.cmd("setlocal filetype=markdown");
 
-	await n.nvim_buf_set_keymap(denops, bufnr, "n", "Q", "<cmd>fclose!<CR>", {
-		silent: true,
-	});
-	await n.nvim_buf_set_keymap(
-		denops,
-		bufnr,
-		"n",
-		"q",
-		"<cmd>AiderHideVisualSelectFloatingWindow<CR>",
-		{
-			silent: true,
-		},
-	);
-	await n.nvim_buf_set_keymap(
-		denops,
-		bufnr,
-		"n",
-		"<cr>",
-		"<cmd>AiderSendPromptByBuffer<cr>",
-		{
-			silent: true,
-		},
-	);
+    await n.nvim_buf_set_keymap(denops, bufnr, "n", "Q", "<cmd>fclose!<CR>", {
+        silent: true,
+    });
+    await n.nvim_buf_set_keymap(
+        denops,
+        bufnr,
+        "n",
+        "q",
+        "<cmd>AiderHideVisualSelectFloatingWindow<CR>",
+        {
+            silent: true,
+        },
+    );
+    await n.nvim_buf_set_keymap(
+        denops,
+        bufnr,
+        "n",
+        "<cr>",
+        "<cmd>AiderSendPromptByBuffer<cr>",
+        {
+            silent: true,
+        },
+    );
 }
 
 /**
@@ -253,13 +256,13 @@ export async function openFloatingWindowWithSelectedCode(
  * @param {string[]} backupPrompt - バックアッププロンプトの内容。
  */
 async function handleBackupPrompt(
-	denops: Denops,
-	bufnr: number,
-	backupPrompt: string[],
+    denops: Denops,
+    bufnr: number,
+    backupPrompt: string[],
 ) {
-	await v.g.set(denops, "aider_visual_select_buffer_prompt", undefined);
-	await n.nvim_buf_set_lines(denops, bufnr, 0, -1, true, backupPrompt);
-	await feedkeys(denops, "Gi");
+    await v.g.set(denops, "aider_visual_select_buffer_prompt", undefined);
+    await n.nvim_buf_set_lines(denops, bufnr, 0, -1, true, backupPrompt);
+    await feedkeys(denops, "Gi");
 }
 
 /**
@@ -273,45 +276,52 @@ async function handleBackupPrompt(
  * @param {string[]} words - バッファに設定するコード行。
  */
 async function handleNoBackupPrompt(
-	denops: Denops,
-	bufnr: number,
-	words: string[],
+    denops: Denops,
+    bufnr: number,
+    words: string[],
 ) {
-	const filetype = ensure(
-		await fn.getbufvar(denops, "%", "&filetype"),
-		is.String,
-	);
-	words.unshift("```" + filetype);
-	words.push("```");
+    const filetype = ensure(
+        await fn.getbufvar(denops, "%", "&filetype"),
+        is.String,
+    );
+    words.unshift("```" + filetype);
+    words.push("```");
 
-	await n.nvim_buf_set_lines(denops, bufnr, -1, -1, true, words);
-	await n.nvim_buf_set_lines(denops, bufnr, 0, 1, true, []);
-	await n.nvim_buf_set_lines(denops, bufnr, -1, -1, true, [""]);
+    await n.nvim_buf_set_lines(denops, bufnr, -1, -1, true, words);
+    await n.nvim_buf_set_lines(denops, bufnr, 0, 1, true, []);
+    await n.nvim_buf_set_lines(denops, bufnr, -1, -1, true, [""]);
 
-	const additionalPrompt = await getPromptFromVimVariable(
-		denops,
-		"aider_additional_prompt",
-	);
-	if (additionalPrompt) {
-		await n.nvim_buf_set_lines(denops, bufnr, -1, -1, true, ["# rule"]);
-		await n.nvim_buf_set_lines(denops, bufnr, -1, -1, true, additionalPrompt);
-		await n.nvim_buf_set_lines(denops, bufnr, -1, -1, true, [""]);
-	}
-	await n.nvim_buf_set_lines(denops, bufnr, -1, -1, true, ["# prompt"]);
-	await n.nvim_buf_set_lines(denops, bufnr, -1, -1, true, [""]);
-	await feedkeys(denops, "Gi");
+    const additionalPrompt = await getPromptFromVimVariable(
+        denops,
+        "aider_additional_prompt",
+    );
+    if (additionalPrompt) {
+        await n.nvim_buf_set_lines(denops, bufnr, -1, -1, true, ["# rule"]);
+        await n.nvim_buf_set_lines(
+            denops,
+            bufnr,
+            -1,
+            -1,
+            true,
+            additionalPrompt,
+        );
+        await n.nvim_buf_set_lines(denops, bufnr, -1, -1, true, [""]);
+    }
+    await n.nvim_buf_set_lines(denops, bufnr, -1, -1, true, ["# prompt"]);
+    await n.nvim_buf_set_lines(denops, bufnr, -1, -1, true, [""]);
+    await feedkeys(denops, "Gi");
 }
 
 export async function hideVisualSelectFloatingWindow(
-	denops: Denops,
+    denops: Denops,
 ): Promise<void> {
-	const bufferContent = ensure(
-		await denops.call("getbufline", "%", 1, "$"),
-		is.ArrayOf(is.String),
-	);
-	await v.g.set(denops, "aider_visual_select_buffer_prompt", bufferContent);
+    const bufferContent = ensure(
+        await denops.call("getbufline", "%", 1, "$"),
+        is.ArrayOf(is.String),
+    );
+    await v.g.set(denops, "aider_visual_select_buffer_prompt", bufferContent);
 
-	await denops.cmd("fclose!");
+    await denops.cmd("fclose!");
 }
 
 /**
@@ -321,11 +331,11 @@ export async function hideVisualSelectFloatingWindow(
  * @returns {Promise<boolean>}
  */
 export async function checkIfTerminalBuffer(
-	denops: Denops,
-	bufnr: number,
+    denops: Denops,
+    bufnr: number,
 ): Promise<boolean> {
-	const buftype = await fn.getbufvar(denops, bufnr, "&buftype");
-	return buftype === "terminal";
+    const buftype = await fn.getbufvar(denops, bufnr, "&buftype");
+    return buftype === "terminal";
 }
 
 /**
@@ -334,7 +344,7 @@ export async function checkIfTerminalBuffer(
  * @param {Denops} denops - Denopsインスタンス
  */
 export async function openSplitWindow(denops: Denops): Promise<void> {
-	await denops.cmd(await getOpenBufferType(denops));
+    await denops.cmd(await getOpenBufferType(denops));
 }
 
 /**
@@ -346,78 +356,76 @@ export async function openSplitWindow(denops: Denops): Promise<void> {
  * @returns {Promise<void>}
  */
 async function openFloatingWindow(
-	denops: Denops,
-	bufnr: number,
+    denops: Denops,
+    bufnr: number,
 ): Promise<void> {
-	const terminal_width = Math.floor(
-		ensure(await n.nvim_get_option(denops, "columns"), is.Number),
-	);
-	const terminal_height = Math.floor(
-		ensure(await n.nvim_get_option(denops, "lines"), is.Number),
-	);
-	const floatWinHeight =
-		maybe(await v.g.get(denops, "aider_floatwin_height"), is.Number) || 20;
-	const floatWinWidth =
-		maybe(await v.g.get(denops, "aider_floatwin_width"), is.Number) || 100;
-	const floatWinStyle =
-		maybe(
-			await v.g.get(denops, "aider_floatwin_style"),
-			is.LiteralOf("minimal"),
-		) ?? "minimal";
+    const terminal_width = Math.floor(
+        ensure(await n.nvim_get_option(denops, "columns"), is.Number),
+    );
+    const terminal_height = Math.floor(
+        ensure(await n.nvim_get_option(denops, "lines"), is.Number),
+    );
+    const floatWinHeight =
+        maybe(await v.g.get(denops, "aider_floatwin_height"), is.Number) || 20;
+    const floatWinWidth =
+        maybe(await v.g.get(denops, "aider_floatwin_width"), is.Number) || 100;
+    const floatWinStyle = maybe(
+        await v.g.get(denops, "aider_floatwin_style"),
+        is.LiteralOf("minimal"),
+    ) ?? "minimal";
 
-	const validBorders = [
-		"single",
-		"double",
-		"rounded",
-		"solid",
-		"shadow",
-		"none",
-	] as const;
-	const floatWinBorder =
-		maybe(
-			await v.g.get(denops, "aider_floatwin_border"),
-			is.LiteralOneOf(validBorders) || is.ArrayOf(is.String) || undefined,
-		) ?? "double";
+    const validBorders = [
+        "single",
+        "double",
+        "rounded",
+        "solid",
+        "shadow",
+        "none",
+    ] as const;
+    const floatWinBorder = maybe(
+        await v.g.get(denops, "aider_floatwin_border"),
+        is.LiteralOneOf(validBorders) || is.ArrayOf(is.String) || undefined,
+    ) ?? "double";
 
-	const floatWinBlend =
-		maybe(await v.g.get(denops, "aider_floatwin_blend"), is.Number) || 0;
+    const floatWinBlend =
+        maybe(await v.g.get(denops, "aider_floatwin_blend"), is.Number) || 0;
 
-	const row = Math.floor((terminal_height - floatWinHeight) / 2);
-	const col = Math.floor((terminal_width - floatWinWidth) / 2);
+    const row = Math.floor((terminal_height - floatWinHeight) / 2);
+    const col = Math.floor((terminal_width - floatWinWidth) / 2);
 
-	const winid = await n.nvim_open_win(denops, bufnr, true, {
-		relative: "editor",
-		border: floatWinBorder,
-		width: floatWinWidth,
-		height: floatWinHeight,
-		row: row,
-		col: col,
-		style: floatWinStyle,
-	});
+    const winid = await n.nvim_open_win(denops, bufnr, true, {
+        relative: "editor",
+        border: floatWinBorder,
+        width: floatWinWidth,
+        height: floatWinHeight,
+        row: row,
+        col: col,
+        style: floatWinStyle,
+    });
 
-	// ウィンドウの透明度を設定
-	await n.nvim_win_set_option(denops, winid, "winblend", floatWinBlend);
+    // ウィンドウの透明度を設定
+    await n.nvim_win_set_option(denops, winid, "winblend", floatWinBlend);
 
-	// ターミナルの背景色を引き継ぐための設定
-	await n.nvim_win_set_option(
-		denops,
-		winid,
-		"winhighlight",
-		"Normal:Normal,NormalFloat:Normal,FloatBorder:Normal",
-	);
+    // ターミナルの背景色を引き継ぐための設定
+    await n.nvim_win_set_option(
+        denops,
+        winid,
+        "winhighlight",
+        "Normal:Normal,NormalFloat:Normal,FloatBorder:Normal",
+    );
 
-	await denops.cmd("set nonumber");
+    await denops.cmd("set nonumber");
 }
 async function sendPromptFromFloatingWindow(
-	denops: Denops,
-	prompt: string,
+    denops: Denops,
+    prompt: string,
 ): Promise<void> {
-	const aiderBuf = await getAiderBuffer(denops);
-	if (aiderBuf === undefined) {
-		return;
-	}
+    const aiderBuf = await getAiderBuffer(denops);
+    if (aiderBuf === undefined) {
+        return;
+    }
 
-	await aider().sendPrompt(denops, aiderBuf.jobId, prompt);
+    await aider().sendPrompt(denops, aiderBuf.jobId, prompt);
 }
 /**
  * スプリットウィンドウからプロンプトを送信する非同期関数
@@ -435,40 +443,40 @@ async function sendPromptFromFloatingWindow(
  * @param {string} prompt - 送信するプロンプト
  */
 async function sendPromptFromSplitWindow(
-	denops: Denops,
-	prompt: string,
+    denops: Denops,
+    prompt: string,
 ): Promise<void> {
-	const aiderBuf = await getAiderBuffer(denops);
-	if (aiderBuf === undefined) {
-		return;
-	}
+    const aiderBuf = await getAiderBuffer(denops);
+    if (aiderBuf === undefined) {
+        return;
+    }
 
-	if ((await v.g.get(denops, "aider_buffer_open_type")) !== "floating") {
-		await denops.cmd(`${aiderBuf.winnr}wincmd w`);
-	} else {
-		const totalWindows = ensure<number>(
-			await denops.call("winnr", "$"),
-			is.Number,
-		);
+    if ((await v.g.get(denops, "aider_buffer_open_type")) !== "floating") {
+        await denops.cmd(`${aiderBuf.winnr}wincmd w`);
+    } else {
+        const totalWindows = ensure<number>(
+            await denops.call("winnr", "$"),
+            is.Number,
+        );
 
-		for (let winnr = 1; winnr <= totalWindows; winnr++) {
-			const bufnr = await denops.call("winbufnr", winnr);
+        for (let winnr = 1; winnr <= totalWindows; winnr++) {
+            const bufnr = await denops.call("winbufnr", winnr);
 
-			const buftype = await denops.call("getbufvar", bufnr, "&buftype");
+            const buftype = await denops.call("getbufvar", bufnr, "&buftype");
 
-			if (buftype === "terminal") {
-				await denops.cmd(`${winnr}wincmd w`);
-				break;
-			}
-		}
-	}
-	await aider().sendPrompt(denops, aiderBuf.jobId, prompt);
+            if (buftype === "terminal") {
+                await denops.cmd(`${winnr}wincmd w`);
+                break;
+            }
+        }
+    }
+    await aider().sendPrompt(denops, aiderBuf.jobId, prompt);
 }
 
 type AiderBuffer = {
-	jobId: number;
-	winnr: number | undefined;
-	bufnr: number;
+    jobId: number;
+    winnr: number | undefined;
+    bufnr: number;
 };
 
 /**
@@ -479,39 +487,42 @@ type AiderBuffer = {
  * @returns {Promise<number | undefined>} The buffer number or undefined.
  */
 export async function getAiderBuffer(
-	denops: Denops,
+    denops: Denops,
 ): Promise<AiderBuffer | undefined> {
-	// Get all open buffer numbers
-	const buf_count = ensure(await fn.bufnr(denops, "$"), is.Number);
+    // Get all open buffer numbers
+    const buf_count = ensure(await fn.bufnr(denops, "$"), is.Number);
 
-	for (let i = 1; i <= buf_count; i++) {
-		const bufnr = ensure(await fn.bufnr(denops, i), is.Number);
-		if (bufnr === -1 || !(await fn.bufloaded(denops, bufnr))) {
-			continue;
-		}
+    for (let i = 1; i <= buf_count; i++) {
+        const bufnr = ensure(await fn.bufnr(denops, i), is.Number);
+        if (bufnr === -1 || !(await fn.bufloaded(denops, bufnr))) {
+            continue;
+        }
 
-		if (await aider().checkIfAiderBuffer(denops, bufnr)) {
-			const jobId = ensure(
-				await fn.getbufvar(denops, bufnr, "&channel"),
-				is.Number,
-			);
+        if (await aider().checkIfAiderBuffer(denops, bufnr)) {
+            const jobId = ensure(
+                await fn.getbufvar(denops, bufnr, "&channel"),
+                is.Number,
+            );
 
-			// testMode時はjobを走らせていないのでその場合は0でも許容
-			// プロセスが動いていない場合(session復元時など)はバッファを削除
-			if (!aider().isTestMode() && jobId === 0) {
-				await denops.cmd(`bd! ${bufnr}`);
-				continue;
-			}
+            // testMode時はjobを走らせていないのでその場合は0でも許容
+            // プロセスが動いていない場合(session復元時など)はバッファを削除
+            if (!aider().isTestMode() && jobId === 0) {
+                await denops.cmd(`bd! ${bufnr}`);
+                continue;
+            }
 
-			if (await checkBufferOpen(denops, bufnr)) {
-				const winnr = ensure(await fn.bufwinnr(denops, bufnr), is.Number);
-				return { jobId, winnr, bufnr };
-			}
-			return { jobId, winnr: undefined, bufnr };
-		}
-	}
+            if (await checkBufferOpen(denops, bufnr)) {
+                const winnr = ensure(
+                    await fn.bufwinnr(denops, bufnr),
+                    is.Number,
+                );
+                return { jobId, winnr, bufnr };
+            }
+            return { jobId, winnr: undefined, bufnr };
+        }
+    }
 
-	return undefined;
+    return undefined;
 }
 /**
  * 指定されたバッファ番号が現在のウィンドウで開かれているかを確認します。
@@ -521,17 +532,17 @@ export async function getAiderBuffer(
  * @returns {Promise<boolean>} バッファが開かれている場合はtrue、そうでない場合はfalse
  */
 async function checkBufferOpen(
-	denops: Denops,
-	bufnrToCheck: number,
+    denops: Denops,
+    bufnrToCheck: number,
 ): Promise<boolean> {
-	const win_count = ensure(await fn.winnr(denops, "$"), is.Number);
-	for (let i = 1; i <= win_count; i++) {
-		const bufnr = ensure(await fn.winbufnr(denops, i), is.Number);
-		if (bufnr === bufnrToCheck) {
-			return true;
-		}
-	}
-	return false;
+    const win_count = ensure(await fn.winnr(denops, "$"), is.Number);
+    for (let i = 1; i <= win_count; i++) {
+        const bufnr = ensure(await fn.winbufnr(denops, i), is.Number);
+        if (bufnr === bufnrToCheck) {
+            return true;
+        }
+    }
+    return false;
 }
 
 /**
@@ -541,11 +552,11 @@ async function checkBufferOpen(
  * @returns {Promise<string>} Gitリポジトリのルートディレクトリのパス
  */
 async function getGitRoot(denops: Denops): Promise<string> {
-	const gitRoot = ensure(
-		await denops.call("system", "git rev-parse --show-toplevel"),
-		is.String,
-	).trim();
-	return gitRoot;
+    const gitRoot = ensure(
+        await denops.call("system", "git rev-parse --show-toplevel"),
+        is.String,
+    ).trim();
+    return gitRoot;
 }
 
 /**
@@ -556,11 +567,11 @@ async function getGitRoot(denops: Denops): Promise<string> {
  * @returns {Promise<string>} Gitリポジトリのルートからの相対パス
  */
 async function convertToGitRelativePath(
-	denops: Denops,
-	fullPath: string,
+    denops: Denops,
+    fullPath: string,
 ): Promise<string> {
-	const gitRoot = await getGitRoot(denops);
-	return fullPath.replace(gitRoot, "").slice(1);
+    const gitRoot = await getGitRoot(denops);
+    return fullPath.replace(gitRoot, "").slice(1);
 }
 
 /**
@@ -570,34 +581,40 @@ async function convertToGitRelativePath(
  * @returns {Promise<undefined | string>} A space-separated string of relative paths of files under Git management, or undefined
  */
 export async function getFileBuffers(
-	denops: Denops,
+    denops: Denops,
 ): Promise<undefined | string> {
-	const buf_count = ensure(await fn.bufnr(denops, "$"), is.Number);
+    const buf_count = ensure(await fn.bufnr(denops, "$"), is.Number);
 
-	const gitFiles = ensure(
-		await denops.call("system", "git ls-files"),
-		is.String,
-	).split("\n");
+    const gitFiles = ensure(
+        await denops.call("system", "git ls-files"),
+        is.String,
+    ).split("\n");
 
-	const buffers = [];
-	for (let i = 1; i <= buf_count; i++) {
-		const bufnr = ensure(await fn.bufnr(denops, i), is.Number);
+    const buffers = [];
+    for (let i = 1; i <= buf_count; i++) {
+        const bufnr = ensure(await fn.bufnr(denops, i), is.Number);
 
-		if (!(await aider().checkIfAiderBuffer(denops, bufnr))) {
-			const bufferName = ensure(await fn.bufname(denops, bufnr), is.String);
-			const fullPath = ensure(
-				await fn.fnamemodify(denops, bufferName, ":p"),
-				is.String,
-			);
-			const gitRelativePath = await convertToGitRelativePath(denops, fullPath);
+        if (!(await aider().checkIfAiderBuffer(denops, bufnr))) {
+            const bufferName = ensure(
+                await fn.bufname(denops, bufnr),
+                is.String,
+            );
+            const fullPath = ensure(
+                await fn.fnamemodify(denops, bufferName, ":p"),
+                is.String,
+            );
+            const gitRelativePath = await convertToGitRelativePath(
+                denops,
+                fullPath,
+            );
 
-			if (gitFiles.includes(gitRelativePath)) {
-				buffers.push(gitRelativePath);
-			}
-		}
-	}
+            if (gitFiles.includes(gitRelativePath)) {
+                buffers.push(gitRelativePath);
+            }
+        }
+    }
 
-	return buffers.join(" ") ?? undefined;
+    return buffers.join(" ") ?? undefined;
 }
 
 /**
@@ -609,38 +626,40 @@ export async function getFileBuffers(
  * @returns {Promise<string>} The path to the temporary file
  */
 export async function getPartialContextFilePath(
-	denops: Denops,
-	start: string,
-	end: string,
+    denops: Denops,
+    start: string,
+    end: string,
 ): Promise<string> {
-	const context = ensure(
-		await denops.call("getline", start, end),
-		is.ArrayOf(is.String),
-	);
-	const filePath = ensure(await getCurrentFilePath(denops), is.String);
+    const context = ensure(
+        await denops.call("getline", start, end),
+        is.ArrayOf(is.String),
+    );
+    const filePath = ensure(await getCurrentFilePath(denops), is.String);
 
-	const annotation = ensure([`// Path: ${filePath}`], is.ArrayOf(is.String));
+    const annotation = ensure([`// Path: ${filePath}`], is.ArrayOf(is.String));
 
-	annotation.push(
-		`// Filetype: ${ensure(
-			await fn.getbufvar(denops, "%", "&filetype"),
-			is.String,
-		)}`,
-	);
+    annotation.push(
+        `// Filetype: ${
+            ensure(
+                await fn.getbufvar(denops, "%", "&filetype"),
+                is.String,
+            )
+        }`,
+    );
 
-	annotation.push(`// Line: ${start}-${end}`);
+    annotation.push(`// Line: ${start}-${end}`);
 
-	context.unshift(...annotation);
+    context.unshift(...annotation);
 
-	const tempFile = ensure(await denops.call("tempname"), is.String);
-	await Deno.writeTextFile(tempFile, context.join("\n"));
+    const tempFile = ensure(await denops.call("tempname"), is.String);
+    await Deno.writeTextFile(tempFile, context.join("\n"));
 
-	// set filetype
-	const fileType = ensure(
-		await fn.getbufvar(denops, "%", "&filetype"),
-		is.String,
-	);
-	await denops.cmd(`setlocal filetype=${fileType}`);
+    // set filetype
+    const fileType = ensure(
+        await fn.getbufvar(denops, "%", "&filetype"),
+        is.String,
+    );
+    await denops.cmd(`setlocal filetype=${fileType}`);
 
-	return tempFile;
+    return tempFile;
 }
