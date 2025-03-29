@@ -365,19 +365,19 @@ async function openFloatingWindow(
 			is.LiteralOf("minimal"),
 		) ?? "minimal";
 
+	const validBorders = [
+		"single",
+		"double",
+		"rounded",
+		"solid",
+		"shadow",
+		"none",
+	] as const;
 	const floatWinBorder =
 		maybe(
 			await v.g.get(denops, "aider_floatwin_border"),
-			is.LiteralOf("single") ||
-				is.LiteralOf("double") ||
-				is.LiteralOf("rounded") ||
-				is.LiteralOf("solid") ||
-				is.LiteralOf("shadow") ||
-				is.LiteralOf("none") ||
-				is.ArrayOf(is.String) ||
-				is.ArrayOf(is.ArrayOf(is.String)) ||
-				undefined,
-		) || "double";
+			is.LiteralOneOf(validBorders) || is.ArrayOf(is.String) || undefined,
+		) ?? "double";
 
 	const floatWinBlend =
 		maybe(await v.g.get(denops, "aider_floatwin_blend"), is.Number) || 0;
