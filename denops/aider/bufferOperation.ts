@@ -362,7 +362,7 @@ async function openFloatingWindow(
   const floatWinStyle = maybe(
     await v.g.get(denops, "aider_floatwin_style"),
     is.LiteralOf("minimal"),
-  ) ?? "minimal";
+  );
 
   const validBorders = [
     "single",
