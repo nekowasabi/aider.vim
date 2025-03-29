@@ -18,7 +18,10 @@ export const commands: AiderCommand = {
  * @param {number} bufnr - バッファ番号
  * @returns {Promise<boolean>}
  */
-async function checkIfAiderBuffer(denops: Denops, bufnr: number): Promise<boolean> {
+async function checkIfAiderBuffer(
+  denops: Denops,
+  bufnr: number,
+): Promise<boolean> {
   // aiderバッファの場合 `term://{path}//{pid}:aider --4o --no-auto-commits` のような名前になっている
   const name = await util.getBufferName(denops, bufnr);
   const splitted = name.split(" ");
@@ -26,7 +29,10 @@ async function checkIfAiderBuffer(denops: Denops, bufnr: number): Promise<boolea
 }
 
 async function run(denops: Denops): Promise<undefined> {
-  const aiderCommand = ensure(await v.g.get(denops, "aider_command"), is.String);
+  const aiderCommand = ensure(
+    await v.g.get(denops, "aider_command"),
+    is.String,
+  );
   await denops.cmd(`terminal ${aiderCommand}`);
   await emit(denops, "User", "AiderOpen");
 }
@@ -38,13 +44,21 @@ async function run(denops: Denops): Promise<undefined> {
  * @param {string} prompt - The prompt to send
  * @returns {Promise<undefined>}
  */
-async function sendPrompt(denops: Denops, jobId: number, prompt: string): Promise<undefined> {
+async function sendPrompt(
+  denops: Denops,
+  jobId: number,
+  prompt: string,
+): Promise<undefined> {
   const promptLines = prompt.split("\n");
   const joined = promptLines.join("\x1b\x0d"); // use Esc + Ctrl-M instead of \n to avoid submit cf. https://github.com/Aider-AI/aider/issues/901
   await denops.call("chansend", jobId, `${joined}\n`);
 }
 
-async function exit(denops: Denops, jobId: number, bufnr: number): Promise<undefined> {
+async function exit(
+  denops: Denops,
+  jobId: number,
+  bufnr: number,
+): Promise<undefined> {
   if (jobId !== 0) {
     await denops.call("chansend", jobId, "/exit\n");
   }

@@ -17,7 +17,11 @@ async function setup(denops: Denops, bufferLayout: BufferLayout) {
   await sleep(10); // sleepを入れないとAiderAddCurrentFileが落ちた。mainのロードが間に合っていない？
 }
 
-export function test(mode: "both" | "floating" | "vsplit", testName: string, fn: (denops: Denops) => Promise<void>) {
+export function test(
+  mode: "both" | "floating" | "vsplit",
+  testName: string,
+  fn: (denops: Denops) => Promise<void>,
+) {
   if (mode === "both") {
     test("floating", testName, fn);
     test("vsplit", testName, fn);
@@ -29,4 +33,5 @@ export function test(mode: "both" | "floating" | "vsplit", testName: string, fn:
     await fn(denops);
   });
 }
-const sleep = (msec: number) => new Promise((resolve) => setTimeout(resolve, msec));
+const sleep = (msec: number) =>
+  new Promise((resolve) => setTimeout(resolve, msec));

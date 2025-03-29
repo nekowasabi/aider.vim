@@ -16,9 +16,9 @@ on:
   workflow_dispatch:
     inputs:
       denops_branch:
-        description: 'Denops branch to test'
+        description: "Denops branch to test"
         required: false
-        default: 'main'
+        default: "main"
 
 # Use 'nushell' as it's the only sane shell
 defaults:

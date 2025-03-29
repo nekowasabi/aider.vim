@@ -14,11 +14,19 @@ export const commands: AiderCommand = {
     mockAiderBufnr = bufnr;
   },
 
-  sendPrompt: async (denops: Denops, _jobId: number, prompt: string): Promise<undefined> => {
+  sendPrompt: async (
+    denops: Denops,
+    _jobId: number,
+    prompt: string,
+  ): Promise<undefined> => {
     await fn.feedkeys(denops, `ainput: ${prompt}\n`, "x");
   },
 
-  exit: async (denops: Denops, _jobId: number, _bufnr: number): Promise<undefined> => {
+  exit: async (
+    denops: Denops,
+    _jobId: number,
+    _bufnr: number,
+  ): Promise<undefined> => {
     if (mockAiderBufnr === undefined) {
       return;
     }

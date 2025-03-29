@@ -22,11 +22,9 @@ export async function main(denops: Denops): Promise<void> {
    * "0"の場合は引数なしの関数、"1"の場合は1つの引数を取る関数、
    * "*"の場合は2つの引数を取る関数を意味します。
    */
-  type ImplType<T extends ArgCount> = T extends "0"
-    ? () => Promise<void>
-    : T extends "1"
-      ? (arg: string) => Promise<void>
-      : (arg: string, arg2: string) => Promise<void>; // MEMO: ArgCountは*だが現状2つのみ対応している
+  type ImplType<T extends ArgCount> = T extends "0" ? () => Promise<void>
+    : T extends "1" ? (arg: string) => Promise<void>
+    : (arg: string, arg2: string) => Promise<void>; // MEMO: ArgCountは*だが現状2つのみ対応している
 
   /**
    * コマンドのオプションを定義
@@ -38,7 +36,9 @@ export async function main(denops: Denops): Promise<void> {
    * @property {boolean} [range] - 範囲指定が可能かどうかを示します。
    */
   type Opts<T extends ArgCount> = {
-    pattern?: T extends "0" ? undefined : T extends "1" ? "[<f-args>]" : "[<line1>, <line2>]";
+    pattern?: T extends "0" ? undefined
+      : T extends "1" ? "[<f-args>]"
+      : "[<line1>, <line2>]";
     complete?: T extends "1" ? "file" | "shellcmd" : undefined;
     range?: T extends "*" ? boolean : undefined;
   };
@@ -69,7 +69,9 @@ export async function main(denops: Denops): Promise<void> {
   ): Promise<Command> {
     const rangePart = opts.range ? "-range" : "";
 
-    const commandName = `Aider${dispatcherMethod.charAt(0).toUpperCase()}${dispatcherMethod.slice(1)}`;
+    const commandName = `Aider${dispatcherMethod.charAt(0).toUpperCase()}${
+      dispatcherMethod.slice(1)
+    }`;
     const completePart = opts.complete ? `-complete=${opts.complete}` : "";
     const patternPart = opts.pattern ?? "[]";
 
@@ -114,7 +116,10 @@ export async function main(denops: Denops): Promise<void> {
 
   const commands: Command[] = [
     await command("sendPromptByBuffer", "0", async () => {
-      await buffer.sendPromptByBuffer(denops, await buffer.getOpenBufferType(denops));
+      await buffer.sendPromptByBuffer(
+        denops,
+        await buffer.getOpenBufferType(denops),
+      );
     }),
 
     await command(
@@ -137,7 +142,10 @@ export async function main(denops: Denops): Promise<void> {
     ),
 
     await command("run", "0", async () => {
-      await buffer.openAiderBuffer(denops, await buffer.getOpenBufferType(denops));
+      await buffer.openAiderBuffer(
+        denops,
+        await buffer.getOpenBufferType(denops),
+      );
     }),
 
     await command("silentRun", "0", () => buffer.silentRun(denops)),
@@ -170,11 +178,20 @@ export async function main(denops: Denops): Promise<void> {
     }),
 
     await command("addCurrentFile", "0", async () => {
-      await addFileToAider(denops, await buffer.getOpenBufferType(denops), "add");
+      await addFileToAider(
+        denops,
+        await buffer.getOpenBufferType(denops),
+        "add",
+      );
     }),
 
     await command("silentAddCurrentFile", "0", async () => {
-      await addFileToAider(denops, await buffer.getOpenBufferType(denops), "add", { openBuf: false });
+      await addFileToAider(
+        denops,
+        await buffer.getOpenBufferType(denops),
+        "add",
+        { openBuf: false },
+      );
       const currentFile = await getCurrentFilePath(denops);
       console.log(`Added ${currentFile} to Aider`);
     }),
@@ -191,13 +208,22 @@ export async function main(denops: Denops): Promise<void> {
     ),
 
     await command("addCurrentFileReadOnly", "0", async () => {
-      await addFileToAider(denops, await buffer.getOpenBufferType(denops), "read-only");
+      await addFileToAider(
+        denops,
+        await buffer.getOpenBufferType(denops),
+        "read-only",
+      );
     }),
 
     await command("silentAddCurrentFileReadOnly", "0", async () => {
-      await addFileToAider(denops, await buffer.getOpenBufferType(denops), "read-only", {
-        openBuf: false,
-      });
+      await addFileToAider(
+        denops,
+        await buffer.getOpenBufferType(denops),
+        "read-only",
+        {
+          openBuf: false,
+        },
+      );
       const currentFile = await getCurrentFilePath(denops);
       console.log(`Added ${currentFile} to Aider read-only`);
     }),
@@ -248,7 +274,11 @@ export async function main(denops: Denops): Promise<void> {
       "addPartialReadonlyContext",
       "*",
       async (start: string, end: string) => {
-        const partialContextFile = await buffer.getPartialContextFilePath(denops, start, end);
+        const partialContextFile = await buffer.getPartialContextFilePath(
+          denops,
+          start,
+          end,
+        );
         const prompt = `/read-only ${partialContextFile}`;
         await buffer.sendPrompt(denops, prompt);
       },
@@ -259,13 +289,19 @@ export async function main(denops: Denops): Promise<void> {
       "visualTextWithPrompt",
       "*",
       async (start: string, end: string) => {
-        await buffer.openFloatingWindowWithSelectedCode(denops, start, end, await buffer.getOpenBufferType(denops));
+        await buffer.openFloatingWindowWithSelectedCode(
+          denops,
+          start,
+          end,
+          await buffer.getOpenBufferType(denops),
+        );
       },
       { pattern: "[<line1>, <line2>]", range: true },
     ),
 
     await command("openIgnore", "0", async () => {
-      const gitRoot = (await fn.system(denops, "git rev-parse --show-toplevel")).trim();
+      const gitRoot = (await fn.system(denops, "git rev-parse --show-toplevel"))
+        .trim();
       const filePathToOpen = `${gitRoot}/.aiderignore`;
       if (await fn.filereadable(denops, filePathToOpen)) {
         await denops.cmd(`edit ${filePathToOpen}`);
@@ -277,7 +313,8 @@ export async function main(denops: Denops): Promise<void> {
     await command("addIgnoreCurrentFile", "0", async () => {
       try {
         const currentFile = await getCurrentFilePath(denops);
-        const gitRoot = (await fn.system(denops, "git rev-parse --show-toplevel")).trim();
+        const gitRoot =
+          (await fn.system(denops, "git rev-parse --show-toplevel")).trim();
         const filePathToOpen = `${gitRoot}/.aiderignore`;
         const relativePath = relative(gitRoot, currentFile);
 
@@ -303,7 +340,10 @@ export async function main(denops: Denops): Promise<void> {
     await command("voice", "0", async () => {
       try {
         const prompt = "/voice";
-        await buffer.prepareAiderBuffer(denops, await buffer.getOpenBufferType(denops));
+        await buffer.prepareAiderBuffer(
+          denops,
+          await buffer.getOpenBufferType(denops),
+        );
         await buffer.sendPrompt(denops, prompt);
         await fn.feedkeys(denops, "a"); // エンターキーを受け付けるため挿入モードを開始
       } catch (error) {
@@ -332,6 +372,11 @@ export async function main(denops: Denops): Promise<void> {
   ];
 
   denops.dispatcher = Object.fromEntries(
-    commands.map((command) => [command.methodName, command.impl as (args: unknown) => Promise<void>]),
+    commands.map((
+      command,
+    ) => [
+      command.methodName,
+      command.impl as (args: unknown) => Promise<void>,
+    ]),
   );
 }

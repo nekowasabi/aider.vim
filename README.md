@@ -1,6 +1,7 @@
 # aider.vim
 
-Minimal helper plugin for [aider](https://github.com/Aider-AI/aider) with neovim.
+Minimal helper plugin for [aider](https://github.com/Aider-AI/aider) with
+neovim.
 
 ## Demo
 
@@ -128,27 +129,42 @@ To use aider.vim, you can run the following commands within Vim or Neovim:
 
 - `:AiderRun` - Runs aider or display aider window.
 - `:AiderAddCurrentFile` - Adds the current file to aider's context.
-- `:AiderAddCurrentFileReadOnly` - Adds the current file as read-only to aider's context.
-- `:AiderAddBuffers` - Adds all currently open buffers under Git management to aider's context.
-- `:AiderSilentAddCurrentFile` - Without moving the focus to the aider buffer,  adds the current file to aider's context and refreshes the buffer.
-- `:AiderSilentAddCurrentFileReadOnly` - Without moving the focus to the aider buffer, adds the current file as read-only to aider's context.
+- `:AiderAddCurrentFileReadOnly` - Adds the current file as read-only to aider's
+  context.
+- `:AiderAddBuffers` - Adds all currently open buffers under Git management to
+  aider's context.
+- `:AiderSilentAddCurrentFile` - Without moving the focus to the aider buffer,
+  adds the current file to aider's context and refreshes the buffer.
+- `:AiderSilentAddCurrentFileReadOnly` - Without moving the focus to the aider
+  buffer, adds the current file as read-only to aider's context.
 - `:AiderExit` - Exits aider and cleans up the session.
-- `:AiderVisualTextWithPrompt` - Edit the selected text in visual mode in a floating window and send it to aider. In the floating window, send to aider with `<CR>` in normal mode, and close the floating window with `Q`. You can also backup prompt with `q`.
-- `:AiderAddPartialReadonlyContext` - Adds the selected text in visual mode as read-only context to Aider.
-- `:AiderAddWeb` - Displays a prompt for the specified URL and adds it to the aider context.
-- `:AiderOpenIgnore` - Opens the `.aiderignore` file in the git root directory if it exists.
+- `:AiderVisualTextWithPrompt` - Edit the selected text in visual mode in a
+  floating window and send it to aider. In the floating window, send to aider
+  with `<CR>` in normal mode, and close the floating window with `Q`. You can
+  also backup prompt with `q`.
+- `:AiderAddPartialReadonlyContext` - Adds the selected text in visual mode as
+  read-only context to Aider.
+- `:AiderAddWeb` - Displays a prompt for the specified URL and adds it to the
+  aider context.
+- `:AiderOpenIgnore` - Opens the `.aiderignore` file in the git root directory
+  if it exists.
 - `:AiderAddIgnoreCurrentFile` - Adds the current file to the `.aiderignore`.
-- `:AiderSendPromptByCommandline <prompt>` - Sends a prompt from the command line and displays the Aider window.
-- `:AiderSilentSendPromptByCommandline <prompt>` - Sends a prompt from the command line and refreshes the buffer.
-- `:AiderAsk <question>` - Sends a question to aider without adding any files to the context.
+- `:AiderSendPromptByCommandline <prompt>` - Sends a prompt from the command
+  line and displays the Aider window.
+- `:AiderSilentSendPromptByCommandline <prompt>` - Sends a prompt from the
+  command line and refreshes the buffer.
+- `:AiderAsk <question>` - Sends a question to aider without adding any files to
+  the context.
 - `:AiderHide` - Hides the floating window and reloads the buffer.
 - `:AiderPaste` - Pastes the content from the clipboard into the aider context.
-- `:AiderHideVisualSelectFloatingWindow` - Hides the visual selection floating window used for displaying selected text.
+- `:AiderHideVisualSelectFloatingWindow` - Hides the visual selection floating
+  window used for displaying selected text.
 - `:AiderVoice` - Sends voice commands to Aider(using wishper).
 
 ### Advanced Usage
-If you want to send a custom prompt to Aider, use `AiderSendPromptByCommandline`.
-Set it up as follows:
+
+If you want to send a custom prompt to Aider, use
+`AiderSendPromptByCommandline`. Set it up as follows:
 
 ```vim
 " Send a prompt to Aider and display the Aider window
@@ -213,6 +229,6 @@ context.
 
 <img src="./demo/aider_ddu_integration.gif" alt="Ddu Integration Demo GIF" width="500">
 
-##  Acknowledgements
+## Acknowledgements
 
 Aider CLI tool created by [Paul Gauthier](https://github.com/paul-gauthier).

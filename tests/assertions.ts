@@ -3,15 +3,24 @@ import type { Denops } from "https://deno.land/x/denops_std@v6.4.0/mod.ts";
 import { ensure, is } from "https://deno.land/x/unknownutil@v3.17.0/mod.ts";
 import * as buffer from "../denops/aider/bufferOperation.ts";
 
-export const sleep = (msec: number) => new Promise((resolve) => setTimeout(resolve, msec));
+export const sleep = (msec: number) =>
+  new Promise((resolve) => setTimeout(resolve, msec));
 
 /**
  * Aiderバッファが開かれており、ウィンドウに表示されているかをアサートします
  */
 export async function assertAiderBufferShown(denops: Denops): Promise<void> {
   const buf = await buffer.getAiderBuffer(denops);
-  assert(buf !== undefined, `Aider buffer is not defined.\n${await bufferStateMessage(denops)}`);
-  assert(buf.winnr !== undefined, `Aider buffer is not shown in any window.\n${await bufferStateMessage(denops)}`);
+  assert(
+    buf !== undefined,
+    `Aider buffer is not defined.\n${await bufferStateMessage(denops)}`,
+  );
+  assert(
+    buf.winnr !== undefined,
+    `Aider buffer is not shown in any window.\n${await bufferStateMessage(
+      denops,
+    )}`,
+  );
 }
 
 /**
@@ -19,10 +28,15 @@ export async function assertAiderBufferShown(denops: Denops): Promise<void> {
  */
 export async function assertAiderBufferHidden(denops: Denops): Promise<void> {
   const buf = await buffer.getAiderBuffer(denops);
-  assert(buf !== undefined, `Aider buffer is not defined.\n${await bufferStateMessage(denops)}`);
+  assert(
+    buf !== undefined,
+    `Aider buffer is not defined.\n${await bufferStateMessage(denops)}`,
+  );
   assert(
     buf.winnr === undefined,
-    `Aider buffer is shown in a window when it should be hidden.\n${await bufferStateMessage(denops)}`,
+    `Aider buffer is shown in a window when it should be hidden.\n${await bufferStateMessage(
+      denops,
+    )}`,
   );
 }
 
@@ -31,7 +45,10 @@ export async function assertAiderBufferHidden(denops: Denops): Promise<void> {
  */
 export async function assertAiderBufferAlive(denops: Denops): Promise<void> {
   const buf = await buffer.getAiderBuffer(denops);
-  assert(buf !== undefined, `Aider buffer is not alive.\n${await bufferStateMessage(denops)}`);
+  assert(
+    buf !== undefined,
+    `Aider buffer is not alive.\n${await bufferStateMessage(denops)}`,
+  );
 }
 
 /**
@@ -40,12 +57,21 @@ export async function assertAiderBufferAlive(denops: Denops): Promise<void> {
  * @param denops - Denopsインスタンス。
  * @param expected - 期待されるバッファの内容。
  */
-export async function assertAiderBufferString(denops: Denops, expected: string): Promise<void> {
+export async function assertAiderBufferString(
+  denops: Denops,
+  expected: string,
+): Promise<void> {
   const buf = await buffer.getAiderBuffer(denops);
   assert(buf !== undefined);
-  const lines = ensure(await denops.call("getbufline", buf.bufnr, 1, "$"), is.ArrayOf(is.String));
+  const lines = ensure(
+    await denops.call("getbufline", buf.bufnr, 1, "$"),
+    is.ArrayOf(is.String),
+  );
   const actual = lines.join("\n");
-  assert(actual === expected, `Buffer content mismatch.\nExpected:\n${expected}\nActual:\n${actual}\n`);
+  assert(
+    actual === expected,
+    `Buffer content mismatch.\nExpected:\n${expected}\nActual:\n${actual}\n`,
+  );
 }
 
 async function bufferStateMessage(denops: Denops): Promise<string> {

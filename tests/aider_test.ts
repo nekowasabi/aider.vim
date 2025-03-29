@@ -1,5 +1,10 @@
 // This comment for vim-test plugin: Use denops' test() instead of built-in Deno.test()
-import { assertAiderBufferHidden, assertAiderBufferShown, assertAiderBufferString, sleep } from "./assertions.ts";
+import {
+  assertAiderBufferHidden,
+  assertAiderBufferShown,
+  assertAiderBufferString,
+  sleep,
+} from "./assertions.ts";
 import { assertAiderBufferAlive } from "./assertions.ts";
 import { test } from "./testRunner.ts";
 
@@ -26,14 +31,18 @@ test("both", "AiderSilentRun should work", async (denops) => {
   await assertAiderBufferHidden(denops);
 });
 
-test("both", "AiderAddBuffers should return empty for files not under git management", async (denops) => {
-  await denops.cmd("AiderRun");
-  await sleep(SLEEP_BEFORE_ASSERT);
-  await denops.cmd("AiderAddBuffers");
-  await sleep(SLEEP_BEFORE_ASSERT);
-  await assertAiderBufferAlive(denops);
-  await assertAiderBufferString(denops, "input: /add \n");
-});
+test(
+  "both",
+  "AiderAddBuffers should return empty for files not under git management",
+  async (denops) => {
+    await denops.cmd("AiderRun");
+    await sleep(SLEEP_BEFORE_ASSERT);
+    await denops.cmd("AiderAddBuffers");
+    await sleep(SLEEP_BEFORE_ASSERT);
+    await assertAiderBufferAlive(denops);
+    await assertAiderBufferString(denops, "input: /add \n");
+  },
+);
 
 test(
   "both",
@@ -58,12 +67,16 @@ test("both", "AiderSendPromptByCommandline should work", async (denops) => {
   await assertAiderBufferString(denops, "input: test\n");
 });
 
-test("both", "AiderSilentSendPromptByCommandline should work", async (denops) => {
-  await denops.cmd("AiderSilentRun");
-  await sleep(SLEEP_BEFORE_ASSERT);
-  await assertAiderBufferAlive(denops);
-  await sleep(SLEEP_BEFORE_ASSERT);
-  await denops.cmd("AiderSilentSendPromptByCommandline silent test");
-  await sleep(SLEEP_BEFORE_ASSERT);
-  await assertAiderBufferString(denops, "input: silent test\n");
-});
+test(
+  "both",
+  "AiderSilentSendPromptByCommandline should work",
+  async (denops) => {
+    await denops.cmd("AiderSilentRun");
+    await sleep(SLEEP_BEFORE_ASSERT);
+    await assertAiderBufferAlive(denops);
+    await sleep(SLEEP_BEFORE_ASSERT);
+    await denops.cmd("AiderSilentSendPromptByCommandline silent test");
+    await sleep(SLEEP_BEFORE_ASSERT);
+    await assertAiderBufferString(denops, "input: silent test\n");
+  },
+);
