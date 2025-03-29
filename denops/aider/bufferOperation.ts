@@ -374,7 +374,7 @@ async function openFloatingWindow(
         is.LiteralOf("minimal"),
     );
 
-    const validBorders = [
+    const basicBorderOpt = [
         "single",
         "double",
         "rounded",
@@ -382,10 +382,33 @@ async function openFloatingWindow(
         "shadow",
         "none",
     ] as const;
+    const tupleBorderOpt = is.UnionOf(
+        [
+            is.TupleOf([
+                is.String,
+                is.String,
+                is.String,
+                is.String,
+                is.String,
+                is.String,
+                is.String,
+                is.String,
+            ]),
+            is.TupleOf([
+                is.String,
+                is.String,
+                is.String,
+                is.String,
+            ]),
+            is.TupleOf([is.String, is.String]),
+            is.TupleOf([is.String]),
+        ],
+    );
+
     const floatWinBorder = maybe(
         await v.g.get(denops, "aider_floatwin_border"),
-        is.LiteralOneOf(validBorders) || is.ArrayOf(is.String) || undefined,
-    ) ?? "double";
+        is.UnionOf([is.LiteralOneOf(basicBorderOpt), tupleBorderOpt]),
+    );
 
     const floatWinBlend =
         maybe(await v.g.get(denops, "aider_floatwin_blend"), is.Number) || 0;
