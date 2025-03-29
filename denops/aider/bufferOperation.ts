@@ -372,7 +372,7 @@ async function openFloatingWindow(
     const floatWinStyle = maybe(
         await v.g.get(denops, "aider_floatwin_style"),
         is.LiteralOf("minimal"),
-    ) ?? "minimal";
+    );
 
     const validBorders = [
         "single",
@@ -393,15 +393,22 @@ async function openFloatingWindow(
     const row = Math.floor((terminal_height - floatWinHeight) / 2);
     const col = Math.floor((terminal_width - floatWinWidth) / 2);
 
-    const winid = await n.nvim_open_win(denops, bufnr, true, {
-        relative: "editor",
+    const optsWithoutStyle = {
+        relative: "editor" as const,
         border: floatWinBorder,
         width: floatWinWidth,
         height: floatWinHeight,
         row: row,
         col: col,
-        style: floatWinStyle,
-    });
+    };
+    const opts:
+        | typeof optsWithoutStyle
+        | (typeof optsWithoutStyle & { style: "minimal" }) =
+            floatWinStyle === "minimal"
+                ? { ...optsWithoutStyle, style: "minimal" }
+                : optsWithoutStyle;
+
+    const winid = await n.nvim_open_win(denops, bufnr, true, opts);
 
     // ウィンドウの透明度を設定
     await n.nvim_win_set_option(denops, winid, "winblend", floatWinBlend);
