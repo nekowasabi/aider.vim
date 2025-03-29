@@ -42,6 +42,8 @@ let g:aider_command = 'aider --no-auto-commits'
 let g:aider_buffer_open_type = 'floating'
 let g:aider_floatwin_width = 100
 let g:aider_floatwin_height = 20
+let g:aider_floatwin_border = "double"
+let g:aider_floatwin_border_style = "minimal"
 
 " Additional prompt setting
 let g:aider_additional_prompt = [
