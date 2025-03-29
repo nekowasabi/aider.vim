@@ -343,32 +343,38 @@ export async function openSplitWindow(denops: Denops): Promise<void> {
  * @param {number} bufnr - The buffer number.
  * @returns {Promise<void>}
  */
-async function openFloatingWindow(
-  denops: Denops,
-  bufnr: number,
-): Promise<void> {
-  const terminal_width = Math.floor(
-    ensure(await n.nvim_get_option(denops, "columns"), is.Number),
-  );
-  const terminal_height = Math.floor(
-    ensure(await n.nvim_get_option(denops, "lines"), is.Number),
-  );
-  const floatWinHeight =
-    maybe(await v.g.get(denops, "aider_floatwin_height"), is.Number) || 20;
-  const floatWinWidth =
-    maybe(await v.g.get(denops, "aider_floatwin_width"), is.Number) || 100;
+async function openFloatingWindow(denops: Denops, bufnr: number): Promise<void> {
+  const terminal_width = Math.floor(ensure(await n.nvim_get_option(denops, "columns"), is.Number));
+  const terminal_height = Math.floor(ensure(await n.nvim_get_option(denops, "lines"), is.Number));
+  const floatWinHeight = maybe(await v.g.get(denops, "aider_floatwin_height"), is.Number) || 20;
+  const floatWinWidth = maybe(await v.g.get(denops, "aider_floatwin_width"), is.Number) || 100;
+  const floatWinStyle = maybe(await v.g.get(denops, "aider_floatwin_style"), is.String) || "minimal";
+  const floatWinBorder = maybe(await v.g.get(denops, "aider_floatwin_border"), is.String) || "double";
+  const floatWinBlend = maybe(await v.g.get(denops, "aider_floatwin_blend"), is.Number) || 0;
 
   const row = Math.floor((terminal_height - floatWinHeight) / 2);
   const col = Math.floor((terminal_width - floatWinWidth) / 2);
 
-  await n.nvim_open_win(denops, bufnr, true, {
+  const winid = await n.nvim_open_win(denops, bufnr, true, {
     relative: "editor",
-    border: "double",
+    border: floatWinBorder,
     width: floatWinWidth,
     height: floatWinHeight,
     row: row,
     col: col,
+    style: floatWinStyle,
   });
+
+  // ウィンドウの透明度を設定
+  await n.nvim_win_set_option(denops, winid, "winblend", floatWinBlend);
+  
+  // ターミナルの背景色を引き継ぐための設定
+  await n.nvim_win_set_option(
+    denops, 
+    winid, 
+    "winhighlight", 
+    "Normal:Normal,NormalFloat:Normal,FloatBorder:Normal"
+  );
 
   await denops.cmd("set nonumber");
 }
