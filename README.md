@@ -161,7 +161,7 @@ To use aider.vim, you can run the following commands within Vim or Neovim:
 - `:AiderPaste` - Pastes the content from the clipboard into the aider context.
 - `:AiderHideVisualSelectFloatingWindow` - Hides the visual selection floating
   window used for displaying selected text.
-- `:AiderVoice` - Sends voice commands to Aider(using wishper).
+- `:AiderVoice` - Sends voice commands to Aider (using Whisper).
 
 ### Advanced Usage
 
