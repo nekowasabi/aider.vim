@@ -124,18 +124,31 @@ test("both", "AiderDebugTokenRefresh should perform device flow and display toke
       assertEquals(body.device_code, "mock_device_code");
       assertEquals(body.grant_type, "urn:ietf:params:oauth:grant-type:device_code");
 
-      if (fetchCallCount === 2) { // First poll
+      if (fetchCallCount === 2) { // First poll for GitHub token
         return new Response(JSON.stringify({ error: "authorization_pending" }), { status: 200, headers: { 'Content-Type': 'application/json' }});
-      } else if (fetchCallCount === 3) { // Second poll
+      } else if (fetchCallCount === 3) { // Second poll for GitHub token - success
         return new Response(JSON.stringify({
           access_token: "mock_access_token_value",
           token_type: "bearer",
           scope: "copilot",
         }), { status: 200, headers: { 'Content-Type': 'application/json' }});
       }
+    } else if (url.includes("https://api.github.com/copilot_internal/v2/token")) {
+      assertEquals(fetchCallCount, 4, "Copilot token fetch should be the 4th call");
+      assertEquals(method, "GET");
+      assertEquals(headers["Authorization"], "token mock_access_token_value");
+      assertEquals(headers["User-Agent"], "Aider.vim/0.1.0");
+      assertEquals(headers["Accept"], "application/json");
+      assertEquals(headers["Editor-Plugin-Version"], "Aider.vim/0.1.0");
+      assertEquals(headers["Editor-Version"], "Vim/Denops");
+      return new Response(JSON.stringify({
+        token: "mock_copilot_session_token_value",
+        expires_at: 1678886400, // 2023-03-15T12:00:00Z
+        another_field: "test", // To ensure only expected fields are used
+      }), { status: 200, headers: { 'Content-Type': 'application/json' }});
     }
     // Fallback for unexpected calls
-    return new Response("Unexpected fetch call", { status: 500 });
+    return new Response(`Unexpected fetch call to ${url} (call count: ${fetchCallCount})`, { status: 500 });
   };
 
   denops.cmd = async (command: string, ...args: unknown[]): Promise<void> => {
@@ -157,29 +170,28 @@ test("both", "AiderDebugTokenRefresh should perform device flow and display toke
     // The interval is 0 in mock, but setTimeout still defers execution.
     await sleep(50); // Increased slightly to be safer
 
-    assertEquals(fetchCallCount, 3, "Fetch should be called 3 times (1 device, 2 poll)");
+    assertEquals(fetchCallCount, 4, "Fetch should be called 4 times (1 device, 2 GH poll, 1 Copilot poll)");
 
-    // Assert messages
-    assert(
-      recordedCmdMessages.some(msg => msg.includes("Starting GitHub Device Flow")),
-      "Initial message missing"
-    );
-    assert(
-      recordedCmdMessages.some(msg => msg.includes("Please open your browser and go to: https://github.com/login/device")),
-      "Verification URI message missing"
-    );
-    assert(
-      recordedCmdMessages.some(msg => msg.includes("Enter this code: MOCK-USER-CODE")),
-      "User code message missing"
-    );
-    assert(
-      recordedCmdMessages.some(msg => msg.includes("Authorization pending...")),
-      "Authorization pending message missing"
-    );
-    assert(
-      recordedCmdMessages.some(msg => msg.includes("Access token obtained successfully: mock_access_token_value")),
-      "Success token message missing"
-    );
+    // Assert messages in approximate order
+    const expectedMessages = [
+      "Starting GitHub Device Flow for token refresh...",
+      "Please open your browser and go to: https://github.com/login/device",
+      "Enter this code: MOCK-USER-CODE",
+      "Authorization pending...",
+      "GitHub Access Token obtained successfully: mock_access_token_value",
+      "Fetching Copilot session token...",
+      "Successfully obtained Copilot session token.",
+      "Copilot Session Token: mock_copilot_session_token_value",
+      "Expires At: 2023-03-15T12:00:00.000Z",
+    ];
+
+    assertEquals(recordedCmdMessages.length, expectedMessages.length, "Incorrect number of echomsg calls");
+    expectedMessages.forEach((expectedMsg, index) => {
+      assert(
+        recordedCmdMessages[index].includes(expectedMsg),
+        `Message at index ${index} ("${recordedCmdMessages[index]}") does not include expected content "${expectedMsg}"`,
+      );
+    });
 
   } finally {
     globalThis.fetch = originalFetch;

@@ -199,12 +199,68 @@ export async function main(denops: Denops): Promise<void> {
             const tokenData = await tokenResponse.json();
             if (tokenData.access_token) {
               await denops.cmd(
-                `echomsg "Access token obtained successfully: ${tokenData.access_token}"`,
+                `echomsg "GitHub Access Token obtained successfully: ${tokenData.access_token}"`,
               );
-              // Store or use the token as needed in a real scenario
-              // For now, just log it.
-              console.log("Access Token:", tokenData.access_token);
-              return; // Success
+              console.log("GitHub Access Token:", tokenData.access_token);
+
+              // Step 3: Fetch Copilot Session Token
+              await denops.cmd('echomsg "Fetching Copilot session token..."');
+              const copilotTokenUrl = "https://api.github.com/copilot_internal/v2/token";
+              const githubAccessToken = tokenData.access_token;
+
+              try {
+                const copilotTokenResponse = await fetch(copilotTokenUrl, {
+                  method: "GET",
+                  headers: {
+                    "Authorization": `token ${githubAccessToken}`,
+                    "User-Agent": "Aider.vim/0.1.0",
+                    "Accept": "application/json",
+                    "Editor-Plugin-Version": "Aider.vim/0.1.0",
+                    "Editor-Version": "Vim/Denops",
+                  },
+                });
+
+                if (copilotTokenResponse.ok) {
+                  const copilotTokenData = await copilotTokenResponse.json();
+                  await denops.cmd(
+                    'echomsg "Successfully obtained Copilot session token."',
+                  );
+                  if (copilotTokenData.token && copilotTokenData.expires_at) {
+                    await denops.cmd(
+                      `echomsg "Copilot Session Token: ${copilotTokenData.token}"`,
+                    );
+                    await denops.cmd(
+                      `echomsg "Expires At: ${
+                        new Date(copilotTokenData.expires_at * 1000).toISOString()
+                      }"`,
+                    );
+                    console.log("Copilot Session Token Data:", copilotTokenData);
+                  } else {
+                     await denops.cmd(
+                      'echomsg "Copilot token data is incomplete or in unexpected format."',
+                    );
+                    console.warn("Copilot token data format unexpected:", copilotTokenData);
+                  }
+                } else {
+                  const errorText = await copilotTokenResponse.text();
+                  await denops.cmd(
+                    `echomsg "Error fetching Copilot token: ${copilotTokenResponse.status} ${errorText}"`,
+                  );
+                  console.error(
+                    `Error fetching Copilot token: ${copilotTokenResponse.status}`,
+                    errorText,
+                  );
+                }
+              } catch (copilotError) {
+                await denops.cmd(
+                  `echomsg "Network error fetching Copilot token: ${copilotError.message}"`,
+                );
+                console.error(
+                  "Network error fetching Copilot token:",
+                  copilotError,
+                );
+              }
+              return; // End of successful GitHub token flow
             } else if (tokenData.error) { // Should be caught by !tokenResponse.ok, but as a safeguard
               await denops.cmd(
                 `echomsg "Error in token response: ${tokenData.error} - ${tokenData.error_description}"`,
