@@ -114,7 +114,7 @@ export async function main(denops: Denops): Promise<void> {
     await buffer.sendPrompt(denops, prompt, opts);
   }
 
-  async function githubDeviceAuthImpl(): Promise<string | null> {
+  async function githubDeviceAuthImpl(): Promise<string | null | undefined> {
     const clientId = "Iv1.b507a08c87ecfe98";
     const scope = "read:user";
     const deviceAuthUrl = "https://github.com/login/device/code";
