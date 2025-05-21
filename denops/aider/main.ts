@@ -114,20 +114,20 @@ export async function main(denops: Denops): Promise<void> {
     await buffer.sendPrompt(denops, prompt, opts);
   }
 
-  async function debugTokenRefreshImpl(): Promise<void> {
-    const clientId = "Iv1.b507a08c87ecfe98"; // Placeholder
-    const scope = "copilot"; // Placeholder
+  async function githubDeviceAuthImpl(): Promise<string | null> {
+    const clientId = "Iv1.b507a08c87ecfe98";
+    const scope = "read:user";
     const deviceAuthUrl = "https://github.com/login/device/code";
     const tokenUrl = "https://github.com/login/oauth/access_token";
 
     try {
-      await denops.cmd('echomsg "Starting GitHub Device Flow for token refresh..."');
+      await denops.cmd('echomsg "Starting GitHub Device Authentication..."');
 
       // Step 1: Initiate Device Authorization
       const deviceAuthResponse = await fetch(deviceAuthUrl, {
         method: "POST",
         headers: {
-          "Content-Type": "application/json",
+          "Content-Type": "application/json", // Added for consistency, though spec only mentions Accept
           "Accept": "application/json",
         },
         body: JSON.stringify({ client_id: clientId, scope: scope }),
@@ -136,13 +136,13 @@ export async function main(denops: Denops): Promise<void> {
       if (!deviceAuthResponse.ok) {
         const errorText = await deviceAuthResponse.text();
         await denops.cmd(
-          `echomsg "Error initiating device flow: ${deviceAuthResponse.status} ${errorText}"`,
+          `echomsg "Error initiating GitHub device flow: ${deviceAuthResponse.status} ${errorText}"`,
         );
         console.error(
-          `Error initiating device flow: ${deviceAuthResponse.status}`,
+          `Error initiating GitHub device flow: ${deviceAuthResponse.status}`,
           errorText,
         );
-        return;
+        return null;
       }
 
       const deviceAuthData = await deviceAuthResponse.json();
@@ -166,7 +166,7 @@ export async function main(denops: Denops): Promise<void> {
           const tokenResponse = await fetch(tokenUrl, {
             method: "POST",
             headers: {
-              "Content-Type": "application/json",
+              "Content-Type": "application/json", // Added for consistency
               "Accept": "application/json",
             },
             body: JSON.stringify({
@@ -179,37 +179,81 @@ export async function main(denops: Denops): Promise<void> {
           if (!tokenResponse.ok) {
             const errorData = await tokenResponse.json();
             if (errorData.error === "authorization_pending") {
-              // Continue polling
-              await denops.cmd('echomsg "Authorization pending..."');
+              await denops.cmd('echomsg "GitHub authorization pending..."');
             } else if (errorData.error === "slow_down") {
-              pollingInterval += 5000; // Increase interval by 5 seconds
+              pollingInterval += 5000;
               await denops.cmd(
-                `echomsg "Slowing down polling. New interval: ${
+                `echomsg "Slowing down GitHub polling. New interval: ${
                   pollingInterval / 1000
                 }s"`,
               );
             } else {
               await denops.cmd(
-                `echomsg "Error polling for token: ${errorData.error} - ${errorData.error_description}"`,
+                `echomsg "Error polling for GitHub token: ${errorData.error} - ${errorData.error_description}"`,
               );
-              console.error("Error polling for token:", errorData);
-              return; // Stop on other errors
+              console.error("Error polling for GitHub token:", errorData);
+              return null;
             }
           } else {
             const tokenData = await tokenResponse.json();
             if (tokenData.access_token) {
               await denops.cmd(
-                `echomsg "GitHub Access Token obtained successfully: ${tokenData.access_token}"`,
+                `echomsg "Successfully obtained GitHub access token: ${tokenData.access_token}"`,
               );
-              console.log("GitHub Access Token:", tokenData.access_token);
+              console.log("Obtained GitHub Access Token:", tokenData.access_token);
+              return tokenData.access_token;
+            } else if (tokenData.error) {
+              await denops.cmd(
+                `echomsg "Error in GitHub token response: ${tokenData.error} - ${tokenData.error_description}"`,
+              );
+              console.error("Error in GitHub token response:", tokenData);
+              return null;
+            } else {
+              await denops.cmd('echomsg "Unknown error during GitHub token polling."');
+              console.error("Unknown error during GitHub token polling", tokenData);
+              return null;
+            }
+          }
+        } catch (pollError) {
+          await denops.cmd(
+            `echomsg "Network error during GitHub polling: ${pollError.message}"`,
+          );
+          console.error("Network error during GitHub polling:", pollError);
+          // Potentially retry or backoff further depending on strategy, but for now, exit.
+          return null;
+        }
+      }
 
-              // Step 3: Fetch Copilot Session Token
-              await denops.cmd('echomsg "Fetching Copilot session token..."');
-              const copilotTokenUrl = "https://api.github.com/copilot_internal/v2/token";
-              const githubAccessToken = tokenData.access_token;
+      await denops.cmd(
+        `echomsg "GitHub device flow timed out after ${expires_in} seconds."`,
+      );
+      console.error("GitHub device flow timed out.");
+      return null;
+    } catch (error) {
+      await denops.cmd(`echomsg "An unexpected error occurred in GitHub device flow: ${error.message}"`);
+      console.error("An unexpected error occurred in GitHub device flow:", error);
+      return null;
+    }
+  }
 
-              try {
-                const copilotTokenResponse = await fetch(copilotTokenUrl, {
+  async function debugTokenRefreshImpl(): Promise<void> {
+    try {
+      await denops.cmd('echomsg "Attempting to refresh GitHub and Copilot tokens..."');
+      
+      const githubAccessToken = await githubDeviceAuthImpl();
+
+      if (!githubAccessToken) {
+        await denops.cmd('echomsg "GitHub device authentication failed. Cannot proceed to fetch Copilot token."');
+        console.error("GitHub device authentication failed.");
+        return;
+      }
+      
+      // Successfully obtained GitHub token, now fetch Copilot token
+      await denops.cmd('echomsg "Fetching Copilot session token using GitHub token..."');
+      const copilotTokenUrl = "https://api.github.com/copilot_internal/v2/token";
+
+      try {
+        const copilotTokenResponse = await fetch(copilotTokenUrl, {
                   method: "GET",
                   headers: {
                     "Authorization": `token ${githubAccessToken}`,
@@ -260,32 +304,12 @@ export async function main(denops: Denops): Promise<void> {
                   copilotError,
                 );
               }
-              return; // End of successful GitHub token flow
-            } else if (tokenData.error) { // Should be caught by !tokenResponse.ok, but as a safeguard
-              await denops.cmd(
-                `echomsg "Error in token response: ${tokenData.error} - ${tokenData.error_description}"`,
-              );
-              console.error("Error in token response:", tokenData);
-              return;
-            }
-          }
-        } catch (pollError) {
-          await denops.cmd(
-            `echomsg "Network error during polling: ${pollError.message}"`,
-          );
-          console.error("Network error during polling:", pollError);
-          // Decide if to continue or break based on error type if needed
-        }
-      }
-
-      // If loop finishes without returning, it's a timeout
-      await denops.cmd(
-        `echomsg "Device flow timed out after ${expires_in} seconds."`,
-      );
-      console.error("Device flow timed out.");
     } catch (error) {
-      await denops.cmd(`echomsg "An unexpected error occurred: ${error.message}"`);
-      console.error("An unexpected error occurred in debugTokenRefreshImpl:", error);
+      // This top-level catch in debugTokenRefreshImpl might catch errors from githubDeviceAuthImpl if they weren't handled there,
+      // or errors from the Copilot token fetching part if they somehow bypass its specific try-catch.
+      // Or if githubDeviceAuthImpl itself throws an unexpected error not returning null.
+      await denops.cmd(`echomsg "An overall error occurred in token refresh process: ${error.message}"`);
+      console.error("An overall error occurred in token refresh process:", error);
     }
   }
 
@@ -545,6 +569,12 @@ export async function main(denops: Denops): Promise<void> {
         await buffer.sendPrompt(denops, prompt);
       },
       { pattern: "[<f-args>]", complete: "shellcmd" },
+    ),
+
+    await command(
+      "debugToken",
+      "0",
+      githubDeviceAuthImpl,
     ),
 
     await command(

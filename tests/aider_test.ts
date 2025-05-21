@@ -205,3 +205,99 @@ test("both", "AiderDebugTokenRefresh should perform device flow and display toke
     denops.cmd = originalDenopsCmd;
   }
 });
+
+test("both", "AiderDebugToken should perform device flow and display GitHub token", async (denops) => {
+  const originalFetch = globalThis.fetch;
+  const originalDenopsCmd = denops.cmd;
+
+  let localFetchCallCount = 0;
+  const localRecordedCmdMessages: string[] = [];
+  const mockClientId = "Iv1.b507a08c87ecfe98"; // Matches githubDeviceAuthImpl
+
+  const mockFetchForGitHubDeviceAuth = async (input: RequestInfo | URL, init?: RequestInit): Promise<Response> => {
+    localFetchCallCount++;
+    let urlString: string;
+    if (typeof input === 'string') {
+      urlString = input;
+    } else if (input instanceof URL) {
+      urlString = input.href;
+    } else { // Assumed to be a Request object
+      urlString = input.url;
+    }
+    const method = init?.method || "GET";
+    const headers = init?.headers as Record<string, string>;
+    const body = init?.body ? JSON.parse(init.body as string) : {};
+
+    if (urlString.includes("https://github.com/login/device/code")) {
+      assertEquals(localFetchCallCount, 1, "Device code request should be the 1st call for AiderDebugToken");
+      assertEquals(method, "POST");
+      assertEquals(headers["Accept"], "application/json");
+      assertEquals(headers["Content-Type"], "application/json");
+      assertEquals(body.client_id, mockClientId);
+      assertEquals(body.scope, "read:user"); // Specific scope for this flow
+      return new Response(JSON.stringify({
+        device_code: "mock_device_code_debugtoken",
+        user_code: "MOCK-USER-CODE-DEBUGTOKEN",
+        verification_uri: "https://github.com/login/device/debugtoken",
+        expires_in: 5, 
+        interval: 0, 
+      }), { status: 200, headers: { 'Content-Type': 'application/json' }});
+    } else if (urlString.includes("https://github.com/login/oauth/access_token")) {
+      assertEquals(method, "POST");
+      assertEquals(headers["Accept"], "application/json");
+      assertEquals(headers["Content-Type"], "application/json");
+      assertEquals(body.client_id, mockClientId);
+      assertEquals(body.device_code, "mock_device_code_debugtoken");
+      assertEquals(body.grant_type, "urn:ietf:params:oauth:grant-type:device_code");
+
+      if (localFetchCallCount === 2) { // First poll for this test
+        return new Response(JSON.stringify({ error: "authorization_pending" }), { status: 200, headers: { 'Content-Type': 'application/json' }});
+      } else if (localFetchCallCount === 3) { // Second poll for this test - success
+        return new Response(JSON.stringify({
+          access_token: "mock_github_access_token_for_AiderDebugToken",
+          token_type: "bearer",
+          scope: "read:user",
+        }), { status: 200, headers: { 'Content-Type': 'application/json' }});
+      }
+    }
+    return new Response(`Unexpected fetch call in AiderDebugToken test to ${urlString} (call count: ${localFetchCallCount})`, { status: 500 });
+  };
+
+  const localDenopsCmdSpy = async (command: string, ...args: unknown[]): Promise<void> => {
+    if (typeof command === 'string' && command.startsWith("echomsg")) {
+      const msg = command.substring("echomsg ".length).replace(/^['"]|['"]$/g, "");
+      localRecordedCmdMessages.push(msg);
+    }
+    return Promise.resolve();
+  };
+  
+  globalThis.fetch = mockFetchForGitHubDeviceAuth;
+  denops.cmd = localDenopsCmdSpy;
+
+  try {
+    await denops.cmd("AiderDebugToken");
+    await sleep(50); 
+
+    assertEquals(localFetchCallCount, 3, "Fetch for AiderDebugToken should be called 3 times (1 device, 2 poll)");
+
+    const expectedMessages = [
+      "Starting GitHub Device Authentication...",
+      "Please open your browser and go to: https://github.com/login/device/debugtoken",
+      "Enter this code: MOCK-USER-CODE-DEBUGTOKEN",
+      "GitHub authorization pending...",
+      "Successfully obtained GitHub access token: mock_github_access_token_for_AiderDebugToken",
+    ];
+    
+    assertEquals(localRecordedCmdMessages.length, expectedMessages.length, "Incorrect number of echomsg calls for AiderDebugToken");
+    expectedMessages.forEach((expectedMsg, index) => {
+      assert(
+        localRecordedCmdMessages[index].includes(expectedMsg),
+        `Message for AiderDebugToken at index ${index} ("${localRecordedCmdMessages[index]}") does not include expected content "${expectedMsg}"`,
+      );
+    });
+
+  } finally {
+    globalThis.fetch = originalFetch;
+    denops.cmd = originalDenopsCmd;
+  }
+});
