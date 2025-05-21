@@ -98,12 +98,19 @@ test("both", "AiderDebugTokenRefresh should perform device flow and display toke
 
   const mockFetch = async (input: RequestInfo | URL, init?: RequestInit): Promise<Response> => {
     fetchCallCount++;
-    const url = typeof input === 'string' ? input : input.url;
+    let urlString: string;
+    if (typeof input === 'string') {
+      urlString = input;
+    } else if (input instanceof URL) {
+      urlString = input.href;
+    } else { // Assumed to be a Request object
+      urlString = input.url;
+    }
     const method = init?.method || "GET";
     const headers = init?.headers as Record<string, string>;
     const body = init?.body ? JSON.parse(init.body as string) : {};
 
-    if (url.includes("https://github.com/login/device/code")) {
+    if (urlString.includes("https://github.com/login/device/code")) {
       assertEquals(method, "POST");
       assertEquals(headers["Accept"], "application/json");
       assertEquals(headers["Content-Type"], "application/json");
@@ -116,7 +123,7 @@ test("both", "AiderDebugTokenRefresh should perform device flow and display toke
         expires_in: 5, // 5 seconds for test
         interval: 0, // Poll immediately for test
       }), { status: 200, headers: { 'Content-Type': 'application/json' }});
-    } else if (url.includes("https://github.com/login/oauth/access_token")) {
+    } else if (urlString.includes("https://github.com/login/oauth/access_token")) {
       assertEquals(method, "POST");
       assertEquals(headers["Accept"], "application/json");
       assertEquals(headers["Content-Type"], "application/json");
@@ -133,7 +140,7 @@ test("both", "AiderDebugTokenRefresh should perform device flow and display toke
           scope: "copilot",
         }), { status: 200, headers: { 'Content-Type': 'application/json' }});
       }
-    } else if (url.includes("https://api.github.com/copilot_internal/v2/token")) {
+    } else if (urlString.includes("https://api.github.com/copilot_internal/v2/token")) {
       assertEquals(fetchCallCount, 4, "Copilot token fetch should be the 4th call");
       assertEquals(method, "GET");
       assertEquals(headers["Authorization"], "token mock_access_token_value");
@@ -148,7 +155,7 @@ test("both", "AiderDebugTokenRefresh should perform device flow and display toke
       }), { status: 200, headers: { 'Content-Type': 'application/json' }});
     }
     // Fallback for unexpected calls
-    return new Response(`Unexpected fetch call to ${url} (call count: ${fetchCallCount})`, { status: 500 });
+    return new Response(`Unexpected fetch call to ${urlString} (call count: ${fetchCallCount})`, { status: 500 });
   };
 
   denops.cmd = async (command: string, ...args: unknown[]): Promise<void> => {
