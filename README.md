@@ -25,6 +25,7 @@ You can send voice commands to Aider using Whisper
 
 - [aider](https://github.com/paul-gauthier/aider)
 - [denops.vim](https://github.com/vim-denops/denops.vim)
+- [Deno](https://deno.land/) (required to run the test suite)
 
 ## Settings
 
@@ -163,6 +164,15 @@ To use aider.vim, you can run the following commands within Vim or Neovim:
   window used for displaying selected text.
 - `:AiderVoice` - Sends voice commands to Aider (using Whisper).
 
+`AiderDebugTokenRefresh` first checks the `OPENAI_API_KEY` environment variable.
+If it exists, the plugin uses it to refresh the Copilot session token without
+opening a browser. Otherwise, it falls back to the GitHub device flow. Set the
+variable before starting Neovim if you already have a valid GitHub token:
+
+```bash
+export OPENAI_API_KEY=ghp_your_existing_token
+```
+
 ### Advanced Usage
 
 If you want to send a custom prompt to Aider, use
@@ -234,3 +244,7 @@ context.
 ## Acknowledgements
 
 Aider CLI tool created by [Paul Gauthier](https://github.com/paul-gauthier).
+
+## License
+
+This project is licensed under the [MIT License](LICENSE).
