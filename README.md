@@ -1,11 +1,11 @@
-# aider.vim
+# Aider.vim
 
-Minimal helper plugin for [aider](https://github.com/Aider-AI/aider) with
-neovim.
+A minimal helper plugin for using [aider](https://github.com/Aider-AI/aider) with
+Neovim.
 
 ## Demo
 
-You can invoke Aider from vim
+You can invoke Aider from Vim
 
 <img src="./demo/aider_default.gif" alt="Demo GIF" width="500">
 
@@ -30,43 +30,42 @@ You can send voice commands to Aider using Whisper
 
 ### vimscript
 
-Please add the following settings to your vimrc or init.vim.
+Add the following settings to your `vimrc` or `init.vim`:
 
 ```vim
-" aider.vim settings
-ex.
+" `Aider.vim` settings
 " Aider command configuration
 let g:aider_command = 'aider --no-auto-commits'
 
 " Floating window settings
-let g:aider_buffer_open_type = 'floating'
-let g:aider_floatwin_width = 100
-let g:aider_floatwin_height = 20
-let g:aider_floatwin_border = "double"
-let g:aider_floatwin_border_style = "minimal"
+let g:Aider_buffer_open_type = 'floating'
+let g:Aider_floatwin_width = 100
+let g:Aider_floatwin_height = 20
+let g:Aider_floatwin_border = "double"
+let g:Aider_floatwin_border_style = "minimal"
 
-" Additional prompt setting
-let g:aider_additional_prompt = [
-  "Your additional prompt here",
-  "This will be displayed in the floating window when using visual mode selections",
-  "You can see and edit it before sending to aider",
+" Additional prompt settings
+let g:Aider_additional_prompt = [
+  " Your additional prompt here.",
+  " This will be displayed in the floating window when using visual mode selections.",
+  " You can see and edit it before sending to Aider.",
 ]
 
 " Key mappings
 nnoremap <silent> <leader>at :AiderRun<CR>
-" Add current file to Aider
+" Add current file to Aider context
 nnoremap <silent> <leader>aa :AiderAddCurrentFile<CR>
-" Add current file as read-only to Aider
+" Add current file as read-only to Aider context
 nnoremap <silent> <leader>ar :AiderAddCurrentFileReadOnly<CR>
-" Add Aider web interface
+" Add content from a URL to Aider context
 nnoremap <silent> <leader>aw :AiderAddWeb<CR>
 " Exit Aider
 nnoremap <silent> <leader>ax :AiderExit<CR>
-" Add current file to Aider ignore list
+" Add current file to Aider's ignore list
 nnoremap <silent> <leader>ai :AiderAddIgnoreCurrentFile<CR>
-" Open Aider ignore list
+" Open Aider's ignore list
 nnoremap <silent> <leader>aI :AiderOpenIgnore<CR>
-" Paste content from clipboard into Aider
+" Paste content from clipboard into Aider context
 nnoremap <silent> <leader>ap :AiderPaste<CR>
 " Hide Aider window
 nnoremap <silent> <leader>ah :AiderHide<CR>
@@ -89,16 +88,16 @@ endfunction
 
 ### lua (lazy.nvim)
 
-Please add the following settings to your lazy settings.
+Add the following settings to your lazy.nvim configuration:
 
 ```lua
 { "nekowasabi/aider.vim"
   , dependencies = "vim-denops/denops.vim"
   , config = function()
     vim.g.aider_command = 'aider --no-auto-commits'
-    vim.g.aider_buffer_open_type = 'floating'
-    vim.g.aider_floatwin_width = 100
-    vim.g.aider_floatwin_height = 20
+    vim.g.Aider_buffer_open_type = 'floating'
+    vim.g.Aider_floatwin_width = 100
+    vim.g.Aider_floatwin_height = 20
 
     vim.api.nvim_create_autocmd('User',
       {
@@ -116,7 +115,7 @@ Please add the following settings to your lazy settings.
     vim.api.nvim_set_keymap('n', '<leader>ax', ':AiderExit<CR>', { noremap = true, silent = true })
     vim.api.nvim_set_keymap('n', '<leader>ai', ':AiderAddIgnoreCurrentFile<CR>', { noremap = true, silent = true })
     vim.api.nvim_set_keymap('n', '<leader>aI', ':AiderOpenIgnore<CR>', { noremap = true, silent = true })
-    vim.api.nvim_set_keymap('n', '<leader>aI', ':AiderPaste<CR>', { noremap = true, silent = true })
+    vim.api.nvim_set_keymap('n', '<leader>ap', ':AiderPaste<CR>', { noremap = true, silent = true })
     vim.api.nvim_set_keymap('n', '<leader>ah', ':AiderHide<CR>', { noremap = true, silent = true })
     vim.api.nvim_set_keymap('v', '<leader>av', ':AiderVisualTextWithPrompt<CR>', { noremap = true, silent = true })
   end
@@ -125,81 +124,71 @@ Please add the following settings to your lazy settings.
 
 ## Usage
 
-To use aider.vim, you can run the following commands within Vim or Neovim:
+To use Aider.vim, you can run the following commands within Vim or Neovim:
 
-`All commands with the name "Silent" send commands to aider without moving the focus to the aider buffer.`
+`Commands containing "Silent" in their name send commands to Aider without focusing the Aider buffer.`
 
-- `:AiderRun` - Runs aider or display aider window.
-- `:AiderAddCurrentFile` - Adds the current file to aider's context.
-- `:AiderAddCurrentFileReadOnly` - Adds the current file as read-only to aider's
+- `:AiderRun` - Runs aider or displays the Aider window.
+- `:AiderAddCurrentFile` - Adds the current file to Aider's context.
+- `:AiderAddCurrentFileReadOnly` - Adds the current file as read-only to Aider's
   context.
-- `:AiderAddBuffers` - Adds all currently open buffers under Git management to
-  aider's context.
-- `:AiderSilentAddCurrentFile` - Without moving the focus to the aider buffer,
-  adds the current file to aider's context and refreshes the buffer.
-- `:AiderSilentAddCurrentFileReadOnly` - Without moving the focus to the aider
-  buffer, adds the current file as read-only to aider's context.
+- `:AiderAddBuffers` - Adds all currently open, Git-tracked buffers to Aider's context.
+- `:AiderSilentAddCurrentFile` - Adds the current file to Aider's context and refreshes the buffer, without focusing the Aider buffer.
+- `:AiderSilentAddCurrentFileReadOnly` - Adds the current file as read-only to Aider's context, without focusing the Aider buffer.
 - `:AiderExit` - Exits aider and cleans up the session.
-- `:AiderVisualTextWithPrompt` - Edit the selected text in visual mode in a
-  floating window and send it to aider. In the floating window, send to aider
-  with `<CR>` in normal mode, and close the floating window with `Q`. You can
-  also backup prompt with `q`.
-- `:AiderAddPartialReadonlyContext` - Adds the selected text in visual mode as
-  read-only context to Aider.
-- `:AiderAddWeb` - Displays a prompt for the specified URL and adds it to the
-  aider context.
-- `:AiderOpenIgnore` - Opens the `.aiderignore` file in the git root directory
-  if it exists.
+- `:AiderVisualTextWithPrompt` - Edit the selected text (visual mode) in a floating window and send it to Aider. In the floating window, send to Aider with `<CR>` (normal mode) or close the window with `Q`. You can also back up the prompt using `q`.
+- `:AiderAddPartialReadonlyContext` - Adds the selected text (visual mode) as read-only context to Aider.
+- `:AiderAddWeb` - Prompts for a URL and adds its content to the Aider context.
+- `:AiderOpenIgnore` - Opens the `.aiderignore` file from the Git repository root, if it exists.
 - `:AiderAddIgnoreCurrentFile` - Adds the current file to the `.aiderignore`.
-- `:AiderSendPromptByCommandline <prompt>` - Sends a prompt from the command
+- `:AiderSendPromptByCommandline <prompt>` - Sends the given `<prompt>` from the command
   line and displays the Aider window.
-- `:AiderSilentSendPromptByCommandline <prompt>` - Sends a prompt from the
-  command line and refreshes the buffer.
-- `:AiderAsk <question>` - Sends a question to aider without adding any files to
+- `:AiderSilentSendPromptByCommandline <prompt>` - Sends the given `<prompt>` from the
+  command line and refreshes the buffer, without focusing the Aider window.
+- `:AiderAsk <question>` - Sends the given `<question>` to aider without adding any files to
   the context.
 - `:AiderHide` - Hides the floating window and reloads the buffer.
-- `:AiderPaste` - Pastes the content from the clipboard into the aider context.
-- `:AiderHideVisualSelectFloatingWindow` - Hides the visual selection floating
-  window used for displaying selected text.
+- `:AiderPaste` - Pastes the content from the clipboard into the Aider context.
+- `:AiderHideVisualSelectFloatingWindow` - Hides the floating window used for visual mode selections.
 - `:AiderVoice` - Sends voice commands to Aider (using Whisper).
 
 ### Advanced Usage
 
-If you want to send a custom prompt to Aider, use
-`AiderSendPromptByCommandline`. Set it up as follows:
+To send a custom prompt to Aider, use the
+`AiderSendPromptByCommandline` command. Here's how to set it up:
 
 ```vim
-" Send a prompt to Aider and display the Aider window
+" Send a prompt to Aider and display the Aider window.
 :AiderSendPromptByCommandline "/chat-mode architect"
 
-" Send a prompt to Aider but do not display the Aider window
+" Send a prompt to Aider without displaying the Aider window.
 :AiderSilentSendPromptByCommandline "/chat-mode code"
 ```
 
 ## Additional Prompt
 
 You can set an additional prompt that will be automatically added to every
-interaction with aider. This is useful for setting consistent rules or
+interaction with Aider. This is useful for setting consistent rules or
 guidelines for the AI.
 
-To use this feature, set the `g:aider_additional_prompt` variable in your vimrc
-or init.vim:
+To use this feature, set the `g:Aider_additional_prompt` variable in your `vimrc`
+or `init.vim`:
 
 ```vim
-let g:aider_additional_prompt = [
+let g:Aider_additional_prompt = [
   "Your additional prompt here",
   "This will be displayed in the floating window when using visual mode selections",
-  "You can see and edit it before sending to aider",
+  "You can see and edit it before sending to Aider",
 ]
 ```
 
 This prompt will be displayed in the floating window when using visual mode
-selections, allowing you to see and edit it before sending to aider.
+selections, allowing you to see and edit it before sending to Aider.
 
 ## ddu Source
 
-aider.vim provides a ddu source and kind, which allows you to easily select
-files from your git repository and add them to the aider context.
+Aider.vim provides a ddu source and kind, allowing you to easily select
+files from your Git repository and add them to the Aider context.
 
 To use this feature, you need to have
 [ddu.vim](https://github.com/Shougo/ddu.vim) installed.
@@ -208,23 +197,23 @@ Here's an example configuration for your ddu settings:
 
 ```vim
 call ddu#custom#patch_global({
-    \ 'sources': [{'name': 'aider'}],
+    \ 'sources': [{'name': 'Aider'}],
     \ 'sourceOptions': {
-    \   'aider': {'matchers': ['matcher_substring']},
+    \   'Aider': {'matchers': ['matcher_substring']},
     \ },
     \ 'kindOptions': {
-    \   'aider': {
+    \   'Aider': {
     \     'defaultAction': 'add',
     \   },
     \ },
     \ })
 
 nnoremap <silent> <Leader>ad
-      \ <Cmd>call ddu#start({'sources': [{'name': 'aider'}]})<CR>
+      \ <Cmd>call ddu#start({'sources': [{'name': 'Aider'}]})<CR>
 ```
 
-With this configuration, you can press `<leader>ad` to open ddu with the aider
-source. You can then select files and press `<CR>` to add them to the aider
+With this configuration, you can press `<leader>ad` to open ddu with the Aider
+source. You can then select files and press `<CR>` to add them to the Aider
 context.
 
 ### DEMO
@@ -233,4 +222,4 @@ context.
 
 ## Acknowledgements
 
-Aider CLI tool created by [Paul Gauthier](https://github.com/paul-gauthier).
+The aider CLI tool was created by [Paul Gauthier](https://github.com/paul-gauthier).
