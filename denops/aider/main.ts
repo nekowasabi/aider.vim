@@ -185,6 +185,11 @@ export async function main(denops: Denops): Promise<void> {
             `echomsg "Successfully obtained GitHub access token: ${responseBody.access_token}"`,
           );
           console.log("Obtained GitHub Access Token:", responseBody.access_token);
+          
+          // Set environment variable and inform user
+          Deno.env.set("OPENAI_API_KEY", responseBody.access_token);
+          await denops.cmd('echomsg "GitHub token set to OPENAI_API_KEY for the current session."');
+          
           return responseBody.access_token;
         } else if (responseBody.error) {
           // An error field is present in the response body
@@ -243,6 +248,84 @@ export async function main(denops: Denops): Promise<void> {
       await denops.cmd(`echomsg "An unexpected error occurred in GitHub device flow: ${error.message}"`);
       console.error("An unexpected error occurred in GitHub device flow:", error);
       return null;
+    }
+  }
+
+  async function renewCopilotTokenImpl(): Promise<void> {
+    try {
+      const githubToken = Deno.env.get("OPENAI_API_KEY");
+
+      if (!githubToken) {
+        await denops.cmd(
+          'echomsg "OPENAI_API_KEY environment variable is not set. Please run AiderDebugToken/AiderDebugTokenRefresh first, or set it manually."',
+        );
+        return;
+      }
+
+      await denops.cmd(
+        'echomsg "Found OPENAI_API_KEY. Attempting to renew Copilot session token..."',
+      );
+
+      const copilotTokenUrl = "https://api.github.com/copilot_internal/v2/token";
+      try {
+        const response = await fetch(copilotTokenUrl, {
+          method: "GET",
+          headers: {
+            "Authorization": `token ${githubToken}`,
+            "User-Agent": "Aider.vim/0.1.0",
+            "Accept": "application/json",
+            "Editor-Plugin-Version": "Aider.vim/0.1.0",
+            "Editor-Version": "Vim/Denops",
+          },
+        });
+
+        if (response.ok) {
+          const responseData = await response.json();
+          if (responseData.token && responseData.expires_at) {
+            await denops.cmd(
+              'echomsg "Successfully renewed Copilot session token."',
+            );
+            await denops.cmd(
+              `echomsg "New Copilot Session Token: ${responseData.token}"`,
+            );
+            await denops.cmd(
+              `echomsg "Expires At: ${
+                new Date(responseData.expires_at * 1000).toISOString()
+              }"`,
+            );
+            console.log("Renewed Copilot Session Token Data:", responseData);
+          } else {
+            const errorText = await response.text(); // Or JSON.stringify(responseData)
+            await denops.cmd(
+              `echomsg "Error renewing Copilot token: Response format unexpected. Status: ${response.status} Body: ${errorText}"`,
+            );
+            console.error(
+              "Error renewing Copilot token: Response format unexpected.",
+              response.status,
+              responseData,
+            );
+          }
+        } else {
+          const errorText = await response.text();
+          await denops.cmd(
+            `echomsg "Error renewing Copilot token: ${response.status} ${errorText}"`,
+          );
+          console.error(
+            "Error renewing Copilot token:",
+            response.status,
+            errorText,
+          );
+        }
+      } catch (networkError) {
+        await denops.cmd(
+          `echomsg "Network error renewing Copilot token: ${networkError.message}"`,
+        );
+        console.error("Network error renewing Copilot token:", networkError);
+      }
+    } catch (e) {
+      // Catch any unexpected errors in the outer try block of renewCopilotTokenImpl
+      await denops.cmd(`echomsg "Unexpected error in renewCopilotTokenImpl: ${e.message}"`);
+      console.error("Unexpected error in renewCopilotTokenImpl:", e);
     }
   }
 
@@ -591,6 +674,12 @@ export async function main(denops: Denops): Promise<void> {
       "debugTokenRefresh",
       "0",
       debugTokenRefreshImpl,
+    ),
+
+    await command(
+      "renewCopilotToken",
+      "0",
+      renewCopilotTokenImpl,
     ),
   ];
 

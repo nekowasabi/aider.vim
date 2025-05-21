@@ -209,9 +209,11 @@ test("both", "AiderDebugTokenRefresh should perform device flow and display toke
 test("both", "AiderDebugToken should perform device flow and display GitHub token", async (denops) => {
   const originalFetch = globalThis.fetch;
   const originalDenopsCmd = denops.cmd;
+  const originalDenoEnvSet = Deno.env.set; // Store original Deno.env.set
 
   let localFetchCallCount = 0;
   const localRecordedCmdMessages: string[] = [];
+  const denoEnvSetCalls: Array<{ key: string, value: string }> = []; // To record calls to Deno.env.set
   const mockClientId = "Iv1.b507a08c87ecfe98"; // Matches githubDeviceAuthImpl
 
   const mockFetchForGitHubDeviceAuth = async (input: RequestInfo | URL, init?: RequestInit): Promise<Response> => {
@@ -270,6 +272,12 @@ test("both", "AiderDebugToken should perform device flow and display GitHub toke
     }
     return Promise.resolve();
   };
+
+  // Spy on Deno.env.set
+  Deno.env.set = (key: string, value: string): void => {
+    denoEnvSetCalls.push({ key, value });
+    originalDenoEnvSet.call(Deno.env, key, value); // Call original method
+  };
   
   globalThis.fetch = mockFetchForGitHubDeviceAuth;
   denops.cmd = localDenopsCmdSpy;
@@ -296,8 +304,132 @@ test("both", "AiderDebugToken should perform device flow and display GitHub toke
       );
     });
 
+    // Assert Deno.env.set call
+    assert(
+      denoEnvSetCalls.some(call => call.key === "OPENAI_API_KEY" && call.value === "mock_github_access_token_for_AiderDebugToken"),
+      "Deno.env.set was not called correctly with OPENAI_API_KEY and the GitHub token."
+    );
+    assertEquals(denoEnvSetCalls.length, 1, "Deno.env.set should have been called once.");
+
+
   } finally {
     globalThis.fetch = originalFetch;
     denops.cmd = originalDenopsCmd;
+    Deno.env.set = originalDenoEnvSet; // Restore original Deno.env.set
+    Deno.env.delete("OPENAI_API_KEY"); // Clean up environment variable
+  }
+});
+
+test("both", "AiderRenewCopilotToken should notify if OPENAI_API_KEY is not set", async (denops) => {
+  const originalDenopsCmd = denops.cmd;
+  const localRecordedCmdMessages: string[] = [];
+
+  Deno.env.delete("OPENAI_API_KEY"); // Ensure it's not set
+
+  const localDenopsCmdSpy = async (command: string, ...args: unknown[]): Promise<void> => {
+    if (typeof command === 'string' && command.startsWith("echomsg")) {
+      const msg = command.substring("echomsg ".length).replace(/^['"]|['"]$/g, "");
+      localRecordedCmdMessages.push(msg);
+    }
+    return Promise.resolve();
+  };
+  denops.cmd = localDenopsCmdSpy;
+
+  try {
+    await denops.cmd("AiderRenewCopilotToken");
+    await sleep(10); // Give a moment for async operations
+
+    assert(
+      localRecordedCmdMessages.some(msg => 
+        msg.includes("OPENAI_API_KEY environment variable is not set.") &&
+        msg.includes("Please run AiderDebugToken/AiderDebugTokenRefresh first, or set it manually.")
+      ),
+      "Missing or incorrect notification when OPENAI_API_KEY is not set."
+    );
+    assertEquals(localRecordedCmdMessages.length, 1, "Expected only one message when OPENAI_API_KEY is not set.");
+
+  } finally {
+    denops.cmd = originalDenopsCmd;
+  }
+});
+
+test("both", "AiderRenewCopilotToken should fetch Copilot token if OPENAI_API_KEY is set", async (denops) => {
+  const originalFetch = globalThis.fetch;
+  const originalDenopsCmd = denops.cmd;
+  const originalOpenAIKey = Deno.env.get("OPENAI_API_KEY"); // Store original if any
+
+  const mockGitHubToken = "gh_token_for_renew_test";
+  Deno.env.set("OPENAI_API_KEY", mockGitHubToken);
+
+  let fetchCallCount = 0;
+  const localRecordedCmdMessages: string[] = [];
+
+  const mockFetchForRenew = async (input: RequestInfo | URL, init?: RequestInit): Promise<Response> => {
+    fetchCallCount++;
+    let urlString: string;
+    if (typeof input === 'string') {
+      urlString = input;
+    } else if (input instanceof URL) {
+      urlString = input.href;
+    } else { 
+      urlString = input.url;
+    }
+    const method = init?.method || "GET";
+    const headers = init?.headers as Record<string, string>;
+
+    assertEquals(urlString, "https://api.github.com/copilot_internal/v2/token", "URL mismatch for Copilot token fetch");
+    assertEquals(method, "GET", "Method mismatch for Copilot token fetch");
+    assertEquals(headers["Authorization"], `token ${mockGitHubToken}`, "Authorization header mismatch");
+    assertEquals(headers["User-Agent"], "Aider.vim/0.1.0", "User-Agent header mismatch");
+    assertEquals(headers["Accept"], "application/json", "Accept header mismatch");
+    assertEquals(headers["Editor-Plugin-Version"], "Aider.vim/0.1.0", "Editor-Plugin-Version header mismatch");
+    assertEquals(headers["Editor-Version"], "Vim/Denops", "Editor-Version header mismatch");
+    
+    return new Response(JSON.stringify({
+      token: "new_mock_copilot_session_token",
+      expires_at: 1700000000, // Distinct timestamp
+    }), { status: 200, headers: { 'Content-Type': 'application/json' }});
+  };
+
+  const localDenopsCmdSpy = async (command: string, ...args: unknown[]): Promise<void> => {
+    if (typeof command === 'string' && command.startsWith("echomsg")) {
+      const msg = command.substring("echomsg ".length).replace(/^['"]|['"]$/g, "");
+      localRecordedCmdMessages.push(msg);
+    }
+    return Promise.resolve();
+  };
+
+  globalThis.fetch = mockFetchForRenew;
+  denops.cmd = localDenopsCmdSpy;
+
+  try {
+    await denops.cmd("AiderRenewCopilotToken");
+    await sleep(50); // Allow async operations
+
+    assertEquals(fetchCallCount, 1, "Fetch should be called once for AiderRenewCopilotToken");
+
+    const expectedMessages = [
+      "Found OPENAI_API_KEY. Attempting to renew Copilot session token...",
+      "Successfully renewed Copilot session token.",
+      "New Copilot Session Token: new_mock_copilot_session_token",
+      `Expires At: ${new Date(1700000000 * 1000).toISOString()}`,
+    ];
+
+    assertEquals(localRecordedCmdMessages.length, expectedMessages.length, "Incorrect number of echomsg calls for AiderRenewCopilotToken");
+    expectedMessages.forEach((expectedMsg, index) => {
+      assert(
+        localRecordedCmdMessages[index].includes(expectedMsg),
+        `Message for AiderRenewCopilotToken at index ${index} ("${localRecordedCmdMessages[index]}") does not include expected content "${expectedMsg}"`,
+      );
+    });
+
+  } finally {
+    globalThis.fetch = originalFetch;
+    denops.cmd = originalDenopsCmd;
+    if (originalOpenAIKey === undefined) {
+      Deno.env.delete("OPENAI_API_KEY");
+    } else {
+      Deno.env.set("OPENAI_API_KEY", originalOpenAIKey);
+    }
   }
 });
