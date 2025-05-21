@@ -332,17 +332,24 @@ export async function main(denops: Denops): Promise<void> {
   async function debugTokenRefreshImpl(): Promise<void> {
     try {
       await denops.cmd('echomsg "Attempting to refresh GitHub and Copilot tokens..."');
-      
-      const githubAccessToken = await githubDeviceAuthImpl();
 
-      if (!githubAccessToken) {
-        await denops.cmd('echomsg "GitHub device authentication failed. Cannot proceed to fetch Copilot token."');
-        console.error("GitHub device authentication failed.");
-        return;
+      let githubAccessToken = Deno.env.get("OPENAI_API_KEY");
+
+      if (githubAccessToken) {
+        await denops.cmd('echomsg "Using OPENAI_API_KEY from environment."');
+      } else {
+        await denops.cmd('echomsg "Starting GitHub Device Flow for token refresh..."');
+        githubAccessToken = await githubDeviceAuthImpl();
+
+        if (!githubAccessToken) {
+          await denops.cmd('echomsg "GitHub device authentication failed. Cannot proceed to fetch Copilot token."');
+          console.error("GitHub device authentication failed.");
+          return;
+        }
       }
-      
+
       // Successfully obtained GitHub token, now fetch Copilot token
-      await denops.cmd('echomsg "Fetching Copilot session token using GitHub token..."');
+      await denops.cmd('echomsg "Fetching Copilot session token..."');
       const copilotTokenUrl = "https://api.github.com/copilot_internal/v2/token";
 
       try {

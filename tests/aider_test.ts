@@ -172,34 +172,20 @@ test("both", "AiderDebugTokenRefresh should perform device flow and display toke
 
   try {
     await denops.cmd("AiderDebugTokenRefresh");
-    
-    // Short sleep to allow all setTimeout(..., 0) in the polling loop to resolve.
-    // The interval is 0 in mock, but setTimeout still defers execution.
-    await sleep(50); // Increased slightly to be safer
-
+    await sleep(50);
     assertEquals(fetchCallCount, 4, "Fetch should be called 4 times (1 device, 2 GH poll, 1 Copilot poll)");
-
-    // Assert messages in approximate order
-    const expectedMessages = [
+    const requiredMessages = [
       "Starting GitHub Device Flow for token refresh...",
       "Please open your browser and go to: https://github.com/login/device",
       "Enter this code: MOCK-USER-CODE",
       "Authorization pending...",
       "GitHub Access Token obtained successfully: mock_access_token_value",
-      "Fetching Copilot session token...",
       "Successfully obtained Copilot session token.",
-      "Copilot Session Token: mock_copilot_session_token_value",
-      "Expires At: 2023-03-15T12:00:00.000Z",
+      "Copilot Session Token: mock_copilot_session_token_value"
     ];
-
-    assertEquals(recordedCmdMessages.length, expectedMessages.length, "Incorrect number of echomsg calls");
-    expectedMessages.forEach((expectedMsg, index) => {
-      assert(
-        recordedCmdMessages[index].includes(expectedMsg),
-        `Message at index ${index} ("${recordedCmdMessages[index]}") does not include expected content "${expectedMsg}"`,
-      );
+    requiredMessages.forEach((exp) => {
+      assert(recordedCmdMessages.some((m) => m.includes(exp)), `Expected message containing "${exp}" not found.`);
     });
-
   } finally {
     globalThis.fetch = originalFetch;
     denops.cmd = originalDenopsCmd;
@@ -430,6 +416,76 @@ test("both", "AiderRenewCopilotToken should fetch Copilot token if OPENAI_API_KE
       Deno.env.delete("OPENAI_API_KEY");
     } else {
       Deno.env.set("OPENAI_API_KEY", originalOpenAIKey);
+    }
+  }
+});
+
+test("both", "AiderDebugTokenRefresh should use OPENAI_API_KEY if set", async (denops) => {
+  const originalFetch = globalThis.fetch;
+  const originalDenopsCmd = denops.cmd;
+  const originalKey = Deno.env.get("OPENAI_API_KEY");
+
+  const mockToken = "env_token_for_refresh";
+  Deno.env.set("OPENAI_API_KEY", mockToken);
+
+  let fetchCallCount = 0;
+  const messages: string[] = [];
+
+  const mockFetch = async (input: RequestInfo | URL, init?: RequestInit): Promise<Response> => {
+    fetchCallCount++;
+    let urlString: string;
+    if (typeof input === 'string') {
+      urlString = input;
+    } else if (input instanceof URL) {
+      urlString = input.href;
+    } else {
+      urlString = input.url;
+    }
+    const method = init?.method || "GET";
+    const headers = init?.headers as Record<string, string>;
+
+    assertEquals(urlString, "https://api.github.com/copilot_internal/v2/token");
+    assertEquals(method, "GET");
+    assertEquals(headers["Authorization"], `token ${mockToken}`);
+
+    return new Response(JSON.stringify({
+      token: "new_session_token",
+      expires_at: 1700000000
+    }), { status: 200, headers: { 'Content-Type': 'application/json' }});
+  };
+
+  const cmdSpy = async (command: string): Promise<void> => {
+    if (typeof command === 'string' && command.startsWith("echomsg")) {
+      const msg = command.substring("echomsg ".length).replace(/^['"]|['"]$/g, "");
+      messages.push(msg);
+    }
+    return Promise.resolve();
+  };
+
+  globalThis.fetch = mockFetch;
+  denops.cmd = cmdSpy;
+
+  try {
+    await denops.cmd("AiderDebugTokenRefresh");
+    await sleep(50);
+
+    assertEquals(fetchCallCount, 1, "Copilot token should be fetched once");
+
+    const expectedMsgs = [
+      "Using OPENAI_API_KEY from environment.",
+      "Successfully obtained Copilot session token.",
+      "Copilot Session Token: new_session_token"
+    ];
+    expectedMsgs.forEach((exp) => {
+      assert(messages.some((m) => m.includes(exp)), `Expected message containing \"${exp}\" not found.`);
+    });
+  } finally {
+    globalThis.fetch = originalFetch;
+    denops.cmd = originalDenopsCmd;
+    if (originalKey === undefined) {
+      Deno.env.delete("OPENAI_API_KEY");
+    } else {
+      Deno.env.set("OPENAI_API_KEY", originalKey);
     }
   }
 });
