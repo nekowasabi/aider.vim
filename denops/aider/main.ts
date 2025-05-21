@@ -114,6 +114,125 @@ export async function main(denops: Denops): Promise<void> {
     await buffer.sendPrompt(denops, prompt, opts);
   }
 
+  async function debugTokenRefreshImpl(): Promise<void> {
+    const clientId = "Iv1.b507a08c87ecfe98"; // Placeholder
+    const scope = "copilot"; // Placeholder
+    const deviceAuthUrl = "https://github.com/login/device/code";
+    const tokenUrl = "https://github.com/login/oauth/access_token";
+
+    try {
+      await denops.cmd('echomsg "Starting GitHub Device Flow for token refresh..."');
+
+      // Step 1: Initiate Device Authorization
+      const deviceAuthResponse = await fetch(deviceAuthUrl, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Accept": "application/json",
+        },
+        body: JSON.stringify({ client_id: clientId, scope: scope }),
+      });
+
+      if (!deviceAuthResponse.ok) {
+        const errorText = await deviceAuthResponse.text();
+        await denops.cmd(
+          `echomsg "Error initiating device flow: ${deviceAuthResponse.status} ${errorText}"`,
+        );
+        console.error(
+          `Error initiating device flow: ${deviceAuthResponse.status}`,
+          errorText,
+        );
+        return;
+      }
+
+      const deviceAuthData = await deviceAuthResponse.json();
+      const { device_code, user_code, verification_uri, expires_in, interval } =
+        deviceAuthData;
+
+      await denops.cmd(
+        `echomsg "Please open your browser and go to: ${verification_uri}"`,
+      );
+      await denops.cmd(`echomsg "Enter this code: ${user_code}"`);
+
+      // Step 2: Poll for Token
+      let pollingInterval = interval * 1000; // Convert seconds to milliseconds
+      const startTime = Date.now();
+      const timeoutMs = expires_in * 1000;
+
+      while (Date.now() - startTime < timeoutMs) {
+        await new Promise((resolve) => setTimeout(resolve, pollingInterval));
+
+        try {
+          const tokenResponse = await fetch(tokenUrl, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "Accept": "application/json",
+            },
+            body: JSON.stringify({
+              client_id: clientId,
+              device_code: device_code,
+              grant_type: "urn:ietf:params:oauth:grant-type:device_code",
+            }),
+          });
+
+          if (!tokenResponse.ok) {
+            const errorData = await tokenResponse.json();
+            if (errorData.error === "authorization_pending") {
+              // Continue polling
+              await denops.cmd('echomsg "Authorization pending..."');
+            } else if (errorData.error === "slow_down") {
+              pollingInterval += 5000; // Increase interval by 5 seconds
+              await denops.cmd(
+                `echomsg "Slowing down polling. New interval: ${
+                  pollingInterval / 1000
+                }s"`,
+              );
+            } else {
+              await denops.cmd(
+                `echomsg "Error polling for token: ${errorData.error} - ${errorData.error_description}"`,
+              );
+              console.error("Error polling for token:", errorData);
+              return; // Stop on other errors
+            }
+          } else {
+            const tokenData = await tokenResponse.json();
+            if (tokenData.access_token) {
+              await denops.cmd(
+                `echomsg "Access token obtained successfully: ${tokenData.access_token}"`,
+              );
+              // Store or use the token as needed in a real scenario
+              // For now, just log it.
+              console.log("Access Token:", tokenData.access_token);
+              return; // Success
+            } else if (tokenData.error) { // Should be caught by !tokenResponse.ok, but as a safeguard
+              await denops.cmd(
+                `echomsg "Error in token response: ${tokenData.error} - ${tokenData.error_description}"`,
+              );
+              console.error("Error in token response:", tokenData);
+              return;
+            }
+          }
+        } catch (pollError) {
+          await denops.cmd(
+            `echomsg "Network error during polling: ${pollError.message}"`,
+          );
+          console.error("Network error during polling:", pollError);
+          // Decide if to continue or break based on error type if needed
+        }
+      }
+
+      // If loop finishes without returning, it's a timeout
+      await denops.cmd(
+        `echomsg "Device flow timed out after ${expires_in} seconds."`,
+      );
+      console.error("Device flow timed out.");
+    } catch (error) {
+      await denops.cmd(`echomsg "An unexpected error occurred: ${error.message}"`);
+      console.error("An unexpected error occurred in debugTokenRefreshImpl:", error);
+    }
+  }
+
   const commands: Command[] = [
     await command("sendPromptByBuffer", "0", async () => {
       await buffer.sendPromptByBuffer(
@@ -370,6 +489,12 @@ export async function main(denops: Denops): Promise<void> {
         await buffer.sendPrompt(denops, prompt);
       },
       { pattern: "[<f-args>]", complete: "shellcmd" },
+    ),
+
+    await command(
+      "debugTokenRefresh",
+      "0",
+      debugTokenRefreshImpl,
     ),
   ];
 
