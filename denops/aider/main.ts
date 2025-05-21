@@ -163,57 +163,67 @@ export async function main(denops: Denops): Promise<void> {
         await new Promise((resolve) => setTimeout(resolve, pollingInterval));
 
         try {
-          const tokenResponse = await fetch(tokenUrl, {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json", // Added for consistency
-              "Accept": "application/json",
-            },
-            body: JSON.stringify({
-              client_id: clientId,
-              device_code: device_code,
-              grant_type: "urn:ietf:params:oauth:grant-type:device_code",
-            }),
-          });
+        // Inside the while loop's try {} block in githubDeviceAuthImpl
+        const tokenResponse = await fetch(tokenUrl, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Accept": "application/json",
+          },
+          body: JSON.stringify({
+            client_id: clientId,
+            device_code: device_code,
+            grant_type: "urn:ietf:params:oauth:grant-type:device_code",
+          }),
+        });
 
-          if (!tokenResponse.ok) {
-            const errorData = await tokenResponse.json();
-            if (errorData.error === "authorization_pending") {
-              await denops.cmd('echomsg "GitHub authorization pending..."');
-            } else if (errorData.error === "slow_down") {
-              pollingInterval += 5000;
-              await denops.cmd(
-                `echomsg "Slowing down GitHub polling. New interval: ${
-                  pollingInterval / 1000
-                }s"`,
-              );
-            } else {
-              await denops.cmd(
-                `echomsg "Error polling for GitHub token: ${errorData.error} - ${errorData.error_description}"`,
-              );
-              console.error("Error polling for GitHub token:", errorData);
-              return null;
-            }
+        const responseBody = await tokenResponse.json(); // Parse JSON early
+
+        if (tokenResponse.ok && responseBody.access_token) {
+          // Genuine success: HTTP 2xx and access_token is present
+          await denops.cmd(
+            `echomsg "Successfully obtained GitHub access token: ${responseBody.access_token}"`,
+          );
+          console.log("Obtained GitHub Access Token:", responseBody.access_token);
+          return responseBody.access_token;
+        } else if (responseBody.error) {
+          // An error field is present in the response body
+          // This handles cases where error might come with 2xx or non-2xx HTTP status
+          if (responseBody.error === "authorization_pending") {
+            await denops.cmd('echomsg "GitHub authorization pending..."');
+            // Loop will continue due to no return statement here
+          } else if (responseBody.error === "slow_down") {
+            pollingInterval += 5000; // Assuming pollingInterval is defined in this scope
+            await denops.cmd(
+              `echomsg "Slowing down GitHub polling. New interval: ${
+                pollingInterval / 1000
+              }s"`,
+            );
+            // Loop will continue
           } else {
-            const tokenData = await tokenResponse.json();
-            if (tokenData.access_token) {
-              await denops.cmd(
-                `echomsg "Successfully obtained GitHub access token: ${tokenData.access_token}"`,
-              );
-              console.log("Obtained GitHub Access Token:", tokenData.access_token);
-              return tokenData.access_token;
-            } else if (tokenData.error) {
-              await denops.cmd(
-                `echomsg "Error in GitHub token response: ${tokenData.error} - ${tokenData.error_description}"`,
-              );
-              console.error("Error in GitHub token response:", tokenData);
-              return null;
-            } else {
-              await denops.cmd('echomsg "Unknown error during GitHub token polling."');
-              console.error("Unknown error during GitHub token polling", tokenData);
-              return null;
-            }
+            // Any other error reported in the error field
+            await denops.cmd(
+              `echomsg "Error from GitHub token endpoint: ${responseBody.error} - ${
+                responseBody.error_description || ""
+              }"`,
+            );
+            console.error("Error from GitHub token endpoint:", responseBody);
+            return null; // Exit polling
           }
+        } else {
+          // Neither a clear success (2xx + access_token) nor a clear error field.
+          // This could be an unexpected response format.
+          await denops.cmd(
+            `echomsg "Unexpected response from GitHub token endpoint. Status: ${tokenResponse.status}"`,
+          );
+          console.error(
+            "Unexpected response from GitHub token endpoint. Status:",
+            tokenResponse.status,
+            "Body:",
+            responseBody,
+          );
+          return null; // Exit polling
+        }
         } catch (pollError) {
           await denops.cmd(
             `echomsg "Network error during GitHub polling: ${pollError.message}"`,
