@@ -25,7 +25,8 @@ async function checkIfAiderBuffer(
   // aiderバッファの場合 `term://{path}//{pid}:aider --4o --no-auto-commits` のような名前になっている
   const name = await util.getBufferName(denops, bufnr);
   const splitted = name.split(" ");
-  return splitted[0].endsWith("aider");
+  // MEMO: copilot.shでシェルスクリプトごしにAiderを起動しているが、バッファ名が異なってしまうため対処（実験的な機能）
+  return splitted[0].endsWith("aider") || splitted[0].endsWith("copilot.sh");
 }
 
 async function run(denops: Denops): Promise<undefined> {
