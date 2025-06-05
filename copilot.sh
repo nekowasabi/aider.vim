@@ -28,6 +28,6 @@ fi
 
 # Export the token as OPENAI_API_KEY in the current process
 export OPENAI_API_KEY="$COPILOT_TOKEN"
-export GITHUB_COPILOT_TOKEN="COPILOT_TOKEN"
+export GITHUB_COPILOT_TOKEN="$COPILOT_TOKEN"
 
 exec aider "$@"
