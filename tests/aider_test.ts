@@ -20,7 +20,7 @@ test("both", "AiderAddCurrentFile should work", async (denops) => {
   await denops.cmd("AiderAddCurrentFile");
   await sleep(SLEEP_BEFORE_ASSERT);
   await assertAiderBufferAlive(denops);
-  await assertAiderBufferString(denops, "input: /add \n");
+  await assertAiderBufferString(denops, "input: /add ");
 });
 
 test("both", "AiderSilentRun should work", async (denops) => {
@@ -40,7 +40,7 @@ test(
     await denops.cmd("AiderAddBuffers");
     await sleep(SLEEP_BEFORE_ASSERT);
     await assertAiderBufferAlive(denops);
-    await assertAiderBufferString(denops, "input: /add \n");
+    await assertAiderBufferString(denops, "input: /add ");
   },
 );
 
@@ -55,7 +55,7 @@ test(
     await sleep(SLEEP_BEFORE_ASSERT);
     await assertAiderBufferString(
       denops,
-      "input: /add tests/aider_test.ts\n",
+      "input: /add tests/aider_test.ts",
     );
   },
 );
@@ -67,7 +67,7 @@ test("both", "AiderSendPromptByCommandline should work", async (denops) => {
   await sleep(SLEEP_BEFORE_ASSERT);
   await denops.cmd("AiderSendPromptByCommandline test");
   await sleep(SLEEP_BEFORE_ASSERT);
-  await assertAiderBufferString(denops, "input: test\n");
+  await assertAiderBufferString(denops, "input: test");
 });
 
 test(
@@ -80,6 +80,6 @@ test(
     await sleep(SLEEP_BEFORE_ASSERT);
     await denops.cmd("AiderSilentSendPromptByCommandline silent test");
     await sleep(SLEEP_BEFORE_ASSERT);
-    await assertAiderBufferString(denops, "input: silent test\n");
+    await assertAiderBufferString(denops, "input: silent test");
   },
 );

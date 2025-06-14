@@ -149,9 +149,6 @@ export async function sendPrompt(
   const openBufferType = await getOpenBufferType(denops);
 
   if (openBufferType === "floating") {
-    if (opts?.openBuf) {
-      await openAiderBuffer(denops, openBufferType);
-    }
     await sendPromptFromFloatingWindow(denops, input);
     return;
   }
@@ -644,7 +641,8 @@ export async function getFileBuffers(
     }
   }
 
-  return buffers.join(" ") ?? undefined;
+  const result = buffers.join(" ");
+  return result || undefined;
 }
 
 /**

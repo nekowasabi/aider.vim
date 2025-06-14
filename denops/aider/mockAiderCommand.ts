@@ -9,6 +9,8 @@ export const commands: AiderCommand = {
   run: async (denops: Denops): Promise<undefined> => {
     const bufnr = await fn.bufnr(denops, "%");
     await denops.cmd("file dummyaider"); // set buffer name
+    await fn.deletebufline(denops, bufnr, 1, "$"); // clear the buffer
+    await denops.cmd(`setlocal buftype=nofile`); // set buffer type for proper handling
 
     await emit(denops, "User", "AiderOpen");
     mockAiderBufnr = bufnr;
@@ -19,7 +21,17 @@ export const commands: AiderCommand = {
     _jobId: number,
     prompt: string,
   ): Promise<undefined> => {
-    await fn.feedkeys(denops, `ainput: ${prompt}\n`, "x");
+    if (mockAiderBufnr === undefined) {
+      return;
+    }
+    const lineCount = await fn.line(denops, "$", mockAiderBufnr);
+    const firstLine = await fn.getline(denops, 1, mockAiderBufnr);
+    if (lineCount === 1 && Array.isArray(firstLine) && firstLine.length === 1 && firstLine[0] === "") {
+      // Replace empty line instead of appending
+      await fn.setline(denops, 1, `input: ${prompt}`);
+    } else {
+      await fn.appendbufline(denops, mockAiderBufnr, "$", `input: ${prompt}`);
+    }
   },
 
   exit: async (

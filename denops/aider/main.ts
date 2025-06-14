@@ -172,7 +172,7 @@ export async function main(denops: Denops): Promise<void> {
 
     await command("addBuffers", "0", async () => {
       const buffersPath = await buffer.getFileBuffers(denops);
-      const prompt = `/add ${buffersPath}`;
+      const prompt = `/add ${buffersPath || ""}`;
 
       await buffer.sendPrompt(denops, prompt);
     }),
