@@ -1,6 +1,7 @@
 import * as fn from "https://deno.land/x/denops_std@v6.5.1/function/mod.ts";
 import { feedkeys } from "https://deno.land/x/denops_std@v6.5.1/function/mod.ts";
 import * as n from "https://deno.land/x/denops_std@v6.5.1/function/nvim/mod.ts";
+import * as vim from "https://deno.land/x/denops_std@v6.5.1/function/vim/mod.ts";
 import type { Denops } from "https://deno.land/x/denops_std@v6.5.1/mod.ts";
 import * as v from "https://deno.land/x/denops_std@v6.5.1/variable/mod.ts";
 import {
@@ -73,10 +74,7 @@ export async function openAiderBuffer(
   const aiderBuf = await getAiderBuffer(denops);
   if (openBufferType === "floating") {
     if (aiderBuf === undefined) {
-      const bufnr = ensure(
-        await n.nvim_create_buf(denops, false, true),
-        is.Number,
-      );
+      const bufnr = await createBuffer(denops);
       await openFloatingWindow(denops, bufnr);
       await aider().run(denops);
       return;
@@ -203,10 +201,7 @@ export async function openFloatingWindowWithSelectedCode(
     denops,
     "aider_visual_select_buffer_prompt",
   );
-  const bufnr = ensure(
-    await n.nvim_create_buf(denops, false, true),
-    is.Number,
-  );
+  const bufnr = await createBuffer(denops);
   await openFloatingWindow(denops, bufnr);
 
   if (backupPrompt) {
@@ -217,28 +212,20 @@ export async function openFloatingWindowWithSelectedCode(
 
   await denops.cmd("setlocal filetype=markdown");
 
-  await n.nvim_buf_set_keymap(denops, bufnr, "n", "Q", "<cmd>fclose!<CR>", {
-    silent: true,
-  });
-  await n.nvim_buf_set_keymap(
+  await setBufKeymap(denops, bufnr, "n", "Q", "<cmd>fclose!<CR>");
+  await setBufKeymap(
     denops,
     bufnr,
     "n",
     "q",
     "<cmd>AiderHideVisualSelectFloatingWindow<CR>",
-    {
-      silent: true,
-    },
   );
-  await n.nvim_buf_set_keymap(
+  await setBufKeymap(
     denops,
     bufnr,
     "n",
     "<cr>",
     "<cmd>AiderSendPromptByBuffer<cr>",
-    {
-      silent: true,
-    },
   );
 }
 
@@ -258,7 +245,7 @@ async function handleBackupPrompt(
   backupPrompt: string[],
 ) {
   await v.g.set(denops, "aider_visual_select_buffer_prompt", undefined);
-  await n.nvim_buf_set_lines(denops, bufnr, 0, -1, true, backupPrompt);
+  await setBufLines(denops, bufnr, 0, -1, backupPrompt);
   await feedkeys(denops, "Gi");
 }
 
@@ -284,28 +271,27 @@ async function handleNoBackupPrompt(
   words.unshift("```" + filetype);
   words.push("```");
 
-  await n.nvim_buf_set_lines(denops, bufnr, -1, -1, true, words);
-  await n.nvim_buf_set_lines(denops, bufnr, 0, 1, true, []);
-  await n.nvim_buf_set_lines(denops, bufnr, -1, -1, true, [""]);
+  await setBufLines(denops, bufnr, -1, -1, words);
+  await setBufLines(denops, bufnr, 0, 1, []);
+  await setBufLines(denops, bufnr, -1, -1, [""]);
 
   const additionalPrompt = await getPromptFromVimVariable(
     denops,
     "aider_additional_prompt",
   );
   if (additionalPrompt) {
-    await n.nvim_buf_set_lines(denops, bufnr, -1, -1, true, ["# rule"]);
-    await n.nvim_buf_set_lines(
+    await setBufLines(denops, bufnr, -1, -1, ["# rule"]);
+    await setBufLines(
       denops,
       bufnr,
       -1,
       -1,
-      true,
       additionalPrompt,
     );
-    await n.nvim_buf_set_lines(denops, bufnr, -1, -1, true, [""]);
+    await setBufLines(denops, bufnr, -1, -1, [""]);
   }
-  await n.nvim_buf_set_lines(denops, bufnr, -1, -1, true, ["# prompt"]);
-  await n.nvim_buf_set_lines(denops, bufnr, -1, -1, true, [""]);
+  await setBufLines(denops, bufnr, -1, -1, ["# prompt"]);
+  await setBufLines(denops, bufnr, -1, -1, [""]);
   await feedkeys(denops, "Gi");
 }
 
@@ -353,6 +339,20 @@ export async function openSplitWindow(denops: Denops): Promise<void> {
  * @returns {Promise<void>}
  */
 async function openFloatingWindow(
+  denops: Denops,
+  bufnr: number,
+): Promise<void> {
+  // Check if we're running in Neovim
+  const hasNvim = await fn.has(denops, "nvim");
+  
+  if (hasNvim) {
+    await openNeovimFloatingWindow(denops, bufnr);
+  } else {
+    await openVimWindow(denops, bufnr);
+  }
+}
+
+async function openNeovimFloatingWindow(
   denops: Denops,
   bufnr: number,
 ): Promise<void> {
@@ -441,6 +441,15 @@ async function openFloatingWindow(
     "Normal:Normal,NormalFloat:Normal,FloatBorder:Normal",
   );
 
+  await denops.cmd("set nonumber");
+}
+
+async function openVimWindow(
+  denops: Denops,
+  bufnr: number,
+): Promise<void> {
+  // For Vim, fall back to split window
+  await denops.cmd(`split | buffer ${bufnr}`);
   await denops.cmd("set nonumber");
 }
 async function sendPromptFromFloatingWindow(
@@ -690,4 +699,85 @@ export async function getPartialContextFilePath(
   await denops.cmd(`setlocal filetype=${fileType}`);
 
   return tempFile;
+}
+
+/**
+ * Creates a new buffer, compatible with both Vim and Neovim
+ */
+async function createBuffer(denops: Denops): Promise<number> {
+  const hasNvim = await fn.has(denops, "nvim");
+  
+  if (hasNvim) {
+    return ensure(await n.nvim_create_buf(denops, false, true), is.Number);
+  } else {
+    // For Vim, create a new buffer using :enew
+    await denops.cmd("enew");
+    return ensure(await fn.bufnr(denops, "%"), is.Number);
+  }
+}
+
+/**
+ * Sets buffer lines, compatible with both Vim and Neovim
+ */
+async function setBufLines(
+  denops: Denops,
+  bufnr: number,
+  start: number,
+  end: number,
+  lines: string[]
+): Promise<void> {
+  const hasNvim = await fn.has(denops, "nvim");
+  
+  if (hasNvim) {
+    await n.nvim_buf_set_lines(denops, bufnr, start, end, true, lines);
+  } else {
+    // For Vim, switch to the buffer and use setline/append
+    const currentBuf = await fn.bufnr(denops, "%");
+    await denops.cmd(`buffer ${bufnr}`);
+    
+    if (start === 0 && end === 1) {
+      // Replace first line
+      await fn.setline(denops, 1, lines[0] || "");
+      for (let i = 1; i < lines.length; i++) {
+        await fn.append(denops, i, lines[i]);
+      }
+    } else if (start === -1) {
+      // Append to end
+      for (const line of lines) {
+        await fn.append(denops, "$", line);
+      }
+    } else {
+      // Replace specific range
+      for (let i = 0; i < lines.length; i++) {
+        await fn.setline(denops, start + 1 + i, lines[i]);
+      }
+    }
+    
+    await denops.cmd(`buffer ${currentBuf}`);
+  }
+}
+
+/**
+ * Sets buffer keymap, compatible with both Vim and Neovim
+ */
+async function setBufKeymap(
+  denops: Denops,
+  bufnr: number,
+  mode: string,
+  key: string,
+  command: string
+): Promise<void> {
+  const hasNvim = await fn.has(denops, "nvim");
+  
+  if (hasNvim) {
+    await n.nvim_buf_set_keymap(denops, bufnr, mode, key, command, {
+      silent: true,
+    });
+  } else {
+    // For Vim, switch to the buffer and use :map
+    const currentBuf = await fn.bufnr(denops, "%");
+    await denops.cmd(`buffer ${bufnr}`);
+    await denops.cmd(`${mode}noremap <buffer> <silent> ${key} ${command}`);
+    await denops.cmd(`buffer ${currentBuf}`);
+  }
 }
