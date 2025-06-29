@@ -1,87 +1,87 @@
 # aider.vim
 
-Minimal helper plugin for [aider](https://github.com/Aider-AI/aider) with
+Plugin d'aide minimal pour [aider](https://github.com/Aider-AI/aider) avec
 neovim.
 
-## Demo
+## Démo
 
-You can invoke Aider from vim
+Vous pouvez invoquer Aider depuis vim
 
-<img src="./demo/aider_default.gif" alt="Demo GIF" width="500">
+<img src="./demo/aider_default.gif" alt="GIF de démo" width="500">
 
-You can send the selected range to Aider as context
+Vous pouvez envoyer la plage sélectionnée à Aider comme contexte
 
-<img src="./demo/aider_visual_mode.gif" alt="Visual Mode Demo GIF" width="500">
+<img src="./demo/aider_visual_mode.gif" alt="GIF de démo du mode visuel" width="500">
 
-You can send the current buffer to Aider as context
+Vous pouvez envoyer le buffer actuel à Aider comme contexte
 
-<img src="./demo/aider_add_current_file.gif" alt="Add current file Demo GIF" width="500">
+<img src="./demo/aider_add_current_file.gif" alt="GIF de démo d'ajout du fichier actuel" width="500">
 
-You can send voice commands to Aider using Whisper
+Vous pouvez envoyer des commandes vocales à Aider en utilisant Whisper
 
-<img src="./demo/aider_voice.gif" alt="Voice input Demo GIF" width="500">
+<img src="./demo/aider_voice.gif" alt="GIF de démo d'entrée vocale" width="500">
 
-## Requirements
+## Prérequis
 
 - [aider](https://github.com/paul-gauthier/aider)
 - [denops.vim](https://github.com/vim-denops/denops.vim)
 
-## Settings
+## Paramètres
 
 ### vimscript
 
-Please add the following settings to your vimrc or init.vim.
+Veuillez ajouter les paramètres suivants à votre vimrc ou init.vim.
 
 ```vim
-" aider.vim settings
+" Paramètres aider.vim
 ex.
-" Aider command configuration
+" Configuration de la commande Aider
 let g:aider_command = 'aider --no-auto-commits'
 
-" Floating window settings
+" Paramètres de la fenêtre flottante
 let g:aider_buffer_open_type = 'floating'
 let g:aider_floatwin_width = 100
 let g:aider_floatwin_height = 20
 let g:aider_floatwin_border = "double"
 let g:aider_floatwin_border_style = "minimal"
 
-" Additional prompt setting
+" Paramètre de prompt additionnel
 let g:aider_additional_prompt = [
-  "Your additional prompt here",
-  "This will be displayed in the floating window when using visual mode selections",
-  "You can see and edit it before sending to aider",
+  "Votre prompt additionnel ici",
+  "Ceci sera affiché dans la fenêtre flottante lors de l'utilisation des sélections en mode visuel",
+  "Vous pouvez le voir et l'éditer avant de l'envoyer à aider",
 ]
 
-" Key mappings
+" Mappages de touches
 nnoremap <silent> <leader>at :AiderRun<CR>
-" Add current file to Aider
+" Ajouter le fichier actuel à Aider
 nnoremap <silent> <leader>aa :AiderAddCurrentFile<CR>
-" Add current file as read-only to Aider
+" Ajouter le fichier actuel en lecture seule à Aider
 nnoremap <silent> <leader>ar :AiderAddCurrentFileReadOnly<CR>
-" Add Aider web interface
+" Ajouter l'interface web d'Aider
 nnoremap <silent> <leader>aw :AiderAddWeb<CR>
-" Exit Aider
+" Quitter Aider
 nnoremap <silent> <leader>ax :AiderExit<CR>
-" Add current file to Aider ignore list
+" Ajouter le fichier actuel à la liste d'ignore d'Aider
 nnoremap <silent> <leader>ai :AiderAddIgnoreCurrentFile<CR>
-" Open Aider ignore list
+" Ouvrir la liste d'ignore d'Aider
 nnoremap <silent> <leader>aI :AiderOpenIgnore<CR>
-" Paste content from clipboard into Aider
+" Coller le contenu du presse-papiers dans Aider
 nnoremap <silent> <leader>ap :AiderPaste<CR>
-" Hide Aider window
+" Masquer la fenêtre Aider
 nnoremap <silent> <leader>ah :AiderHide<CR>
-" Hide Aider window in terminal mode
+" Masquer la fenêtre Aider en mode terminal
 tnoremap <C-x><C-x> <C-\><C-n>:AiderHide<CR>
 vmap <leader>av :AiderVisualTextWithPrompt<CR>
 
-" Autocommand group for Aider
+" Groupe d'autocommandes pour Aider
 augroup AiderOpenGroup
   autocmd!
   autocmd User AiderOpen call s:AiderOpenHandler()
 augroup END
 
 function! s:AiderOpenHandler() abort
-  " Set key mappings for the Aider buffer
+  " Définir les mappages de touches pour le buffer Aider
   tnoremap <buffer> <Esc> <C-\><C-n>
   nnoremap <buffer> <Esc> :AiderHide<CR>
 endfunction
@@ -89,7 +89,7 @@ endfunction
 
 ### lua (lazy.nvim)
 
-Please add the following settings to your lazy settings.
+Veuillez ajouter les paramètres suivants à vos paramètres lazy.
 
 ```lua
 { "nekowasabi/aider.vim"
@@ -123,88 +123,88 @@ Please add the following settings to your lazy settings.
   }
 ```
 
-## Usage
+## Utilisation
 
-To use aider.vim, you can run the following commands within Vim or Neovim:
+Pour utiliser aider.vim, vous pouvez exécuter les commandes suivantes dans Vim ou Neovim :
 
-`All commands with the name "Silent" send commands to aider without moving the focus to the aider buffer.`
+`Toutes les commandes avec le nom "Silent" envoient des commandes à aider sans déplacer le focus vers le buffer aider.`
 
-- `:AiderRun` - Runs aider or display aider window.
-- `:AiderAddCurrentFile` - Adds the current file to aider's context.
-- `:AiderAddCurrentFileReadOnly` - Adds the current file as read-only to aider's
-  context.
-- `:AiderAddBuffers` - Adds all currently open buffers under Git management to
-  aider's context.
-- `:AiderSilentAddCurrentFile` - Without moving the focus to the aider buffer,
-  adds the current file to aider's context and refreshes the buffer.
-- `:AiderSilentAddCurrentFileReadOnly` - Without moving the focus to the aider
-  buffer, adds the current file as read-only to aider's context.
-- `:AiderExit` - Exits aider and cleans up the session.
-- `:AiderVisualTextWithPrompt` - Edit the selected text in visual mode in a
-  floating window and send it to aider. In the floating window, send to aider
-  with `<CR>` in normal mode, and close the floating window with `Q`. You can
-  also backup prompt with `q`.
-- `:AiderAddPartialReadonlyContext` - Adds the selected text in visual mode as
-  read-only context to Aider.
-- `:AiderAddWeb` - Displays a prompt for the specified URL and adds it to the
-  aider context.
-- `:AiderOpenIgnore` - Opens the `.aiderignore` file in the git root directory
-  if it exists.
-- `:AiderAddIgnoreCurrentFile` - Adds the current file to the `.aiderignore`.
-- `:AiderSendPromptByCommandline <prompt>` - Sends a prompt from the command
-  line and displays the Aider window.
-- `:AiderSilentSendPromptByCommandline <prompt>` - Sends a prompt from the
-  command line and refreshes the buffer.
-- `:AiderAsk <question>` - Sends a question to aider without adding any files to
-  the context.
-- `:AiderHide` - Hides the floating window and reloads the buffer.
-- `:AiderPaste` - Pastes the content from the clipboard into the aider context.
-- `:AiderHideVisualSelectFloatingWindow` - Hides the visual selection floating
-  window used for displaying selected text.
-- `:AiderVoice` - Sends voice commands to Aider (using Whisper).
+- `:AiderRun` - Lance aider ou affiche la fenêtre aider.
+- `:AiderAddCurrentFile` - Ajoute le fichier actuel au contexte d'aider.
+- `:AiderAddCurrentFileReadOnly` - Ajoute le fichier actuel en lecture seule au
+  contexte d'aider.
+- `:AiderAddBuffers` - Ajoute tous les buffers actuellement ouverts sous gestion Git au
+  contexte d'aider.
+- `:AiderSilentAddCurrentFile` - Sans déplacer le focus vers le buffer aider,
+  ajoute le fichier actuel au contexte d'aider et actualise le buffer.
+- `:AiderSilentAddCurrentFileReadOnly` - Sans déplacer le focus vers le buffer aider,
+  ajoute le fichier actuel en lecture seule au contexte d'aider.
+- `:AiderExit` - Quitte aider et nettoie la session.
+- `:AiderVisualTextWithPrompt` - Édite le texte sélectionné en mode visuel dans une
+  fenêtre flottante et l'envoie à aider. Dans la fenêtre flottante, envoyez à aider
+  avec `<CR>` en mode normal, et fermez la fenêtre flottante avec `Q`. Vous pouvez
+  aussi sauvegarder le prompt avec `q`.
+- `:AiderAddPartialReadonlyContext` - Ajoute le texte sélectionné en mode visuel comme
+  contexte en lecture seule à Aider.
+- `:AiderAddWeb` - Affiche un prompt pour l'URL spécifiée et l'ajoute au
+  contexte aider.
+- `:AiderOpenIgnore` - Ouvre le fichier `.aiderignore` dans le répertoire racine git
+  s'il existe.
+- `:AiderAddIgnoreCurrentFile` - Ajoute le fichier actuel au `.aiderignore`.
+- `:AiderSendPromptByCommandline <prompt>` - Envoie un prompt depuis la ligne de
+  commande et affiche la fenêtre Aider.
+- `:AiderSilentSendPromptByCommandline <prompt>` - Envoie un prompt depuis la
+  ligne de commande et actualise le buffer.
+- `:AiderAsk <question>` - Envoie une question à aider sans ajouter de fichiers au
+  contexte.
+- `:AiderHide` - Masque la fenêtre flottante et recharge le buffer.
+- `:AiderPaste` - Colle le contenu du presse-papiers dans le contexte aider.
+- `:AiderHideVisualSelectFloatingWindow` - Masque la fenêtre flottante de sélection visuelle
+  utilisée pour afficher le texte sélectionné.
+- `:AiderVoice` - Envoie des commandes vocales à Aider (en utilisant Whisper).
 
-### Advanced Usage
+### Utilisation avancée
 
-If you want to send a custom prompt to Aider, use
-`AiderSendPromptByCommandline`. Set it up as follows:
+Si vous voulez envoyer un prompt personnalisé à Aider, utilisez
+`AiderSendPromptByCommandline`. Configurez-le comme suit :
 
 ```vim
-" Send a prompt to Aider and display the Aider window
+" Envoyer un prompt à Aider et afficher la fenêtre Aider
 :AiderSendPromptByCommandline "/chat-mode architect"
 
-" Send a prompt to Aider but do not display the Aider window
+" Envoyer un prompt à Aider mais ne pas afficher la fenêtre Aider
 :AiderSilentSendPromptByCommandline "/chat-mode code"
 ```
 
-## Additional Prompt
+## Prompt additionnel
 
-You can set an additional prompt that will be automatically added to every
-interaction with aider. This is useful for setting consistent rules or
-guidelines for the AI.
+Vous pouvez définir un prompt additionnel qui sera automatiquement ajouté à chaque
+interaction avec aider. Ceci est utile pour définir des règles ou des
+directives cohérentes pour l'IA.
 
-To use this feature, set the `g:aider_additional_prompt` variable in your vimrc
-or init.vim:
+Pour utiliser cette fonctionnalité, définissez la variable `g:aider_additional_prompt` dans votre vimrc
+ou init.vim :
 
 ```vim
 let g:aider_additional_prompt = [
-  "Your additional prompt here",
-  "This will be displayed in the floating window when using visual mode selections",
-  "You can see and edit it before sending to aider",
+  "Votre prompt additionnel ici",
+  "Ceci sera affiché dans la fenêtre flottante lors de l'utilisation des sélections en mode visuel",
+  "Vous pouvez le voir et l'éditer avant de l'envoyer à aider",
 ]
 ```
 
-This prompt will be displayed in the floating window when using visual mode
-selections, allowing you to see and edit it before sending to aider.
+Ce prompt sera affiché dans la fenêtre flottante lors de l'utilisation des sélections en mode
+visuel, vous permettant de le voir et de l'éditer avant de l'envoyer à aider.
 
-## ddu Source
+## Source ddu
 
-aider.vim provides a ddu source and kind, which allows you to easily select
-files from your git repository and add them to the aider context.
+aider.vim fournit une source et un type ddu, qui vous permet de sélectionner facilement
+des fichiers de votre dépôt git et de les ajouter au contexte aider.
 
-To use this feature, you need to have
-[ddu.vim](https://github.com/Shougo/ddu.vim) installed.
+Pour utiliser cette fonctionnalité, vous devez avoir
+[ddu.vim](https://github.com/Shougo/ddu.vim) installé.
 
-Here's an example configuration for your ddu settings:
+Voici un exemple de configuration pour vos paramètres ddu :
 
 ```vim
 call ddu#custom#patch_global({
@@ -223,14 +223,14 @@ nnoremap <silent> <Leader>ad
       \ <Cmd>call ddu#start({'sources': [{'name': 'aider'}]})<CR>
 ```
 
-With this configuration, you can press `<leader>ad` to open ddu with the aider
-source. You can then select files and press `<CR>` to add them to the aider
-context.
+Avec cette configuration, vous pouvez appuyer sur `<leader>ad` pour ouvrir ddu avec la source
+aider. Vous pouvez ensuite sélectionner des fichiers et appuyer sur `<CR>` pour les ajouter au
+contexte aider.
 
-### DEMO
+### DÉMO
 
-<img src="./demo/aider_ddu_integration.gif" alt="Ddu Integration Demo GIF" width="500">
+<img src="./demo/aider_ddu_integration.gif" alt="GIF de démo d'intégration Ddu" width="500">
 
-## Acknowledgements
+## Remerciements
 
-Aider CLI tool created by [Paul Gauthier](https://github.com/paul-gauthier).
+Outil CLI Aider créé par [Paul Gauthier](https://github.com/paul-gauthier).
