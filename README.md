@@ -6,6 +6,8 @@ aaa
 
 bbbb
 
+lkjljl
+
 Minimal helper plugin for [aider](https://github.com/Aider-AI/aider) with
 neovim.
 
