@@ -1,11 +1,5 @@
 # aider.vim
 
-aaa
-
-bbb
-
-ccc
-
 Minimal helper plugin for [aider](https://github.com/Aider-AI/aider) with
 neovim.
 
