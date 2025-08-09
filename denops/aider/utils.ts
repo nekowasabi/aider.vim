@@ -48,3 +48,44 @@ export async function getBufferName(
   const bufname = await fn.bufname(denops, bufnr);
   return ensure(bufname, is.String);
 }
+
+/**
+ * Returns the recorded tmux pane id if present and non-empty.
+ */
+export async function getRegisteredTmuxPaneId(
+  denops: Denops,
+): Promise<string | undefined> {
+  const paneId = maybe(await v.g.get(denops, "aider_tmux_pane_id"), is.String);
+  if (paneId && paneId.length > 0) {
+    return paneId;
+  }
+  return undefined;
+}
+
+/**
+ * Returns the active tmux pane id if it is recorded and still exists.
+ * If tmux existence cannot be verified (no tmux binary or not in tmux),
+ * returns the recorded id to avoid breaking tests or non-tmux paths.
+ */
+export async function getActiveTmuxPaneId(
+  denops: Denops,
+): Promise<string | undefined> {
+  const paneId = await getRegisteredTmuxPaneId(denops);
+  if (!paneId) return undefined;
+
+  const inTmux = (await denops.call("exists", "$TMUX")) === 1;
+  const hasTmuxBinary = inTmux && (await fn.executable(denops, "tmux")) === 1;
+  if (!hasTmuxBinary) {
+    return paneId;
+  }
+
+  try {
+    const output = String(
+      await denops.call("system", "tmux list-panes -F '#{pane_id}'"),
+    );
+    const panes = output.trim().split("\n").filter(Boolean);
+    return panes.includes(String(paneId)) ? paneId : undefined;
+  } catch {
+    return undefined;
+  }
+}

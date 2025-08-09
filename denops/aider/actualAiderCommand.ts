@@ -4,6 +4,7 @@ import * as v from "https://deno.land/x/denops_std@v6.5.1/variable/mod.ts";
 import { ensure, is, maybe } from "https://deno.land/x/unknownutil@v3.18.1/mod.ts";
 import type { AiderCommand } from "./aiderCommand.ts";
 import * as util from "./utils.ts";
+import { getActiveTmuxPaneId, getRegisteredTmuxPaneId } from "./utils.ts";
 
 export const commands: AiderCommand = {
   run,
@@ -94,10 +95,7 @@ async function sendPrompt(
   prompt: string,
 ): Promise<undefined> {
   // If tmux pane is registered, paste the prompt into the pane and send Enter
-  const paneId = maybe(
-    await v.g.get(denops, "aider_tmux_pane_id"),
-    is.String,
-  );
+  const paneId = await getRegisteredTmuxPaneId(denops);
   if (paneId) {
     // Write prompt to a temp file to preserve newlines
     const tempFile = await Deno.makeTempFile({ prefix: "aider_prompt_" });
@@ -131,10 +129,7 @@ async function exit(
   bufnr: number,
 ): Promise<undefined> {
   // If tmux pane is registered, send exit command to that pane
-  const paneId = maybe(
-    await v.g.get(denops, "aider_tmux_pane_id"),
-    is.String,
-  );
+  const paneId = await getActiveTmuxPaneId(denops);
   if (paneId) {
     await denops.call(
       "system",
