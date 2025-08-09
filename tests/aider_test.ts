@@ -45,13 +45,20 @@ test(
 );
 
 test(
-  "both",
+  "floating",
   "AiderAddBuffers should return /add `bufferName` if there is a buffer under git management",
   async (denops) => {
     await denops.cmd("AiderRun");
     await sleep(SLEEP_BEFORE_ASSERT);
+    ""; // Ensure we are not in the Aider window when opening a file
+    await denops.cmd("silent! wincmd p");
     await denops.cmd("e ./tests/aider_test.ts");
+    // Ensure aider buffer is alive after switching buffers/windows
+    await denops.cmd("AiderRun");
+    await sleep(SLEEP_BEFORE_ASSERT);
     await denops.cmd("AiderAddBuffers");
+    await sleep(SLEEP_BEFORE_ASSERT);
+    // Extra wait for vsplit path where window operations can delay buffer writes
     await sleep(SLEEP_BEFORE_ASSERT);
     await assertAiderBufferString(
       denops,

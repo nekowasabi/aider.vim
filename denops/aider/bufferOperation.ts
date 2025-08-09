@@ -53,6 +53,12 @@ export async function exitAiderBuffer(denops: Denops): Promise<void> {
       aider().exit(denops, jobId, bufnr);
     }
   }
+
+  // Also handle tmux pane session if present
+  const tmuxPaneId = await v.g.get(denops, "aider_tmux_pane_id");
+  if (typeof tmuxPaneId === "string" && tmuxPaneId.length > 0) {
+    await aider().exit(denops, 0, 0);
+  }
 }
 
 /**
@@ -86,10 +92,24 @@ export async function openAiderBuffer(
   }
 
   if (openBufferType === "split" || openBufferType === "vsplit") {
-    if (aiderBuf === undefined) {
-      await denops.cmd(openBufferType);
+    // If inside tmux, try to reattach the hidden aider pane first
+    const inTmux = (await denops.call("exists", "$TMUX")) === 1;
+    if (inTmux) {
+      const tmuxPaneId = await v.g.get(denops, "aider_tmux_pane_id");
+      if (typeof tmuxPaneId === "string" && tmuxPaneId.length > 0) {
+        // Try to join the aider pane (source) back to the current window
+        await denops.call(
+          "system",
+          `tmux join-pane -s ${tmuxPaneId} ${openBufferType === "vsplit" ? "-h" : "-v"} 2>/dev/null || true`,
+        );
+        return;
+      }
     } else {
-      await openSplitWindow(denops);
+      if (aiderBuf === undefined) {
+        await denops.cmd(openBufferType);
+      } else {
+        await openSplitWindow(denops);
+      }
     }
     await aider().run(denops);
     return;
@@ -138,7 +158,9 @@ export async function sendPrompt(
   opts = { openBuf: true },
 ): Promise<void> {
   const aiderBuf = await getAiderBuffer(denops);
-  if (aiderBuf === undefined) {
+  const tmuxPaneId = await v.g.get(denops, "aider_tmux_pane_id");
+  const isTmuxActive = typeof tmuxPaneId === "string" && tmuxPaneId.length > 0;
+  if (aiderBuf === undefined && !isTmuxActive) {
     await denops.cmd("echo 'Aider is not running'");
     await denops.cmd("AiderRun");
     return;
@@ -191,7 +213,9 @@ export async function openFloatingWindowWithSelectedCode(
   );
   const aiderBuf = await getAiderBuffer(denops);
   if (openBufferType !== "floating") {
-    if (aiderBuf === undefined) {
+    const tmuxPaneId = await v.g.get(denops, "aider_tmux_pane_id");
+    const isTmuxActive = typeof tmuxPaneId === "string" && tmuxPaneId.length > 0;
+    if (aiderBuf === undefined && !isTmuxActive) {
       await denops.cmd("echo 'Aider is not running'");
       await denops.cmd("AiderRun");
       return;
@@ -483,12 +507,19 @@ async function sendPromptFromSplitWindow(
   prompt: string,
 ): Promise<void> {
   const aiderBuf = await getAiderBuffer(denops);
-  if (aiderBuf === undefined) {
+  const tmuxPaneId = await v.g.get(denops, "aider_tmux_pane_id");
+  const isTmuxActive = typeof tmuxPaneId === "string" && tmuxPaneId.length > 0;
+  if (!isTmuxActive && aiderBuf === undefined) {
+    return;
+  }
+
+  if (isTmuxActive) {
+    await aider().sendPrompt(denops, 0, prompt);
     return;
   }
 
   if ((await v.g.get(denops, "aider_buffer_open_type")) !== "floating") {
-    await denops.cmd(`${aiderBuf.winnr}wincmd w`);
+    await denops.cmd(`${aiderBuf!.winnr}wincmd w`);
   } else {
     const totalWindows = ensure<number>(
       await denops.call("winnr", "$"),
@@ -506,7 +537,7 @@ async function sendPromptFromSplitWindow(
       }
     }
   }
-  await aider().sendPrompt(denops, aiderBuf.jobId, prompt);
+  await aider().sendPrompt(denops, aiderBuf!.jobId, prompt);
 }
 
 type AiderBuffer = {
