@@ -84,7 +84,16 @@ jobs:
 
             - name: Perform pre-cache
               run: |
-                  deno cache $"($env.DENOPS_TEST_DENOPS_PATH)/denops/@denops-private/mod.ts"
+                  let denops_root = $env.DENOPS_TEST_DENOPS_PATH
+                  let conf1 = $"($denops_root)/deno.json"
+                  let conf2 = $"($denops_root)/deno.jsonc"
+                  if ($conf1 | path exists) {
+                      deno cache --config $conf1 $"($denops_root)/denops/@denops-private/mod.ts"
+                  } else if ($conf2 | path exists) {
+                      deno cache --config $conf2 $"($denops_root)/denops/@denops-private/mod.ts"
+                  } else {
+                      deno cache $"($denops_root)/denops/@denops-private/mod.ts"
+                  }
                   deno cache ./denops/aider/main.ts
 
             - name: Run tests
