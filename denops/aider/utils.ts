@@ -73,7 +73,7 @@ export async function getActiveTmuxPaneId(
   const paneId = await getRegisteredTmuxPaneId(denops);
   if (!paneId) return undefined;
 
-  const inTmux = (await denops.call("exists", "$TMUX")) === 1;
+  const inTmux = await isInTmux(denops);
   const hasTmuxBinary = inTmux && (await fn.executable(denops, "tmux")) === 1;
   if (!hasTmuxBinary) {
     return paneId;
@@ -87,5 +87,32 @@ export async function getActiveTmuxPaneId(
     return panes.includes(String(paneId)) ? paneId : undefined;
   } catch {
     return undefined;
+  }
+}
+
+/**
+ * Checks if the current environment is inside a tmux session.
+ */
+export async function isInTmux(denops: Denops): Promise<boolean> {
+  return (await denops.call("exists", "$TMUX")) === 1;
+}
+
+/**
+ * Checks if a tmux pane is active (has a valid pane ID).
+ */
+export async function isTmuxPaneActive(
+  denops: Denops,
+): Promise<boolean> {
+  const paneId = await getRegisteredTmuxPaneId(denops);
+  return typeof paneId === "string" && paneId.length > 0;
+}
+
+/**
+ * Clears the tmux pane ID from the global variable.
+ */
+export async function clearTmuxPaneId(denops: Denops): Promise<void> {
+  const exists = await denops.call("exists", "g:aider_tmux_pane_id");
+  if (exists === 1) {
+    await v.g.remove(denops, "aider_tmux_pane_id");
   }
 }

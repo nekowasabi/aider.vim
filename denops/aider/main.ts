@@ -4,7 +4,7 @@ import type { Denops } from "https://deno.land/x/denops_std@v6.5.1/mod.ts";
 import * as v from "https://deno.land/x/denops_std@v6.5.1/variable/mod.ts";
 import * as buffer from "./bufferOperation.ts";
 import type { BufferLayout } from "./bufferOperation.ts";
-import { getActiveTmuxPaneId, getCurrentFilePath } from "./utils.ts";
+import { getActiveTmuxPaneId, getCurrentFilePath, isTmuxPaneActive, clearTmuxPaneId } from "./utils.ts";
 
 /**
  * The main function that sets up the Aider plugin functionality.
@@ -165,8 +165,8 @@ export async function main(denops: Denops): Promise<void> {
 
     await command("hide", "0", async () => {
       // If tmux pane is used, detach (hide) the pane to a separate window
-      const tmuxPaneId = await v.g.get(denops, "aider_tmux_pane_id");
-      if (typeof tmuxPaneId === "string" && tmuxPaneId.length > 0) {
+      if (await isTmuxPaneActive(denops)) {
+        const tmuxPaneId = await v.g.get(denops, "aider_tmux_pane_id");
         await denops.call(
           "system",
           `tmux break-pane -d -s ${tmuxPaneId}`,

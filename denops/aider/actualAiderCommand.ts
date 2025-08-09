@@ -4,7 +4,7 @@ import * as v from "https://deno.land/x/denops_std@v6.5.1/variable/mod.ts";
 import { ensure, is, maybe } from "https://deno.land/x/unknownutil@v3.18.1/mod.ts";
 import type { AiderCommand } from "./aiderCommand.ts";
 import * as util from "./utils.ts";
-import { getActiveTmuxPaneId, getRegisteredTmuxPaneId } from "./utils.ts";
+import { getActiveTmuxPaneId, getRegisteredTmuxPaneId, isInTmux, clearTmuxPaneId } from "./utils.ts";
 
 export const commands: AiderCommand = {
   run,
@@ -43,8 +43,7 @@ async function run(denops: Denops): Promise<undefined> {
   ) ?? "floating";
 
   // If running inside tmux and openType is split/vsplit, create a new tmux pane and run aider there
-  const inTmux = (await denops.call("exists", "$TMUX")) === 1;
-  if (inTmux && (openType === "split" || openType === "vsplit")) {
+  if ((await isInTmux(denops)) && (openType === "split" || openType === "vsplit")) {
     const splitFlag = openType === "vsplit" ? "-h" : "-v";
 
     // Resolve the user's shell and execute the aider command via `$SHELL -lc` to
@@ -138,10 +137,7 @@ async function exit(
     // Optionally kill the pane after sending exit
     await denops.call("system", `tmux kill-pane -t ${paneId}`);
     // Remove global to avoid stale pane references
-    const exists = await denops.call("exists", "g:aider_tmux_pane_id");
-    if (exists === 1) {
-      await v.g.remove(denops, "aider_tmux_pane_id");
-    }
+    await clearTmuxPaneId(denops);
     return;
   }
 
