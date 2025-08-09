@@ -143,7 +143,7 @@ async function exit(
     // Optionally kill the pane after sending exit
     await denops.call("system", `tmux kill-pane -t ${paneId}`);
     // Remove global to avoid stale pane references
-    await v.g.del(denops, "aider_tmux_pane_id");
+    await v.g.remove(denops, "aider_tmux_pane_id");
     return;
   }
 

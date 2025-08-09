@@ -59,7 +59,7 @@ export async function exitAiderBuffer(denops: Denops): Promise<void> {
   if (typeof tmuxPaneId === "string" && tmuxPaneId.length > 0) {
     await aider().exit(denops, 0, 0);
     // Clear stale tmux pane id just in case
-    await v.g.del(denops, "aider_tmux_pane_id");
+    await v.g.remove(denops, "aider_tmux_pane_id");
   }
 }
 
