@@ -58,8 +58,11 @@ export async function exitAiderBuffer(denops: Denops): Promise<void> {
   const tmuxPaneId = await v.g.get(denops, "aider_tmux_pane_id");
   if (typeof tmuxPaneId === "string" && tmuxPaneId.length > 0) {
     await aider().exit(denops, 0, 0);
-    // Clear stale tmux pane id just in case
-    await v.g.remove(denops, "aider_tmux_pane_id");
+    // Ensure the global variable is cleared even in test/mock mode
+    const varExists = await denops.call("exists", "g:aider_tmux_pane_id");
+    if (varExists === 1) {
+      await v.g.remove(denops, "aider_tmux_pane_id");
+    }
   }
 }
 
