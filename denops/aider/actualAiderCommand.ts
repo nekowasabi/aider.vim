@@ -1,7 +1,7 @@
 import { emit } from "https://deno.land/x/denops_std@v6.5.1/autocmd/mod.ts";
 import type { Denops } from "https://deno.land/x/denops_std@v6.5.1/mod.ts";
 import * as v from "https://deno.land/x/denops_std@v6.5.1/variable/mod.ts";
-import { ensure, is } from "https://deno.land/x/unknownutil@v3.18.1/mod.ts";
+import { ensure, is, maybe } from "https://deno.land/x/unknownutil@v3.18.1/mod.ts";
 import type { AiderCommand } from "./aiderCommand.ts";
 import * as util from "./utils.ts";
 
@@ -34,6 +34,49 @@ async function run(denops: Denops): Promise<undefined> {
     await v.g.get(denops, "aider_command"),
     is.String,
   );
+
+  // Detect buffer open type to decide between Vim terminal and tmux pane
+  const openType = maybe(
+    await v.g.get(denops, "aider_buffer_open_type"),
+    is.LiteralOneOf(["split", "vsplit", "floating"] as const),
+  ) ?? "floating";
+
+  // If running inside tmux and openType is split/vsplit, create a new tmux pane and run aider there
+  const inTmux = (await denops.call("exists", "$TMUX")) === 1;
+  if (inTmux && (openType === "split" || openType === "vsplit")) {
+    const splitFlag = openType === "vsplit" ? "-h" : "-v";
+
+    // Resolve the user's shell and execute the aider command via `$SHELL -lc` to
+    // ensure login/interactive environments (PATH, rcs) are loaded.
+    const shellPath = (await denops.call("expand", "$SHELL")) as string | undefined;
+    const safeShell = shellPath && shellPath.length > 0 ? shellPath : "/bin/sh";
+
+    // Escape double quotes in the command to embed into a double-quoted string
+    const escapedAiderCmd = aiderCommand.replaceAll('"', '\\"');
+
+    // Use single quotes for tmux format string to avoid shell interpolation
+    const cmd = [
+      "tmux",
+      "split-window",
+      "-P",
+      "-F",
+      "'#{pane_id}'",
+      splitFlag,
+      safeShell,
+      "-lc",
+      `"${escapedAiderCmd}"`,
+    ].join(" ");
+
+    const paneId = ensure(await denops.call("system", cmd), is.String).trim();
+
+    if (paneId) {
+      await v.g.set(denops, "aider_tmux_pane_id", paneId);
+      await emit(denops, "User", "AiderOpen");
+      return;
+    }
+    // Fallback to Vim terminal if tmux split failed
+  }
+
   await denops.cmd(`terminal ${aiderCommand}`);
   await emit(denops, "User", "AiderOpen");
 }
@@ -50,9 +93,36 @@ async function sendPrompt(
   jobId: number,
   prompt: string,
 ): Promise<undefined> {
-  const promptLines = prompt.split("\n");
-  const joined = promptLines.join("\x1b\x0d"); // use Esc + Ctrl-M instead of \n to avoid submit cf. https://github.com/Aider-AI/aider/issues/901
-  await denops.call("chansend", jobId, `${joined}\n`);
+  // If tmux pane is registered, paste the prompt into the pane and send Enter
+  const paneId = maybe(
+    await v.g.get(denops, "aider_tmux_pane_id"),
+    is.String,
+  );
+  if (paneId) {
+    // Write prompt to a temp file to preserve newlines
+    const tempFile = await Deno.makeTempFile({ prefix: "aider_prompt_" });
+    await Deno.writeTextFile(tempFile, prompt);
+
+    // Load the buffer and paste to the pane with bracketed paste, then press Enter
+    await denops.call(
+      "system",
+      `tmux load-buffer -b aider_prompt ${tempFile} && tmux paste-buffer -t ${paneId} -b aider_prompt -p && tmux delete-buffer -b aider_prompt && tmux send-keys -t ${paneId} C-m`,
+    );
+
+    try {
+      await Deno.remove(tempFile);
+    } catch (_) {
+      // ignore
+    }
+    return;
+  }
+
+  // Use terminal bracketed paste to send multi-line input safely,
+  // then submit with a single Enter.
+  const bracketedStart = "\x1b[200~";
+  const bracketedEnd = "\x1b[201~";
+  await denops.call("chansend", jobId, `${bracketedStart}${prompt}${bracketedEnd}`);
+  await denops.call("chansend", jobId, "\n");
 }
 
 async function exit(
@@ -60,6 +130,23 @@ async function exit(
   jobId: number,
   bufnr: number,
 ): Promise<undefined> {
+  // If tmux pane is registered, send exit command to that pane
+  const paneId = maybe(
+    await v.g.get(denops, "aider_tmux_pane_id"),
+    is.String,
+  );
+  if (paneId) {
+    await denops.call(
+      "system",
+      `tmux send-keys -t ${paneId} "/exit" C-m`,
+    );
+    // Optionally kill the pane after sending exit
+    await denops.call("system", `tmux kill-pane -t ${paneId}`);
+    // Remove global to avoid stale pane references
+    await v.g.remove(denops, "aider_tmux_pane_id");
+    return;
+  }
+
   if (jobId !== 0) {
     await denops.call("chansend", jobId, "/exit\n");
   }

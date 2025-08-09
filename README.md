@@ -38,7 +38,9 @@ ex.
 " Aider command configuration
 let g:aider_command = 'aider --no-auto-commits'
 
-" Floating window settings
+" Where to show Aider
+" - 'floating': Neovim floating window (inside Neovim)
+" - 'vsplit'/'split': If inside tmux, Aider opens in a tmux pane
 let g:aider_buffer_open_type = 'floating'
 let g:aider_floatwin_width = 100
 let g:aider_floatwin_height = 20
@@ -96,6 +98,8 @@ Please add the following settings to your lazy settings.
   , dependencies = "vim-denops/denops.vim"
   , config = function()
     vim.g.aider_command = 'aider --no-auto-commits'
+    -- Where to show Aider
+    -- 'floating': inside Neovim. 'vsplit'/'split': if inside tmux, use a tmux pane
     vim.g.aider_buffer_open_type = 'floating'
     vim.g.aider_floatwin_width = 100
     vim.g.aider_floatwin_height = 20
@@ -116,7 +120,7 @@ Please add the following settings to your lazy settings.
     vim.api.nvim_set_keymap('n', '<leader>ax', ':AiderExit<CR>', { noremap = true, silent = true })
     vim.api.nvim_set_keymap('n', '<leader>ai', ':AiderAddIgnoreCurrentFile<CR>', { noremap = true, silent = true })
     vim.api.nvim_set_keymap('n', '<leader>aI', ':AiderOpenIgnore<CR>', { noremap = true, silent = true })
-    vim.api.nvim_set_keymap('n', '<leader>aI', ':AiderPaste<CR>', { noremap = true, silent = true })
+    vim.api.nvim_set_keymap('n', '<leader>ap', ':AiderPaste<CR>', { noremap = true, silent = true })
     vim.api.nvim_set_keymap('n', '<leader>ah', ':AiderHide<CR>', { noremap = true, silent = true })
     vim.api.nvim_set_keymap('v', '<leader>av', ':AiderVisualTextWithPrompt<CR>', { noremap = true, silent = true })
   end
@@ -129,7 +133,9 @@ To use aider.vim, you can run the following commands within Vim or Neovim:
 
 `All commands with the name "Silent" send commands to aider without moving the focus to the aider buffer.`
 
-- `:AiderRun` - Runs aider or display aider window.
+- `:AiderRun` - Runs aider or displays the Aider UI.
+  - If inside tmux and `g:aider_buffer_open_type` is `split`/`vsplit`, a tmux pane is created.
+  - If a tmux pane for Aider already exists, it will be re-attached and shown.
 - `:AiderAddCurrentFile` - Adds the current file to aider's context.
 - `:AiderAddCurrentFileReadOnly` - Adds the current file as read-only to aider's
   context.
@@ -157,11 +163,24 @@ To use aider.vim, you can run the following commands within Vim or Neovim:
   command line and refreshes the buffer.
 - `:AiderAsk <question>` - Sends a question to aider without adding any files to
   the context.
-- `:AiderHide` - Hides the floating window and reloads the buffer.
+- `:AiderHide` - Hides the Aider UI.
+  - Floating mode: closes the floating window and reloads the buffer.
+  - tmux mode: detaches the Aider pane from the current window (keeps session alive).
 - `:AiderPaste` - Pastes the content from the clipboard into the aider context.
 - `:AiderHideVisualSelectFloatingWindow` - Hides the visual selection floating
   window used for displaying selected text.
 - `:AiderVoice` - Sends voice commands to Aider (using Whisper).
+
+### tmux integration
+
+When running inside tmux and `g:aider_buffer_open_type` is `split` or `vsplit`:
+
+- Aider opens in a tmux pane instead of a Neovim window.
+- `:AiderRun` re-attaches an existing Aider pane to the current tmux window if it exists; otherwise, it creates a new pane and launches Aider using your `$SHELL -lc` so your shell profile is respected.
+- `:AiderHide` detaches the Aider tmux pane from the current window (pane stays alive and can be re-attached later by `:AiderRun`).
+- Prompts, including multi-line ones, are sent to the Aider tmux pane with bracketed paste for reliability.
+
+Note: Since the UI lives in the tmux pane, Aider output will not appear in a Neovim buffer in this mode. Use `floating` to keep the UI inside Neovim.
 
 ### Advanced Usage
 

@@ -1,6 +1,8 @@
 .aider*
 csd.txt
 .env
+.github/..keep
+deno.lock
 .vim/*
 .vim
 CONVENTION.md
