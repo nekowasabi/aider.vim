@@ -35,7 +35,7 @@ jobs:
                 runner:
                     - ubuntu-latest
                 deno_version:
-                    - "1.x"
+                    - "2.x"
                 host_version:
                     - nvim: "v0.10.0"
 
@@ -51,7 +51,7 @@ jobs:
 
             - uses: actions/checkout@v4
 
-            - uses: denoland/setup-deno@v1
+            - uses: denoland/setup-deno@v2
               with:
                   deno-version: ${{ matrix.deno_version }}
 
