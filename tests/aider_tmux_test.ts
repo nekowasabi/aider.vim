@@ -63,3 +63,20 @@ test("vsplit", "tmux: AiderAddCurrentFile should work", async (denops) => {
   // Just ensure no error and buffer remains alive in tmux mode
   await assertAiderBufferAlive(denops);
 });
+
+test("vsplit", "tmux: AiderExit should clean up pane without buffer", async (denops) => {
+  await denops.cmd("let $TMUX = '1'");
+  // Simulate a previously created tmux pane id
+  await denops.cmd("let g:aider_tmux_pane_id = '%%pane%%'");
+
+  // Ensure there is no aider buffer (mock exit would have deleted it if existed)
+  // Directly call exit; should remove pane id without throwing
+  await denops.cmd("AiderExit");
+  await sleep(SLEEP);
+
+  // Verify aide tmux pane id is cleared
+  const hasPane = await denops.call("exists", "g:aider_tmux_pane_id");
+  if (hasPane === 1) {
+    throw new Error("tmux pane id should be cleared by AiderExit");
+  }
+});

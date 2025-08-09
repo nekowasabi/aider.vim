@@ -103,7 +103,17 @@ export async function main(denops: Denops): Promise<void> {
     const aiderBuffer = await buffer.getAiderBuffer(denops);
 
     if (!aiderBuffer) {
-      await buffer.prepareAiderBuffer(denops, openBufferType);
+      if (openBufferType === "floating") {
+        await buffer.prepareAiderBuffer(denops, openBufferType);
+      } else {
+        // In tmux split/vsplit mode, avoid re-attaching the pane (which changes layout)
+        const tmuxPaneId = await v.g.get(denops, "aider_tmux_pane_id");
+        const hasTmuxPane =
+          typeof tmuxPaneId === "string" && tmuxPaneId.length > 0;
+        if (!hasTmuxPane) {
+          await buffer.prepareAiderBuffer(denops, openBufferType);
+        }
+      }
     }
 
     if (await buffer.checkIfTerminalBuffer(denops, currentBufnr)) {
@@ -276,10 +286,7 @@ export async function main(denops: Denops): Promise<void> {
     ),
 
     await command("exit", "0", async () => {
-      const aiderBuffer = await buffer.getAiderBuffer(denops);
-      if (aiderBuffer) {
-        buffer.exitAiderBuffer(denops);
-      }
+      await buffer.exitAiderBuffer(denops);
     }),
 
     await command(
