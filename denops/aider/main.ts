@@ -103,7 +103,36 @@ export async function main(denops: Denops): Promise<void> {
     const aiderBuffer = await buffer.getAiderBuffer(denops);
 
     if (!aiderBuffer) {
-      await buffer.prepareAiderBuffer(denops, openBufferType);
+      if (openBufferType === "floating") {
+        await buffer.prepareAiderBuffer(denops, openBufferType);
+      } else {
+        // In tmux split/vsplit mode, avoid re-attaching the pane (which changes layout)
+        const tmuxPaneId = await v.g.get(denops, "aider_tmux_pane_id");
+        let hasTmuxPane =
+          typeof tmuxPaneId === "string" && tmuxPaneId.length > 0;
+
+        // Verify the recorded pane still exists when possible
+        if (hasTmuxPane) {
+          const inTmux = (await denops.call("exists", "$TMUX")) === 1;
+          const hasTmuxBinary = inTmux && (await fn.executable(denops, "tmux")) === 1;
+          if (hasTmuxBinary) {
+            try {
+              const output = String(
+                await denops.call("system", "tmux list-panes -F '#{pane_id}'"),
+              );
+              const panes = output.trim().split("\n").filter(Boolean);
+              hasTmuxPane = panes.includes(String(tmuxPaneId));
+            } catch (_) {
+              // If the check fails, assume pane is gone and fall back to prepare
+              hasTmuxPane = false;
+            }
+          }
+        }
+
+        if (!hasTmuxPane) {
+          await buffer.prepareAiderBuffer(denops, openBufferType);
+        }
+      }
     }
 
     if (await buffer.checkIfTerminalBuffer(denops, currentBufnr)) {
@@ -276,10 +305,7 @@ export async function main(denops: Denops): Promise<void> {
     ),
 
     await command("exit", "0", async () => {
-      const aiderBuffer = await buffer.getAiderBuffer(denops);
-      if (aiderBuffer) {
-        buffer.exitAiderBuffer(denops);
-      }
+      await buffer.exitAiderBuffer(denops);
     }),
 
     await command(
