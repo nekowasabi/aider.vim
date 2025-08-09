@@ -58,6 +58,8 @@ export async function exitAiderBuffer(denops: Denops): Promise<void> {
   const tmuxPaneId = await v.g.get(denops, "aider_tmux_pane_id");
   if (typeof tmuxPaneId === "string" && tmuxPaneId.length > 0) {
     await aider().exit(denops, 0, 0);
+    // Clear stale tmux pane id just in case
+    await v.g.del(denops, "aider_tmux_pane_id");
   }
 }
 
@@ -98,11 +100,12 @@ export async function openAiderBuffer(
       const tmuxPaneId = await v.g.get(denops, "aider_tmux_pane_id");
       if (typeof tmuxPaneId === "string" && tmuxPaneId.length > 0) {
         // Try to join the aider pane (source) back to the current window
-        await denops.call(
-          "system",
-          `tmux join-pane -s ${tmuxPaneId} ${openBufferType === "vsplit" ? "-h" : "-v"} 2>/dev/null || true`,
-        );
-        return;
+        const joinCmd = `tmux join-pane -s ${tmuxPaneId} ${openBufferType === "vsplit" ? "-h" : "-v"}`;
+        const result = await denops.call("system", `${joinCmd} 2>/dev/null; echo $?`);
+        if (String(result).trim() === "0") {
+          return;
+        }
+        // Fallback: if join-pane failed, start a new session
       }
     } else {
       if (aiderBuf === undefined) {

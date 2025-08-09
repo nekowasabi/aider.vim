@@ -50,7 +50,7 @@ test(
   async (denops) => {
     await denops.cmd("AiderRun");
     await sleep(SLEEP_BEFORE_ASSERT);
-    ""; // Ensure we are not in the Aider window when opening a file
+    // Ensure we are not in the Aider window when opening a file
     await denops.cmd("silent! wincmd p");
     await denops.cmd("e ./tests/aider_test.ts");
     // Ensure aider buffer is alive after switching buffers/windows
