@@ -4,7 +4,7 @@ import type { Denops } from "https://deno.land/x/denops_std@v6.5.1/mod.ts";
 import * as v from "https://deno.land/x/denops_std@v6.5.1/variable/mod.ts";
 import * as buffer from "./bufferOperation.ts";
 import type { BufferLayout } from "./bufferOperation.ts";
-import { getCurrentFilePath } from "./utils.ts";
+import { getActiveTmuxPaneId, getCurrentFilePath } from "./utils.ts";
 
 /**
  * The main function that sets up the Aider plugin functionality.
@@ -107,29 +107,8 @@ export async function main(denops: Denops): Promise<void> {
         await buffer.prepareAiderBuffer(denops, openBufferType);
       } else {
         // In tmux split/vsplit mode, avoid re-attaching the pane (which changes layout)
-        const tmuxPaneId = await v.g.get(denops, "aider_tmux_pane_id");
-        let hasTmuxPane =
-          typeof tmuxPaneId === "string" && tmuxPaneId.length > 0;
-
-        // Verify the recorded pane still exists when possible
-        if (hasTmuxPane) {
-          const inTmux = (await denops.call("exists", "$TMUX")) === 1;
-          const hasTmuxBinary = inTmux && (await fn.executable(denops, "tmux")) === 1;
-          if (hasTmuxBinary) {
-            try {
-              const output = String(
-                await denops.call("system", "tmux list-panes -F '#{pane_id}'"),
-              );
-              const panes = output.trim().split("\n").filter(Boolean);
-              hasTmuxPane = panes.includes(String(tmuxPaneId));
-            } catch (_) {
-              // If the check fails, assume pane is gone and fall back to prepare
-              hasTmuxPane = false;
-            }
-          }
-        }
-
-        if (!hasTmuxPane) {
+        const activePaneId = await getActiveTmuxPaneId(denops);
+        if (!activePaneId) {
           await buffer.prepareAiderBuffer(denops, openBufferType);
         }
       }
