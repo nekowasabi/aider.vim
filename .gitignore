@@ -6,3 +6,7 @@ deno.lock
 .vim/*
 .vim
 CONVENTION.md
+
+.mcp.json
+
+MEMO.md

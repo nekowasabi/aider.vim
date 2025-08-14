@@ -10,7 +10,7 @@ import {
   maybe,
 } from "https://deno.land/x/unknownutil@v3.18.1/mod.ts";
 import { aider } from "./aiderCommand.ts";
-import { getCurrentFilePath, getPromptFromVimVariable, isTmuxPaneActive, clearTmuxPaneId, isInTmux, getRegisteredTmuxPaneId } from "./utils.ts";
+import { getCurrentFilePath, getPromptFromVimVariable, isTmuxPaneActive, clearTmuxPaneId, isInTmux, getRegisteredTmuxPaneId, getActiveTmuxPaneId } from "./utils.ts";
 
 /**
  * Enum representing different buffer layout options.
@@ -190,9 +190,24 @@ export async function sendPromptByBuffer(
   await denops.cmd("bdelete!");
 
   if (openBufferType === "floating") {
-    await denops.cmd("AiderRun");
+    // Start aider synchronously to avoid race with async :AiderRun
+    await aider().run(denops);
     await sendPromptFromFloatingWindow(denops, bufferContent);
   } else {
+    // Ensure Aider is running correctly for terminal/tmux layouts before sending.
+    const activePaneId = await getActiveTmuxPaneId(denops);
+    const inTmux = await isInTmux(denops);
+    if (inTmux && !activePaneId) {
+      // If we're in tmux and no active pane is found, force-run to create a pane
+      await clearTmuxPaneId(denops);
+      await aider().run(denops);
+    } else if (!inTmux) {
+      // Not in tmux: ensure a terminal aider buffer exists
+      const aiderBuf = await getAiderBuffer(denops);
+      if (aiderBuf === undefined) {
+        await aider().run(denops);
+      }
+    }
     await sendPromptFromSplitWindow(denops, bufferContent);
   }
 
@@ -506,12 +521,12 @@ async function sendPromptFromSplitWindow(
   prompt: string,
 ): Promise<void> {
   const aiderBuf = await getAiderBuffer(denops);
-  const isTmuxActive = await isTmuxPaneActive(denops);
-  if (!isTmuxActive && aiderBuf === undefined) {
+  const activePaneId = await getActiveTmuxPaneId(denops);
+  if (!activePaneId && aiderBuf === undefined) {
     return;
   }
 
-  if (isTmuxActive) {
+  if (activePaneId) {
     await aider().sendPrompt(denops, 0, prompt);
     return;
   }
