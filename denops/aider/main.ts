@@ -388,6 +388,78 @@ export async function main(denops: Denops): Promise<void> {
       },
       { pattern: "[<f-args>]", complete: "shellcmd" },
     ),
+
+    /**
+     * 単一キーを送信する汎用コマンド
+     * @async
+     * @function
+     * @description
+     * 1. getchar()でユーザー入力を待機
+     * 2. 入力されたキーをAiderに送信
+     * 3. ESCでキャンセル可能
+     */
+    await command("sendKey", "0", async () => {
+      // プロンプト表示
+      await denops.cmd("echo 'Press key to send to Aider: '");
+      
+      // getchar()で文字取得
+      const charCode = await denops.call("getchar") as number;
+      let char: string;
+      
+      // 特殊キーの処理
+      if (charCode === 27) { // ESC
+        await denops.cmd("echo 'Cancelled'");
+        return;
+      } else if (charCode === 13) { // Enter
+        char = "\n";
+      } else {
+        char = String.fromCharCode(charCode);
+      }
+      
+      // 既存のsendPrompt関数で送信
+      await buffer.sendPrompt(denops, char, { openBuf: false });
+      
+      // フィードバック表示
+      await denops.cmd(`echo 'Sent: ${char === "\n" ? "<CR>" : char}'`);
+    }),
+
+    /**
+     * 指定された文字のみを受け付けて送信するコマンド
+     * @async
+     * @function
+     * @param {string} validChars - 受け付ける文字列（例: "ynA"）
+     * @description
+     * 1. 指定された文字のみを受け付ける
+     * 2. 無効な入力時はエラーメッセージ表示
+     * 3. ESCでキャンセル可能
+     */
+    await command(
+      "sendChoice",
+      "1",
+      async (validChars: string) => {
+        const chars = validChars.split("");
+        await denops.cmd(`echo '[${validChars}]? '`);
+        
+        const charCode = await denops.call("getchar") as number;
+        
+        // ESCでキャンセル
+        if (charCode === 27) {
+          await denops.cmd("echo 'Cancelled'");
+          return;
+        }
+        
+        const char = String.fromCharCode(charCode);
+        
+        if (!chars.includes(char)) {
+          await denops.cmd(`echo 'Invalid input. Expected: ${validChars}'`);
+          return;
+        }
+        
+        await buffer.sendPrompt(denops, char, { openBuf: false });
+        await denops.cmd(`echo 'Sent: ${char}'`);
+      },
+      { pattern: "[<f-args>]" },
+    ),
   ];
 
   denops.dispatcher = Object.fromEntries(
